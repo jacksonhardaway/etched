@@ -19,25 +19,25 @@ import java.util.function.Function;
  * @author Jackson
  */
 public class NetworkBridgeImpl {
-    public static <T> void registerClientbound(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
+    public static <T> void playToClient(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
         ClientPlayNetworking.registerGlobalReceiver(channel, (client, handler, buf, responseSender) -> handle.accept(read.apply(buf)));
     }
 
-    public static <T> void registerServerbound(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
+    public static <T> void playToServer(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
         ServerPlayNetworking.registerGlobalReceiver(channel, (server, player, handler, buf, responseSender) -> handle.accept(read.apply(buf), player));
     }
 
-    public static void sendClientbound(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
+    public static void sendToPlayer(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
         ServerPlayNetworking.send(player, channel, packet.write(PacketByteBufs.create()));
     }
 
-    public static void sendClientboundTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
+    public static void sendToTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
         for (ServerPlayer player : PlayerLookup.tracking(tracking)) {
             ServerPlayNetworking.send(player, channel, packet.write(PacketByteBufs.create()));
         }
     }
 
-    public static void sendServerbound(ResourceLocation channel, EtchedPacket packet) {
+    public static void sendToServer(ResourceLocation channel, EtchedPacket packet) {
         ClientPlayNetworking.send(channel, packet.write(PacketByteBufs.create()));
     }
 }

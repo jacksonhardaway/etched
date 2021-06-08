@@ -1,6 +1,7 @@
 package me.jaackson.etched.bridge;
 
 import me.shedaniel.architectury.annotations.ExpectPlatform;
+import net.minecraft.core.Registry;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;

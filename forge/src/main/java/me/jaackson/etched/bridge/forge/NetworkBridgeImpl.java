@@ -30,7 +30,7 @@ public class NetworkBridgeImpl {
             .simpleChannel();
     private static int currentIndex = -1;
 
-    public static <T> void registerClientbound(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
+    public static <T> void playToClient(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
         PLAY.registerMessage(currentIndex++, messageType, write, read, (packet, context) -> {
             NetworkEvent.Context ctx = context.get();
             if (ctx.getDirection().getReceptionSide() == LogicalSide.CLIENT) {
@@ -40,7 +40,7 @@ public class NetworkBridgeImpl {
         }, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
-    public static <T> void registerServerbound(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
+    public static <T> void playToServer(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
         PLAY.registerMessage(currentIndex++, messageType, write, read, (packet, context) -> {
             NetworkEvent.Context ctx = context.get();
             if (ctx.getDirection().getReceptionSide() == LogicalSide.SERVER) {
@@ -57,15 +57,15 @@ public class NetworkBridgeImpl {
         }, Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
-    public static void sendClientbound(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
+    public static void sendToPlayer(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
         PLAY.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
 
-    public static void sendClientboundTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
+    public static void sendToTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
         PLAY.send(PacketDistributor.TRACKING_ENTITY.with(() -> tracking), packet);
     }
 
-    public static void sendServerbound(ResourceLocation channel, EtchedPacket packet) {
+    public static void sendToServer(ResourceLocation channel, EtchedPacket packet) {
         PLAY.sendToServer(packet);
     }
 }

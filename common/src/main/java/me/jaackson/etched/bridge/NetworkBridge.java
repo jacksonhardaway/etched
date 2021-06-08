@@ -18,27 +18,27 @@ import java.util.function.Function;
 public final class NetworkBridge {
 
     @ExpectPlatform
-    public static <T> void registerClientbound(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
+    public static <T> void playToClient(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static <T> void registerServerbound(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
+    public static <T> void playToServer(ResourceLocation channel, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> write, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static void sendClientbound(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
+    public static void sendToPlayer(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static void sendClientboundTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
+    public static void sendToTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static void sendServerbound(ResourceLocation channel, EtchedPacket packet) {
+    public static void sendToServer(ResourceLocation channel, EtchedPacket packet) {
         Platform.safeAssertionError();
     }
 }

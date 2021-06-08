@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "etched",
+  "version": "${version}",
+  "name": "Etched",
+  "description": "Create custom music discs!",
+  "authors": [
+    {
+      "name": "Jackson",
+      "contact": {
+        "homepage": "https://twitter.com/NotJaackson"
+      }
+    },
+    {
+      "name": "Ocelot"
+    }
+  ],
+  "contact": {
+    "homepage": "https://curseforge.com/minecraft/mc-mods/etched",
+    "sources": "https://github.com/JacksonPlayz/etched",
+    "issues": "https://github.com/JacksonPlayz/etched/issues"
+  },
+  "license": "GPLv3",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.jaackson.etched.fabric.EtchedFabric"
+    ],
+    "client": [
+      "me.jaackson.etched.fabric.EtchedFabricClient"
+    ]
+  },
+  "mixins": [
+    "etched-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.16.5"
+  }
+}

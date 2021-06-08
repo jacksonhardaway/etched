@@ -1,0 +1,44 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.0.0"
+}
+
+configurations {
+    shade
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+
+    implementation(project(path: ":common")) { transitive = false }
+    developmentFabric(project(path: ":common")) { transitive = false }
+    shade(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
+}
+
+processResources {
+    inputs.property "version", rootProject.mod_version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": rootProject.mod_version
+    }
+}
+
+jar {
+    classifier "dev"
+}
+
+shadowJar {
+    configurations = [project.configurations.shade]
+    classifier "dev-shadow"
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    classifier "fabric"
+}

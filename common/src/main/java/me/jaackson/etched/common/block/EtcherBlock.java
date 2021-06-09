@@ -19,7 +19,6 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Nullable;
 
 public class EtcherBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
@@ -73,8 +72,7 @@ public class EtcherBlock extends Block implements EntityBlock {
     }
 
     @PlatformOnly(PlatformOnly.FORGE)
-    public boolean hasTileEntity(BlockState state)
-    {
+    public boolean hasTileEntity(BlockState state) {
         return true;
     }
 }

@@ -4,11 +4,9 @@ import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.color.item.ItemColor;
-import net.minecraft.core.Registry;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -57,6 +55,4 @@ public final class RegistryBridge {
         registerItem(name, item.apply(register));
         return register;
     }
-
-
 }

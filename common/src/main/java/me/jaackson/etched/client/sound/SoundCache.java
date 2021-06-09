@@ -4,21 +4,24 @@ import me.jaackson.etched.Etched;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.HttpUtil;
-import net.minecraft.util.ProgressListener;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -70,38 +73,7 @@ public class SoundCache {
                 throw new CompletionException(e);
             }
 
-            CompletableFuture<InputStream> future = HttpUtil.downloadTo(file.toFile(), url, getDownloadHeaders(), 104857600, progressListener != null ? new ProgressListener() {
-                @Override
-                public void progressStartNoAbort(Component component) {
-                }
-
-                @Override
-                public void progressStart(Component component) {
-                }
-
-                @Override
-                public void progressStage(Component component) {
-                    if (component instanceof TranslatableComponent) {
-                        Object[] args = ((TranslatableComponent) component).getArgs();
-                        if (args.length > 0) {
-                            if (args[0] instanceof String && NumberUtils.isCreatable((String) args[0])) {
-                                progressListener.progressStartDownload(NumberUtils.createNumber((String) args[0]).floatValue());
-                            }
-                        } else if (!Files.exists(file)) {
-                            progressListener.progressStartRequest(component);
-                        }
-                    }
-                }
-
-                @Override
-                public void progressStagePercentage(int i) {
-                    progressListener.progressStagePercentage(i);
-                }
-
-                @Override
-                public void stop() {
-                }
-            } : null, Minecraft.getInstance().getProxy()).<InputStream>thenApplyAsync(__ -> {
+            CompletableFuture<InputStream> future = downloadTo(file.toFile(), url, getDownloadHeaders(), 104857600, progressListener, Minecraft.getInstance().getProxy()).<InputStream>thenApplyAsync(__ -> {
                 try {
                     FileInputStream is = new FileInputStream(file.toFile());
                     if (progressListener != null)
@@ -120,10 +92,94 @@ public class SoundCache {
                 DOWNLOADING.remove(url);
                 return stream;
             }, Minecraft.getInstance());
+
             DOWNLOADING.put(url, future);
             return future;
         } finally {
             LOCK.unlock();
         }
+    }
+
+    private static CompletableFuture<?> downloadTo(File file, String string, Map<String, String> map, int i, @Nullable DownloadProgressListener progressListener, Proxy proxy) {
+        return CompletableFuture.supplyAsync(() -> {
+            HttpURLConnection httpURLConnection = null;
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+            if (progressListener != null && !file.exists()) {
+                progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
+            }
+
+            try {
+                try {
+                    byte[] bs = new byte[4096];
+                    URL uRL = new URL(string);
+                    httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
+                    httpURLConnection.setInstanceFollowRedirects(true);
+                    float f = 0.0F;
+                    float g = (float) map.entrySet().size();
+
+                    for (Map.Entry<String, String> entry : map.entrySet()) {
+                        httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
+                        if (progressListener != null)
+                            progressListener.progressStagePercentage((int) (++f / g * 100.0F));
+                    }
+
+                    inputStream = httpURLConnection.getInputStream();
+                    g = (float) httpURLConnection.getContentLength();
+                    int j = httpURLConnection.getContentLength();
+                    if (progressListener != null)
+                        progressListener.progressStartDownload(g / 1000.0F / 1000.0F);
+
+                    if (file.exists()) {
+                        long l = file.length();
+                        if (l == (long) j)
+                            return null;
+
+                        LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", file, j, l);
+                        FileUtils.deleteQuietly(file);
+                    } else if (file.getParentFile() != null) {
+                        file.getParentFile().mkdirs();
+                    }
+
+                    outputStream = new DataOutputStream(new FileOutputStream(file));
+                    if (i > 0 && g > (float) i)
+                        throw new IOException("Filesize is bigger than maximum allowed (file is " + f + ", limit is " + i + ")");
+
+                    int k;
+                    while ((k = inputStream.read(bs)) >= 0) {
+                        f += (float) k;
+                        if (progressListener != null) {
+                            progressListener.progressStagePercentage((int) (f / g * 100.0F));
+                        }
+
+                        if (i > 0 && f > (float) i)
+                            throw new IOException("Filesize was bigger than maximum allowed (got >= " + f + ", limit was " + i + ")");
+
+                        if (Thread.interrupted()) {
+                            LOGGER.error("INTERRUPTED");
+                            return null;
+                        }
+
+                        outputStream.write(bs, 0, k);
+                    }
+                } catch (Throwable var22) {
+                    var22.printStackTrace();
+                    if (httpURLConnection != null) {
+                        InputStream inputStream2 = httpURLConnection.getErrorStream();
+
+                        try {
+                            LOGGER.error(IOUtils.toString(inputStream2, StandardCharsets.UTF_8));
+                        } catch (IOException var21) {
+                            var21.printStackTrace();
+                        }
+                    }
+                }
+
+                return null;
+            } finally {
+                IOUtils.closeQuietly(inputStream);
+                IOUtils.closeQuietly(outputStream);
+            }
+        }, HttpUtil.DOWNLOAD_EXECUTOR);
     }
 }

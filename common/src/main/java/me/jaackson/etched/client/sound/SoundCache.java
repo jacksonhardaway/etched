@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -35,7 +34,7 @@ public class SoundCache {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Path SOUND_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
     private static final ReentrantLock LOCK = new ReentrantLock();
-    private static final Map<String, CompletableFuture<InputStream>> DOWNLOADING = new HashMap<>();
+    private static final Map<String, CompletableFuture<Path>> DOWNLOADING = new HashMap<>();
 
     private static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = new HashMap<>();
@@ -53,9 +52,9 @@ public class SoundCache {
      * @param url The url to download the sound from
      * @return An input stream to the locally downloaded file
      */
-    public static CompletableFuture<InputStream> getAudioStream(String url, @Nullable DownloadProgressListener progressListener) {
+    public static CompletableFuture<Path> getAudioStream(String url, @Nullable DownloadProgressListener progressListener) {
         if (DOWNLOADING.containsKey(url)) {
-            CompletableFuture<InputStream> future = DOWNLOADING.get(url);
+            CompletableFuture<Path> future = DOWNLOADING.get(url);
             if (!future.isDone())
                 return future;
         }
@@ -73,12 +72,14 @@ public class SoundCache {
                 throw new CompletionException(e);
             }
 
-            CompletableFuture<InputStream> future = downloadTo(file.toFile(), url, getDownloadHeaders(), 104857600, progressListener, Minecraft.getInstance().getProxy()).<InputStream>thenApplyAsync(__ -> {
+            // TODO add config for file size download limit?
+            CompletableFuture<Path> future = downloadTo(file.toFile(), url, getDownloadHeaders(), 104857600, progressListener, Minecraft.getInstance().getProxy()).thenApplyAsync(__ -> {
                 try {
-                    FileInputStream is = new FileInputStream(file.toFile());
+                    if (!Files.exists(file))
+                        throw new FileNotFoundException();
                     if (progressListener != null)
                         progressListener.onSuccess();
-                    return is;
+                    return file;
                 } catch (Exception e) {
                     if (progressListener != null)
                         progressListener.onFail();
@@ -88,9 +89,9 @@ public class SoundCache {
                 if (progressListener != null)
                     progressListener.onFail();
                 return null;
-            }).thenApplyAsync(stream -> {
+            }).thenApplyAsync(path -> {
                 DOWNLOADING.remove(url);
-                return stream;
+                return path;
             }, Minecraft.getInstance());
 
             DOWNLOADING.put(url, future);
@@ -140,6 +141,9 @@ public class SoundCache {
                     } else if (file.getParentFile() != null) {
                         file.getParentFile().mkdirs();
                     }
+
+                    if (progressListener != null)
+                        progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
 
                     outputStream = new DataOutputStream(new FileOutputStream(file));
                     if (i > 0 && g > (float) i)

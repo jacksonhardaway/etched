@@ -1,14 +1,21 @@
 package me.jaackson.etched.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
+import com.sun.media.sound.WaveFileReader;
 import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
+import me.jaackson.etched.client.sound.EmptyAudioStream;
+import me.jaackson.etched.client.sound.RawAudioStream;
 import me.jaackson.etched.client.sound.SoundCache;
 import net.minecraft.Util;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.*;
 import net.minecraft.resources.ResourceLocation;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.Logger;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,12 +23,18 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.io.IOException;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import java.io.FileInputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 @Mixin(SoundEngine.class)
 public class SoundEngineMixin {
+
+    @Shadow
+    @Final
+    private static Logger LOGGER;
 
     @Unique
     private Sound sound;
@@ -35,12 +48,43 @@ public class SoundEngineMixin {
     public CompletableFuture<AudioStream> redirectSoundStream(SoundBufferLibrary soundBufferLibrary, ResourceLocation resourceLocation, boolean loop) {
         if (!(this.sound instanceof AbstractOnlineSoundInstance.OnlineSound))
             return soundBufferLibrary.getStream(resourceLocation, loop);
-        return SoundCache.getAudioStream(((AbstractOnlineSoundInstance.OnlineSound) this.sound).getURL(), ((AbstractOnlineSoundInstance.OnlineSound) this.sound).getProgressListener()).thenApplyAsync(inputStream -> {
+        return SoundCache.getAudioStream(((AbstractOnlineSoundInstance.OnlineSound) this.sound).getURL(), ((AbstractOnlineSoundInstance.OnlineSound) this.sound).getProgressListener()).thenApplyAsync(path -> {
+            FileInputStream is = null;
+
+            // Try loading as OGG
             try {
-                return loop ? new LoopingAudioStream(OggAudioStream::new, inputStream) : new OggAudioStream(inputStream);
-            } catch (IOException var5) {
-                throw new CompletionException(var5);
+                is = new FileInputStream(path.toFile());
+                return loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is);
+            } catch (Exception e) {
+                IOUtils.closeQuietly(is);
+                LOGGER.debug("Failed to load as OGG", e);
+                // Try loading as MP3
+
+                try {
+                    is = new FileInputStream(path.toFile());
+                    fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(is);
+                    AudioFormat format = sound.getAudioFormat();
+                    return loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound);
+                } catch (Exception e1) {
+                    IOUtils.closeQuietly(is);
+                    LOGGER.debug("Failed to load as MP3", e1);
+
+                    // Try loading as WAV
+                    try {
+                        is = new FileInputStream(path.toFile());
+                        AudioInputStream ais = new WaveFileReader().getAudioInputStream(is);
+                        AudioFormat format = ais.getFormat();
+                        return loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais);
+                    } catch (Exception e2) {
+                        IOUtils.closeQuietly(is);
+                        LOGGER.error("Failed to load audio", e2);
+                        throw new CompletionException(e);
+                    }
+                }
             }
-        }, Util.backgroundExecutor());
+        }, Util.backgroundExecutor()).exceptionally((e) -> {
+            e.printStackTrace();
+            return new EmptyAudioStream();
+        });
     }
 }

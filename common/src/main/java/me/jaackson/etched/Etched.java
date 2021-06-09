@@ -1,6 +1,9 @@
 package me.jaackson.etched;
 
+import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.bridge.RegistryBridge;
+import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
+import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
 import net.minecraft.world.item.DyeableLeatherItem;
 
 /**
@@ -11,6 +14,7 @@ public class Etched {
 
     public static void commonInit() {
         EtchedRegistry.register();
+        NetworkBridge.playToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, EtchedClientPlayHandler::handlePlayMusicPacket);
     }
 
     public static void clientInit() {

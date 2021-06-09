@@ -12,7 +12,7 @@ architectury {
 }
 
 loom {
-    mixinConfigs = ["etched-common.mixins.json"]
+    mixinConfigs = ["etched-common.mixins.json", "etched.mixins.json"]
 }
 
 dependencies {

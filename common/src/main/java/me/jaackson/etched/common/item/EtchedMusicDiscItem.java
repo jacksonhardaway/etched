@@ -1,6 +1,10 @@
 package me.jaackson.etched.common.item;
 
+import me.jaackson.etched.bridge.NetworkBridge;
+import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -29,7 +33,7 @@ public class EtchedMusicDiscItem extends Item {
         ItemStack stack = ctx.getItemInHand();
         if (!level.isClientSide()) {
             ((JukeboxBlock) Blocks.JUKEBOX).setRecord(level, pos, state, stack);
-            // TODO play music
+            NetworkBridge.sendToNear(ClientboundPlayMusicPacket.CHANNEL, (ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 16, new ClientboundPlayMusicPacket(new TextComponent("Epic Music Broh"), "https://resources.download.minecraft.net/57/574ee01c1617c1cd9d2111822637f3da9d5a34f0", pos));
             stack.shrink(1);
             Player player = ctx.getPlayer();
             if (player != null)

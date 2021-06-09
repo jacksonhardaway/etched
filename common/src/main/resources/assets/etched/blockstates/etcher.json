@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "etched:block/etcher",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "etched:block/etcher"
+    },
+    "facing=south": {
+      "model": "etched:block/etcher",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "etched:block/etcher",
+      "y": 270
+    }
+  }
+}

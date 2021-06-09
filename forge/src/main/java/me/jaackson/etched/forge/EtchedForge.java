@@ -1,5 +1,6 @@
-package me.jaackson.etched;
+package me.jaackson.etched.forge;
 
+import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.forge.RegistryBridgeImpl;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -22,11 +23,6 @@ public class EtchedForge {
 
         Etched.commonInit();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> Etched::clientInit);
-
-        RegistryBridgeImpl.ITEMS.register(bus);
-        RegistryBridgeImpl.BLOCKS.register(bus);
-        RegistryBridgeImpl.BLOCK_ENTITIES.register(bus);
-        RegistryBridgeImpl.SOUND_EVENTS.register(bus);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

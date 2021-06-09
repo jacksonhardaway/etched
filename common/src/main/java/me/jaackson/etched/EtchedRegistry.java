@@ -3,7 +3,6 @@ package me.jaackson.etched;
 import me.jaackson.etched.bridge.Platform;
 import me.jaackson.etched.bridge.RegistryBridge;
 import me.jaackson.etched.common.block.EtcherBlock;
-import me.jaackson.etched.common.block.entity.EtcherBlockEntity;
 import me.jaackson.etched.common.item.BlankMusicDiscItem;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.EtchingPatternItem;
@@ -16,7 +15,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.material.MaterialColor;
@@ -33,7 +31,6 @@ public class EtchedRegistry {
     public static final Supplier<Item> ETCHING_PATTERN = RegistryBridge.registerItem("etching_pattern", new EtchingPatternItem(new Item.Properties().stacksTo(1).tab(CreativeModeTab.TAB_MISC).rarity(Rarity.UNCOMMON)));
 
     public static final Supplier<Block> ETCHER = RegistryBridge.registerBlock("etcher", new EtcherBlock(BlockBehaviour.Properties.of(Material.METAL, MaterialColor.METAL).requiresCorrectToolForDrops().strength(5.0F, 6.0F).sound(SoundType.METAL)), new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
-    public static final Supplier<BlockEntityType<EtcherBlockEntity>> ETCHER_BLOCK_ENTITY = RegistryBridge.registerBlockEntity("etcher", () -> BlockEntityType.Builder.of(EtcherBlockEntity::new, ETCHER.get()).build(null));
 
     @ExpectPlatform
     public static void register() {

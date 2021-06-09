@@ -38,10 +38,6 @@ public class RegistryBridgeImpl {
         return BLOCKS.register(name, () -> object);
     }
 
-    public static <V extends BlockEntity, T extends BlockEntityType<V>> Supplier<T> registerBlockEntity(String name, Supplier<T> object) {
-        return BLOCK_ENTITIES.register(name, object);
-    }
-
     @SafeVarargs
     @OnlyIn(Dist.CLIENT)
     public static void registerItemColor(ItemColor color, Supplier<Item>... items) {

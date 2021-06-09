@@ -34,11 +34,6 @@ public final class RegistryBridge {
         return Platform.safeAssertionError();
     }
 
-    @ExpectPlatform
-    public static <V extends BlockEntity, T extends BlockEntityType<V>> Supplier<T> registerBlockEntity(String name, Supplier<T> object) {
-        return Platform.safeAssertionError();
-    }
-
     @SafeVarargs
     @ExpectPlatform
     @Environment(EnvType.CLIENT)

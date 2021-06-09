@@ -1,6 +1,7 @@
 package me.jaackson.etched.common.network.handler;
 
 import me.jaackson.etched.Etched;
+import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
 import me.jaackson.etched.client.sound.DownloadProgressListener;
 import me.jaackson.etched.client.sound.OnlineRecordSoundInstance;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
@@ -23,9 +24,13 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class EtchedClientPlayHandler {
+
+    private static final Map<BlockPos, SoundInstance> LOADING = new HashMap<>();
 
     public static void handlePlayMusicPacket(ClientboundPlayMusicPacket pkt) {
         ClientLevel level = Minecraft.getInstance().level;
@@ -43,7 +48,7 @@ public class EtchedClientPlayHandler {
         }
 
         soundInstance = new OnlineRecordSoundInstance(pkt.getUrl(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundSource.RECORDS, new DownloadProgressListener() {
-            private int size;
+            private float size;
             private Component requesting;
             private DownloadTextComponent component;
 
@@ -63,7 +68,7 @@ public class EtchedClientPlayHandler {
             }
 
             @Override
-            public void progressStartDownload(int size) {
+            public void progressStartDownload(float size) {
                 this.size = size;
                 this.requesting = null;
                 this.progressStagePercentage(0);
@@ -74,25 +79,41 @@ public class EtchedClientPlayHandler {
                 if (this.requesting != null) {
                     this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
                 } else if (this.size != 0) {
-                    this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", percentage / 100.0F * this.size, this.size, pkt.getTitle()));
+                    this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), this.size, pkt.getTitle()));
                 }
             }
 
             @Override
             public void onSuccess() {
-                Minecraft.getInstance().gui.setNowPlaying(pkt.getTitle());
+                LOADING.remove(pos);
+                if (!playingRecords.containsKey(pos)) {
+                    if (((GuiAccessor) Minecraft.getInstance().gui).getOverlayMessageString() == this.component) {
+                        ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(60);
+                        this.component = null;
+                    }
+                } else {
+                    Minecraft.getInstance().gui.setNowPlaying(pkt.getTitle());
+                }
             }
 
             @Override
             public void onFail() {
                 Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", pkt.getTitle()), true);
+                LOADING.remove(pos);
             }
         });
+        LOADING.put(pos, soundInstance);
         playingRecords.put(pos, soundInstance);
         soundManager.play(soundInstance);
 
         for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
             livingEntity.setRecordPlayingNearby(pos, true);
+    }
+
+    public static void onStopRecord(BlockPos pos) {
+        SoundInstance instance = LOADING.remove(pos);
+        if (instance instanceof AbstractOnlineSoundInstance)
+            ((AbstractOnlineSoundInstance) instance).stop();
     }
 
     public static class DownloadTextComponent extends BaseComponent {

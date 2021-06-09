@@ -32,6 +32,7 @@ public class SoundCache {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Path SOUND_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
     private static final ReentrantLock LOCK = new ReentrantLock();
+    private static final Map<String, CompletableFuture<InputStream>> DOWNLOADING = new HashMap<>();
 
     private static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = new HashMap<>();
@@ -50,6 +51,12 @@ public class SoundCache {
      * @return An input stream to the locally downloaded file
      */
     public static CompletableFuture<InputStream> getAudioStream(String url, @Nullable DownloadProgressListener progressListener) {
+        if (DOWNLOADING.containsKey(url)) {
+            CompletableFuture<InputStream> future = DOWNLOADING.get(url);
+            if (!future.isDone())
+                return future;
+        }
+
         try {
             LOCK.lock();
 
@@ -63,7 +70,7 @@ public class SoundCache {
                 throw new CompletionException(e);
             }
 
-            return HttpUtil.downloadTo(file.toFile(), url, getDownloadHeaders(), 104857600, progressListener != null ? new ProgressListener() {
+            CompletableFuture<InputStream> future = HttpUtil.downloadTo(file.toFile(), url, getDownloadHeaders(), 104857600, progressListener != null ? new ProgressListener() {
                 @Override
                 public void progressStartNoAbort(Component component) {
                 }
@@ -78,7 +85,7 @@ public class SoundCache {
                         Object[] args = ((TranslatableComponent) component).getArgs();
                         if (args.length > 0) {
                             if (args[0] instanceof String && NumberUtils.isCreatable((String) args[0])) {
-                                progressListener.progressStartDownload(NumberUtils.createNumber((String) args[0]).intValue());
+                                progressListener.progressStartDownload(NumberUtils.createNumber((String) args[0]).floatValue());
                             }
                         } else if (!Files.exists(file)) {
                             progressListener.progressStartRequest(component);
@@ -109,7 +116,12 @@ public class SoundCache {
                 if (progressListener != null)
                     progressListener.onFail();
                 return null;
-            });
+            }).thenApplyAsync(stream -> {
+                DOWNLOADING.remove(url);
+                return stream;
+            }, Minecraft.getInstance());
+            DOWNLOADING.put(url, future);
+            return future;
         } finally {
             LOCK.unlock();
         }

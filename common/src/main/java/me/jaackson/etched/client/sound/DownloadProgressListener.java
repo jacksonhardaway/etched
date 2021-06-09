@@ -9,7 +9,7 @@ public interface DownloadProgressListener {
 
     void progressStartRequest(Component component);
 
-    void progressStartDownload(int size);
+    void progressStartDownload(float size);
 
     void progressStagePercentage(int percentage);
 

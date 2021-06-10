@@ -2,10 +2,6 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
-configurations {
-    shade
-}
-
 architectury {
     platformSetupLoomIde()
     fabric()
@@ -34,6 +30,7 @@ jar {
 
 shadowJar {
     configurations = [project.configurations.shade]
+    relocate "fr.delthas.javamp3", "me.jackson.etched.lib.javamp3"
     classifier "dev-shadow"
 }
 

@@ -2,17 +2,13 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
-configurations {
-    shade
-}
-
 architectury {
     platformSetupLoomIde()
     forge()
 }
 
 loom {
-    mixinConfigs = ["etched-common.mixins.json"]
+    mixinConfigs = ["etched-common.mixins.json", "etched.mixins.json"]
 }
 
 dependencies {
@@ -39,6 +35,7 @@ shadowJar {
     exclude "fabric.mod.json"
 
     configurations = [project.configurations.shade]
+    relocate "fr.delthas.javamp3", "me.jackson.etched.lib.javamp3"
     classifier "dev-shadow"
 }
 

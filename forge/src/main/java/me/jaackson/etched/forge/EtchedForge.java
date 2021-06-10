@@ -1,7 +1,6 @@
 package me.jaackson.etched.forge;
 
 import me.jaackson.etched.Etched;
-import me.jaackson.etched.bridge.forge.RegistryBridgeImpl;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;

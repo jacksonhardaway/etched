@@ -14,9 +14,16 @@ subprojects {
         silentMojangMappingsLicense()
     }
 
+    configurations {
+        shade
+    }
+
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
         mappings loom.officialMojangMappings()
+
+        implementation "fr.delthas:javamp3:1.0.1"
+        shade "fr.delthas:javamp3:1.0.1"
     }
 }
 

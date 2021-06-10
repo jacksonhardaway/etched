@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "etched:block/album_jukebox"
+    }
+  }
+}

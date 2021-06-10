@@ -1,12 +1,13 @@
 package me.jaackson.etched.bridge.forge;
 
 import me.jaackson.etched.Etched;
+import me.jaackson.etched.bridge.RegistryBridge;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ColorHandlerEvent;
@@ -23,7 +24,7 @@ public class RegistryBridgeImpl {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Etched.MOD_ID);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Etched.MOD_ID);
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Etched.MOD_ID);
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, Etched.MOD_ID);
+    public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.CONTAINERS, Etched.MOD_ID);
 
     public static <T extends SoundEvent> Supplier<T> registerSound(String name, T object) {
         return SOUND_EVENTS.register(name, () -> object);
@@ -35,6 +36,10 @@ public class RegistryBridgeImpl {
 
     public static <T extends Block> Supplier<T> registerBlock(String name, T object) {
         return BLOCKS.register(name, () -> object);
+    }
+
+    public static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, RegistryBridge.MenuFactory<T> object) {
+        return MENU_TYPES.register(name, () -> new MenuType<>(object::create));
     }
 
     @SafeVarargs

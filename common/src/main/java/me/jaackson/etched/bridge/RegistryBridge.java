@@ -5,6 +5,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -34,6 +37,11 @@ public final class RegistryBridge {
         return Platform.safeAssertionError();
     }
 
+    @ExpectPlatform
+    public static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, RegistryBridge.MenuFactory<T> object) {
+        return Platform.safeAssertionError();
+    }
+
     @SafeVarargs
     @ExpectPlatform
     @Environment(EnvType.CLIENT)
@@ -49,5 +57,9 @@ public final class RegistryBridge {
         Supplier<Block> register = registerBlock(name, block);
         registerItem(name, item.apply(register));
         return register;
+    }
+
+    public interface MenuFactory<T extends AbstractContainerMenu> {
+        T create(int id, Inventory inventory);
     }
 }

@@ -1,13 +1,18 @@
 package me.jaackson.etched.bridge.fabric;
 
 import me.jaackson.etched.Etched;
+import me.jaackson.etched.bridge.RegistryBridge;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
+import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -32,6 +37,11 @@ public class RegistryBridgeImpl {
 
     public static <T extends Block> Supplier<T> registerBlock(String name, T object) {
         T register = Registry.register(Registry.BLOCK, new ResourceLocation(Etched.MOD_ID, name), object);
+        return () -> register;
+    }
+
+    public static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, RegistryBridge.MenuFactory<T> object) {
+        MenuType<T> register = ScreenHandlerRegistry.registerSimple(new ResourceLocation(Etched.MOD_ID, name), object::create);
         return () -> register;
     }
 

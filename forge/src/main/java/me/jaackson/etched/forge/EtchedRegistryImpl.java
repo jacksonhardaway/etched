@@ -10,7 +10,7 @@ public class EtchedRegistryImpl {
 
         RegistryBridgeImpl.ITEMS.register(bus);
         RegistryBridgeImpl.BLOCKS.register(bus);
-        RegistryBridgeImpl.BLOCK_ENTITIES.register(bus);
+        RegistryBridgeImpl.MENU_TYPES.register(bus);
         RegistryBridgeImpl.SOUND_EVENTS.register(bus);
     }
 }

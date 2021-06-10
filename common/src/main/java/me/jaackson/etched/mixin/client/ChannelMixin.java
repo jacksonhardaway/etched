@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,6 +32,12 @@ public class ChannelMixin {
             this.stopped.set(false);
             ci.cancel();
         }
+    }
+
+    @Inject(method = "stopped", at = @At("TAIL"), cancellable = true)
+    public void stopped(CallbackInfoReturnable<Boolean> cir) {
+        if (!cir.getReturnValue() && this.stopped.get())
+            cir.setReturnValue(true);
     }
 
     @Inject(method = "attachStaticBuffer", at = @At("HEAD"), cancellable = true)

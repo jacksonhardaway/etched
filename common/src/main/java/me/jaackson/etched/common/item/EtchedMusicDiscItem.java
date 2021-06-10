@@ -14,6 +14,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -42,7 +43,7 @@ public class EtchedMusicDiscItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
-        getMusic(stack).ifPresent(music -> list.add(new TextComponent(music.getAuthor() + " - " + music.getTitle()).withStyle(ChatFormatting.GRAY)));
+        getMusic(stack).ifPresent(music -> list.add(music.getDisplayName().copy().withStyle(ChatFormatting.GRAY)));
     }
 
     @Override
@@ -61,7 +62,7 @@ public class EtchedMusicDiscItem extends Item {
         if (!level.isClientSide()) {
             MusicInfo music = optional.get();
             ((JukeboxBlock) Blocks.JUKEBOX).setRecord(level, pos, state, stack);
-            NetworkBridge.sendToNear((ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 16, new ClientboundPlayMusicPacket(new TextComponent(music.getAuthor() + " - " + music.getTitle()), music.getUrl(), pos));
+            NetworkBridge.sendToNear((ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64, new ClientboundPlayMusicPacket(music.getDisplayName(), music.getUrl(), pos));
             stack.shrink(1);
             Player player = ctx.getPlayer();
             if (player != null)
@@ -253,6 +254,13 @@ public class EtchedMusicDiscItem extends Item {
         public void setAuthor(String author) {
             this.author = author;
         }
+
+        /**
+         * @return The name to show as the record title
+         */
+        public Component getDisplayName() {
+            return new TextComponent(this.author + " - " + this.title);
+        }
     }
 
     /**
@@ -288,5 +296,21 @@ public class EtchedMusicDiscItem extends Item {
         } catch (URISyntaxException e) {
             return false;
         }
+    }
+
+    /**
+     * Checks to see if the specified stack can be played in a jukebox.
+     *
+     * @param stack The stack to check
+     * @return Whether or not that stack can play
+     */
+    public static boolean isPlayableRecord(ItemStack stack) {
+        if (stack.getItem() instanceof RecordItem)
+            return true;
+        if (stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
+            Optional<MusicInfo> music = getMusic(stack);
+            return music.isPresent() && isValidURL(music.get().getUrl());
+        }
+        return false;
     }
 }

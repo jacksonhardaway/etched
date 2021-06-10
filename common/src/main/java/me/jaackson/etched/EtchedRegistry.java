@@ -34,6 +34,8 @@ public class EtchedRegistry {
     public static final Supplier<Block> ETCHER = RegistryBridge.registerBlock("etcher", () -> new EtcherBlock(BlockBehaviour.Properties.of(Material.METAL, MaterialColor.METAL).requiresCorrectToolForDrops().strength(5.0F, 6.0F).sound(SoundType.METAL)), new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
     public static final Supplier<Block> ALBUM_JUKEBOX = RegistryBridge.registerBlock("album_jukebox", () -> new AlbumJukeboxBlock(BlockBehaviour.Properties.copy(Blocks.JUKEBOX)), new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
 
+    public static final Supplier<BlockEntityType<AlbumJukeboxBlockEntity>> ALBUM_JUKEBOX_BE = RegistryBridge.registerBlockEntity("album_jukebox", () -> BlockEntityType.Builder.of(AlbumJukeboxBlockEntity::new, ALBUM_JUKEBOX.get()));
+
     @ExpectPlatform
     public static void register() {
         Platform.safeAssertionError();

@@ -10,6 +10,7 @@ import java.util.Map;
 
 @Mixin(LevelRenderer.class)
 public interface LevelRendererAccessor {
+
     @Accessor
     Map<BlockPos, SoundInstance> getPlayingRecords();
 }

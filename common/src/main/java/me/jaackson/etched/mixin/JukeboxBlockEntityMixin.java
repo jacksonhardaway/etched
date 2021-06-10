@@ -1,11 +1,10 @@
 package me.jaackson.etched.mixin;
 
-import me.jaackson.etched.EtchedRegistry;
+import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.core.Direction;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -51,7 +50,6 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Wor
         BlockState state = this.level.getBlockState(this.getBlockPos());
         if (state.getValue(JukeboxBlock.HAS_RECORD)) {
             this.level.levelEvent(1010, this.getBlockPos(), 0);
-            this.clearContent();
             state = state.setValue(JukeboxBlock.HAS_RECORD, false);
             this.level.setBlock(this.getBlockPos(), state, 2);
         }
@@ -76,12 +74,12 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Wor
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
-        return this.isEmpty() && (stack.getItem() instanceof RecordItem || stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) && direction != Direction.DOWN;
+        return EtchedMusicDiscItem.isPlayableRecord(stack);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
-        return direction == Direction.DOWN;
+        return true;
     }
 
     @Override
@@ -104,9 +102,9 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Wor
         if (index != 0)
             return ItemStack.EMPTY;
         ItemStack split = this.getRecord().split(count);
+        this.setChanged();
         if (this.getRecord().isEmpty())
             this.stopPlaying();
-        this.setChanged();
         return split;
     }
 

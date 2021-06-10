@@ -31,7 +31,8 @@
     ]
   },
   "mixins": [
-    "etched-common.mixins.json"
+    "etched-common.mixins.json",
+    "etched.mixins.json"
   ],
   "depends": {
     "fabric": "*",

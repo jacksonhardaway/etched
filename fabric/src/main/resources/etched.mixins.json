@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.jaackson.etched.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "client": [
+    "client.ClientPacketListenerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

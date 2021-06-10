@@ -78,8 +78,6 @@ public class EtchedMusicDiscItem extends Item {
      * @return The optional URL for that item
      */
     public static Optional<MusicInfo> getMusic(ItemStack stack) {
-        if (stack.getItem() != EtchedRegistry.ETCHED_MUSIC_DISC.get())
-            return Optional.empty();
         CompoundTag nbt = stack.getTag();
         if (nbt == null || !nbt.contains("Music", 10))
             return Optional.empty();
@@ -93,23 +91,75 @@ public class EtchedMusicDiscItem extends Item {
     }
 
     /**
+     * Retrieves the label pattern from the specified stack.
+     *
+     * @param stack The stack to get the pattern from
+     * @return The pattern for that item
+     */
+    public static LabelPattern getPattern(ItemStack stack) {
+        CompoundTag nbt = stack.getTag();
+        if (nbt == null || !nbt.contains("Pattern", 99))
+            return LabelPattern.FLAT;
+        int id = nbt.getByte("Pattern");
+        return id < 0 || id >= LabelPattern.values().length ? LabelPattern.FLAT : LabelPattern.values()[id];
+    }
+
+    public static int getPrimaryColor(ItemStack stack) {
+        CompoundTag nbt = stack.getTag();
+        if (nbt == null || !nbt.contains("PrimaryColor", 99))
+            return 0xFFFFFF;
+        return nbt.getInt("PrimaryColor");
+    }
+
+    public static int getSecondaryColor(ItemStack stack) {
+        CompoundTag nbt = stack.getTag();
+        if (nbt == null || !nbt.contains("SecondaryColor", 99))
+            return 0xFFFFFF;
+        return nbt.getInt("SecondaryColor");
+    }
+
+    /**
      * Sets the URL for the specified stack.
      *
      * @param stack     The stack to set NBT for
      * @param musicInfo The music to apply to the disk
      */
     public static void setMusic(ItemStack stack, @Nullable MusicInfo musicInfo) {
-        if (stack.getItem() != EtchedRegistry.ETCHED_MUSIC_DISC.get())
-            return;
         if (musicInfo == null) {
-            if (stack.getTag() != null) {
+            if (stack.getTag() != null)
                 stack.getTag().remove("Music");
-                if (stack.getTag().isEmpty())
-                    stack.setTag(null);
-            }
         } else {
             stack.getOrCreateTag().put("Music", musicInfo.save(new CompoundTag()));
         }
+    }
+
+    /**
+     * Sets the pattern for the specified stack.
+     *
+     * @param stack   The stack to set NBT for
+     * @param pattern The pattern to apply to the disk or <code>null</code> to remove and default to {@link LabelPattern#FLAT}
+     */
+    public static void setPattern(ItemStack stack, @Nullable LabelPattern pattern) {
+        if (pattern == null) {
+            if (stack.getTag() != null)
+                stack.getTag().remove("Pattern");
+        } else {
+            stack.getOrCreateTag().putByte("Pattern", (byte) pattern.ordinal());
+        }
+    }
+
+    /**
+     * Sets the color for the specified stack.
+     *
+     * @param stack          The stack to set NBT for
+     * @param primaryColor   The color to use for the physical disk
+     * @param secondaryColor The color to use for the label
+     */
+    public static void setColor(ItemStack stack, int primaryColor, int secondaryColor) {
+        if (stack.getItem() != EtchedRegistry.MUSIC_LABEL.get())
+            return;
+        stack.getOrCreateTag().putInt("PrimaryColor", primaryColor);
+        stack.getOrCreateTag().putInt("SecondaryColor", secondaryColor);
     }
 
     /**
@@ -167,6 +217,30 @@ public class EtchedMusicDiscItem extends Item {
         public String getAuthor() {
             return author;
         }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+    }
+
+    /**
+     * @author Jackson
+     */
+    public enum LabelPattern {
+        FLAT,
+        CROSS,
+        EYE,
+        PARALLEL,
+        STAR,
+        GOLD
     }
 
     /**

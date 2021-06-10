@@ -4,6 +4,8 @@ import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -46,6 +48,12 @@ public final class RegistryBridge {
     @ExpectPlatform
     @Environment(EnvType.CLIENT)
     public static void registerItemColor(ItemColor color, Supplier<Item>... items) {
+        Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    @Environment(EnvType.CLIENT)
+    public static void registerItemOverride(Item item, ResourceLocation resourceLocation, ItemPropertyFunction itemPropertyFunction) {
         Platform.safeAssertionError();
     }
 

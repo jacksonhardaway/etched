@@ -3,6 +3,9 @@ package me.jaackson.etched.bridge.forge;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -52,4 +55,8 @@ public class RegistryBridgeImpl {
         });
     }
 
+    @OnlyIn(Dist.CLIENT)
+    public static void registerItemOverride(Item item, ResourceLocation resourceLocation, ItemPropertyFunction itemPropertyFunction) {
+        ItemProperties.register(item, resourceLocation, itemPropertyFunction);
+    }
 }

@@ -259,12 +259,20 @@ public class EtchedMusicDiscItem extends Item {
      * @author Jackson
      */
     public enum LabelPattern {
+
         FLAT,
         CROSS,
         EYE,
         PARALLEL,
         STAR,
-        GOLD
+        GOLD;
+
+        /**
+         * @return Whether or not this label can be colored
+         */
+        public boolean isColorable() {
+            return this != GOLD;
+        }
     }
 
     /**

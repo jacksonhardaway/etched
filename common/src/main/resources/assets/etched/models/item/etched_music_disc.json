@@ -1,7 +1,47 @@
 {
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "etched:item/etched_music_disc",
-    "layer1": "etched:item/etched_music_disc_label"
-  }
+  "parent": "etched:item/flat_etched_music_disc",
+  "overrides": [
+    {
+      "predicate": {
+        "etched:pattern": 0
+      },
+      "model": "etched:item/flat_etched_music_disc"
+    },
+    {
+      "predicate": {
+        "etched:pattern": 1
+      },
+      "model": "etched:item/cross_etched_music_disc"
+    },
+    {
+      "predicate": {
+        "etched:pattern": 2
+      },
+      "model": "etched:item/eye_etched_music_disc"
+    },
+    {
+      "predicate": {
+        "etched:pattern": 3
+      },
+      "model": "etched:item/parallel_etched_music_disc"
+    },
+    {
+      "predicate": {
+        "etched:pattern": 4
+      },
+      "model": "etched:item/star_etched_music_disc"
+    },
+    {
+      "predicate": {
+        "etched:pattern": 5
+      },
+      "model": "etched:item/gold_etched_music_disc"
+    },
+    {
+      "predicate": {
+        "etched:pattern": 6
+      },
+      "model": "etched:item/flat_etched_music_disc"
+    }
+  ]
 }

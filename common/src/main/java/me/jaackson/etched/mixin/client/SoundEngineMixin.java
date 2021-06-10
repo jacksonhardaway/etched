@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -58,26 +59,28 @@ public class SoundEngineMixin {
             } catch (Exception e) {
                 IOUtils.closeQuietly(is);
                 LOGGER.debug("Failed to load as OGG", e);
-                // Try loading as MP3
 
+                // Try loading as WAV
                 try {
                     is = new FileInputStream(path.toFile());
-                    fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(is);
-                    AudioFormat format = sound.getAudioFormat();
-                    return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
+                    AudioInputStream ais = new WaveFileReader().getAudioInputStream(is);
+                    AudioFormat format = ais.getFormat();
+                    return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
                 } catch (Exception e1) {
                     IOUtils.closeQuietly(is);
-                    LOGGER.debug("Failed to load as MP3", e1);
+                    LOGGER.debug("Failed to load as WAV", e1);
 
-                    // Try loading as WAV
+                    // Try loading as MP3
                     try {
                         is = new FileInputStream(path.toFile());
-                        AudioInputStream ais = new WaveFileReader().getAudioInputStream(is);
-                        AudioFormat format = ais.getFormat();
-                        return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
+                        fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(new ByteArrayInputStream(IOUtils.toByteArray(is)));
+                        AudioFormat format = sound.getAudioFormat();
+                        return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
                     } catch (Exception e2) {
+                        LOGGER.debug("Failed to load as MP3", e2);
+                        throw new CompletionException(new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3"));
+                    } finally {
                         IOUtils.closeQuietly(is);
-                        throw new CompletionException(new UnsupportedAudioFileException("Failed to load audio"));
                     }
                 }
             }

@@ -18,12 +18,16 @@ subprojects {
         shade
     }
 
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
         mappings loom.officialMojangMappings()
 
-        implementation "fr.delthas:javamp3:1.0.1"
-        shade "fr.delthas:javamp3:1.0.1"
+        implementation "com.github.kevinstadler:JavaMP3:v1.0.4"
+        shade "com.github.kevinstadler:JavaMP3:v1.0.4"
     }
 }
 

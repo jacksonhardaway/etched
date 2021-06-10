@@ -33,7 +33,7 @@ public class EtchedMusicDiscItem extends Item {
         ItemStack stack = ctx.getItemInHand();
         if (!level.isClientSide()) {
             ((JukeboxBlock) Blocks.JUKEBOX).setRecord(level, pos, state, stack);
-            NetworkBridge.sendToNear(ClientboundPlayMusicPacket.CHANNEL, (ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 16, new ClientboundPlayMusicPacket(new TextComponent("Epic Music Broh"), "https://resources.download.minecraft.net/57/574ee01c1617c1cd9d2111822637f3da9d5a34f0", pos));
+            NetworkBridge.sendToNear(ClientboundPlayMusicPacket.CHANNEL, (ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 16, new ClientboundPlayMusicPacket(new TextComponent("Epic Music Broh"), /*"https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_5MG.mp3"*/"https://github.com/Ocelot5836/storage/raw/master/misc/TheFederation.mp3"/*"https://resources.download.minecraft.net/57/574ee01c1617c1cd9d2111822637f3da9d5a34f0"*/, pos));
             stack.shrink(1);
             Player player = ctx.getPlayer();
             if (player != null)

@@ -28,15 +28,27 @@ public class RawAudioStream implements AudioStream {
     }
 
     @Override
-    public ByteBuffer read(int i) throws IOException {
-        byte[] buf = new byte[i];
+    public ByteBuffer read(int amount) throws IOException {
+        byte[] buf = new byte[amount];
         int read, total = 0;
         while ((read = this.input.read(buf, total, buf.length - total)) != -1
                 && total < buf.length) {
             total += read;
         }
-        byte[] result = new byte[total];
-        System.arraycopy(buf, 0, result, 0, result.length);
+
+        byte[] result;
+//        if (this.forceMono) {
+//            result = new byte[total / 2];
+//            int step = this.format.getSampleSizeInBits() / Byte.SIZE;
+//            int k = 0;
+//            for (int j = 0; j < buf.length; j += step * 2)
+//                for (int l = 0; l < step; l++)
+//                    result[k++] = buf[j + l];
+//        } else {
+            result = new byte[total];
+            System.arraycopy(buf, 0, result, 0, result.length);
+//        }
+
         return convertAudioBytes(result, this.format.getSampleSizeInBits() == 16, this.format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
     }
 

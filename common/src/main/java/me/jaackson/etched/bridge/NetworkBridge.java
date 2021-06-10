@@ -19,32 +19,32 @@ import java.util.function.Function;
 public final class NetworkBridge {
 
     @ExpectPlatform
-    public static <T extends EtchedPacket> void playToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
+    public static <T extends EtchedPacket> void registerPlayToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static <T extends EtchedPacket> void playToServer(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
+    public static <T extends EtchedPacket> void registerPlayToServer(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static void sendToPlayer(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
+    public static void sendToPlayer(ServerPlayer player, EtchedPacket packet) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static void sendToTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
+    public static void sendToTracking(Entity tracking, EtchedPacket packet) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static void sendToNear(ResourceLocation channel, ServerLevel level, double x, double y, double z, double distance, EtchedPacket packet) {
+    public static void sendToNear(ServerLevel level, double x, double y, double z, double distance, EtchedPacket packet) {
         Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static void sendToServer(ResourceLocation channel, EtchedPacket packet) {
+    public static void sendToServer(EtchedPacket packet) {
         Platform.safeAssertionError();
     }
 }

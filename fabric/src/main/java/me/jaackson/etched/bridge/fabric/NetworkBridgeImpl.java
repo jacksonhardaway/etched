@@ -22,37 +22,37 @@ import java.util.function.Function;
  */
 public class NetworkBridgeImpl {
 
-    public static <T extends EtchedPacket> void playToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
+    public static <T extends EtchedPacket> void registerPlayToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
         ClientPlayNetworking.registerGlobalReceiver(channel, (client, handler, buf, responseSender) -> handle.accept(read.apply(buf)));
     }
 
-    public static <T extends EtchedPacket> void playToServer(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
+    public static <T extends EtchedPacket> void registerPlayToServer(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, BiConsumer<T, Player> handle) {
         ServerPlayNetworking.registerGlobalReceiver(channel, (server, player, handler, buf, responseSender) -> handle.accept(read.apply(buf), player));
     }
 
-    public static void sendToPlayer(ResourceLocation channel, ServerPlayer player, EtchedPacket packet) {
+    public static void sendToPlayer(ServerPlayer player, EtchedPacket packet) {
         FriendlyByteBuf buf = PacketByteBufs.create();
         packet.write(buf);
-        ServerPlayNetworking.send(player, channel, buf);
+        ServerPlayNetworking.send(player, packet.getChannel(), buf);
     }
 
-    public static void sendToTracking(ResourceLocation channel, Entity tracking, EtchedPacket packet) {
+    public static void sendToTracking(Entity tracking, EtchedPacket packet) {
         FriendlyByteBuf buf = PacketByteBufs.create();
         packet.write(buf);
         for (ServerPlayer player : PlayerLookup.tracking(tracking))
-            ServerPlayNetworking.send(player, channel, buf);
+            ServerPlayNetworking.send(player, packet.getChannel(), buf);
     }
 
-    public static void sendToNear(ResourceLocation channel, ServerLevel level, double x, double y, double z, double distance, EtchedPacket packet) {
+    public static void sendToNear(ServerLevel level, double x, double y, double z, double distance, EtchedPacket packet) {
         FriendlyByteBuf buf = PacketByteBufs.create();
         packet.write(buf);
         for (ServerPlayer player : PlayerLookup.around(level, new Vec3(x, y, z), distance))
-            ServerPlayNetworking.send(player, channel, buf);
+            ServerPlayNetworking.send(player, packet.getChannel(), buf);
     }
 
-    public static void sendToServer(ResourceLocation channel, EtchedPacket packet) {
+    public static void sendToServer(EtchedPacket packet) {
         FriendlyByteBuf buf = PacketByteBufs.create();
         packet.write(buf);
-        ClientPlayNetworking.send(channel, buf);
+        ClientPlayNetworking.send(packet.getChannel(), buf);
     }
 }

@@ -61,7 +61,7 @@ public class EtchedMusicDiscItem extends Item {
         if (!level.isClientSide()) {
             MusicInfo music = optional.get();
             ((JukeboxBlock) Blocks.JUKEBOX).setRecord(level, pos, state, stack);
-            NetworkBridge.sendToNear(ClientboundPlayMusicPacket.CHANNEL, (ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 16, new ClientboundPlayMusicPacket(new TextComponent(music.getAuthor() + " - " + music.getTitle()), music.getUrl(), pos));
+            NetworkBridge.sendToNear((ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 16, new ClientboundPlayMusicPacket(new TextComponent(music.getAuthor() + " - " + music.getTitle()), music.getUrl(), pos));
             stack.shrink(1);
             Player player = ctx.getPlayer();
             if (player != null)

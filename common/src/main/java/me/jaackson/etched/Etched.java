@@ -18,7 +18,7 @@ public class Etched {
 
     public static void commonInit() {
         EtchedRegistry.register();
-        NetworkBridge.playToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, EtchedClientPlayHandler::handlePlayMusicPacket);
+        NetworkBridge.registerPlayToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, EtchedClientPlayHandler::handlePlayMusicPacket);
     }
 
     public static void clientInit() {

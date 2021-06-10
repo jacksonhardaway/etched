@@ -38,6 +38,11 @@ public class ClientboundPlayMusicPacket implements EtchedPacket {
         buf.writeBlockPos(this.pos);
     }
 
+    @Override
+    public ResourceLocation getChannel() {
+        return CHANNEL;
+    }
+
     /**
      * @return The title to show on the HUD as 'now playing'
      */

@@ -14,7 +14,7 @@ public enum EmptyAudioStream implements AudioStream {
 
     INSTANCE;
 
-    private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 0, 16, 1, 4, 0, true);
+    private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 8, 1, 4, 1, true);
 
     @Override
     public AudioFormat getFormat() {

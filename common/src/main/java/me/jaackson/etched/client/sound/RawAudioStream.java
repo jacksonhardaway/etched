@@ -36,18 +36,8 @@ public class RawAudioStream implements AudioStream {
             total += read;
         }
 
-        byte[] result;
-//        if (this.forceMono) {
-//            result = new byte[total / 2];
-//            int step = this.format.getSampleSizeInBits() / Byte.SIZE;
-//            int k = 0;
-//            for (int j = 0; j < buf.length; j += step * 2)
-//                for (int l = 0; l < step; l++)
-//                    result[k++] = buf[j + l];
-//        } else {
-            result = new byte[total];
-            System.arraycopy(buf, 0, result, 0, result.length);
-//        }
+        byte[] result = new byte[total];
+        System.arraycopy(buf, 0, result, 0, result.length);
 
         return convertAudioBytes(result, this.format.getSampleSizeInBits() == 16, this.format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
     }

@@ -128,12 +128,18 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Wor
     }
 
     @Override
-    public int getMaxStackSize() {
-        return 1;
+    public boolean stillValid(Player player) {
+        return false;
     }
 
     @Override
-    public boolean stillValid(Player player) {
-        return false;
+    public void clearContent() {
+        if (!this.getRecord().isEmpty())
+            this.setItem(0, ItemStack.EMPTY);
+    }
+
+    @Override
+    public int getMaxStackSize() {
+        return 1;
     }
 }

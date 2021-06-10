@@ -25,17 +25,22 @@ import java.util.function.Supplier;
 public final class RegistryBridge {
 
     @ExpectPlatform
-    public static <T extends SoundEvent> Supplier<T> registerSound(String name, T object) {
+    public static <T extends SoundEvent> Supplier<T> registerSound(String name, Supplier<T> object) {
         return Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static <T extends Item> Supplier<T> registerItem(String name, T object) {
+    public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> object) {
         return Platform.safeAssertionError();
     }
 
     @ExpectPlatform
-    public static <T extends Block> Supplier<T> registerBlock(String name, T object) {
+    public static <T extends Block> Supplier<T> registerBlock(String name, Supplier<T> object) {
+        return Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    public static <B extends BlockEntity, T extends BlockEntityType.Builder<B>> Supplier<BlockEntityType<B>> registerBlockEntity(String name, Supplier<T> object) {
         return Platform.safeAssertionError();
     }
 
@@ -57,13 +62,13 @@ public final class RegistryBridge {
         Platform.safeAssertionError();
     }
 
-    public static Supplier<Block> registerBlock(String name, Block block, Item.Properties properties) {
-        return registerBlock(name, block, blockSupplier -> new BlockItem(block, properties));
+    public static Supplier<Block> registerBlock(String name, Supplier<Block> block, Item.Properties properties) {
+        return registerBlock(name, block, blockSupplier -> new BlockItem(blockSupplier.get(), properties));
     }
 
-    public static Supplier<Block> registerBlock(String name, Block block, Function<Supplier<Block>, Item> item) {
+    public static Supplier<Block> registerBlock(String name, Supplier<Block> block, Function<Supplier<Block>, Item> item) {
         Supplier<Block> register = registerBlock(name, block);
-        registerItem(name, item.apply(register));
+        registerItem(name, () -> item.apply(register));
         return register;
     }
 

@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 @Mixin(SoundEngine.class)
-public class SoundEngineMixin {
+public abstract class SoundEngineMixin {
 
     @Shadow
     @Final

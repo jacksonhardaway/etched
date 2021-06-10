@@ -1,7 +1,6 @@
 package me.jaackson.etched.common.network.handler;
 
 import me.jaackson.etched.Etched;
-import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
 import me.jaackson.etched.client.sound.DownloadProgressListener;
 import me.jaackson.etched.client.sound.OnlineRecordSoundInstance;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
@@ -120,9 +119,7 @@ public class EtchedClientPlayHandler {
     }
 
     public static void onStopRecord(BlockPos pos) {
-        SoundInstance instance = LOADING.remove(pos);
-        if (instance instanceof AbstractOnlineSoundInstance)
-            ((AbstractOnlineSoundInstance) instance).stop();
+        LOADING.remove(pos);
     }
 
     public static class DownloadTextComponent extends BaseComponent {

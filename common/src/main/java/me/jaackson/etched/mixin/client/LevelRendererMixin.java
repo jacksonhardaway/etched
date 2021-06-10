@@ -11,9 +11,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LevelRenderer.class)
-public class LevelRendererMixin {
+public abstract class LevelRendererMixin {
 
-    @Inject(method = "playStreamingMusic", at = @At("TAIL"))
+    @Inject(method = "playStreamingMusic", at = @At("HEAD"))
     public void onMusicStop(@Nullable SoundEvent soundEvent, BlockPos pos, CallbackInfo ci) {
         if (soundEvent == null)
             EtchedClientPlayHandler.onStopRecord(pos);

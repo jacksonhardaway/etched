@@ -4,6 +4,7 @@
   "package": "me.jaackson.etched.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
+    "client.ChannelMixin",
     "client.GuiAccessor",
     "client.GuiMixin",
     "client.LevelRendererAccessor",

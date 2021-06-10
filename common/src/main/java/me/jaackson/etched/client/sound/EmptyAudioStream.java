@@ -3,7 +3,6 @@ package me.jaackson.etched.client.sound;
 import net.minecraft.client.sounds.AudioStream;
 
 import javax.sound.sampled.AudioFormat;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -23,11 +22,11 @@ public enum EmptyAudioStream implements AudioStream {
     }
 
     @Override
-    public ByteBuffer read(int i) throws IOException {
+    public ByteBuffer read(int i) {
         return ByteBuffer.allocateDirect(0);
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
     }
 }

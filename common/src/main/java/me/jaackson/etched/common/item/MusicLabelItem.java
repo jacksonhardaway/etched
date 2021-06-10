@@ -15,4 +15,13 @@ public class MusicLabelItem extends Item implements DyeableLeatherItem {
         CompoundTag compoundTag = itemStack.getTagElement("display");
         return compoundTag != null && compoundTag.contains("color", 99) ? compoundTag.getInt("color") : 0xFFFFFF;
     }
+
+    public enum LabelPatterns {
+        FLAT,
+        CROSS,
+        EYE,
+        PARALLEL,
+        STAR,
+        GOLD
+    }
 }

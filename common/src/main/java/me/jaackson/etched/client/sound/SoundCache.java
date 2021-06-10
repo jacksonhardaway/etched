@@ -142,9 +142,6 @@ public class SoundCache {
                         file.getParentFile().mkdirs();
                     }
 
-                    if (progressListener != null)
-                        progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
-
                     outputStream = new DataOutputStream(new FileOutputStream(file));
                     if (i > 0 && g > (float) i)
                         throw new IOException("Filesize is bigger than maximum allowed (file is " + f + ", limit is " + i + ")");

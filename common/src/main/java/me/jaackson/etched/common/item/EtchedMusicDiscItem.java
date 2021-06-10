@@ -104,6 +104,12 @@ public class EtchedMusicDiscItem extends Item {
         return id < 0 || id >= LabelPattern.values().length ? LabelPattern.FLAT : LabelPattern.values()[id];
     }
 
+    /**
+     * Retrieves the color of the physical disc from the specified stack.
+     *
+     * @param stack The stack to get the color from
+     * @return The color for the physical disc
+     */
     public static int getPrimaryColor(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
         if (nbt == null || !nbt.contains("PrimaryColor", 99))
@@ -111,6 +117,12 @@ public class EtchedMusicDiscItem extends Item {
         return nbt.getInt("PrimaryColor");
     }
 
+    /**
+     * Retrieves the color of the label from the specified stack.
+     *
+     * @param stack The stack to get the color from
+     * @return The color for the label
+     */
     public static int getSecondaryColor(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
         if (nbt == null || !nbt.contains("SecondaryColor", 99))
@@ -200,6 +212,7 @@ public class EtchedMusicDiscItem extends Item {
         /**
          * @return The URL of the music
          */
+        @Nullable
         public String getUrl() {
             return url;
         }
@@ -218,14 +231,25 @@ public class EtchedMusicDiscItem extends Item {
             return author;
         }
 
+        /**
+         * Sets the URL to the music file.
+         *
+         * @param url The url to use
+         */
         public void setUrl(String url) {
             this.url = url;
         }
 
+        /**
+         * @param title The title of the music
+         */
         public void setTitle(String title) {
             this.title = title;
         }
 
+        /**
+         * @param author The player who authored the disc
+         */
         public void setAuthor(String author) {
             this.author = author;
         }

@@ -1,7 +1,6 @@
 package me.jaackson.etched.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
-import com.sun.media.sound.WaveFileReader;
 import me.jaackson.etched.client.sound.*;
 import net.minecraft.Util;
 import net.minecraft.client.resources.sounds.Sound;
@@ -63,7 +62,7 @@ public class SoundEngineMixin {
                 // Try loading as WAV
                 try {
                     is = new FileInputStream(path.toFile());
-                    AudioInputStream ais = new WaveFileReader().getAudioInputStream(is);
+                    AudioInputStream ais = WaveDataReader.getAudioInputStream(is);
                     AudioFormat format = ais.getFormat();
                     return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
                 } catch (Exception e1) {

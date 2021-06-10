@@ -22,6 +22,8 @@ import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -164,6 +166,21 @@ public class EtchedMusicDiscItem extends Item {
          */
         public String getAuthor() {
             return author;
+        }
+    }
+
+    /**
+     * Checks to see if the speciied string is a valid music URL.
+     *
+     * @param url The text to check
+     * @return Whether or not the data is valid
+     */
+    public static boolean isValidURL(String url) {
+        try {
+            String scheme = new URI(url).getScheme();
+            return scheme.equals("http") || scheme.equals("https");
+        } catch (URISyntaxException e) {
+            return false;
         }
     }
 }

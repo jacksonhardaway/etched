@@ -4,6 +4,7 @@ import me.jaackson.etched.Etched;
 import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
 import me.jaackson.etched.client.sound.DownloadProgressListener;
 import me.jaackson.etched.client.sound.OnlineRecordSoundInstance;
+import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import me.jaackson.etched.mixin.client.GuiAccessor;
 import me.jaackson.etched.mixin.client.LevelRendererAccessor;
@@ -23,6 +24,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -30,6 +33,7 @@ import java.util.Map;
 
 public class EtchedClientPlayHandler {
 
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final Map<BlockPos, SoundInstance> LOADING = new HashMap<>();
 
     public static void handlePlayMusicPacket(ClientboundPlayMusicPacket pkt) {
@@ -45,6 +49,11 @@ public class EtchedClientPlayHandler {
         if (soundInstance != null) {
             soundManager.stop(soundInstance);
             playingRecords.remove(pos);
+        }
+
+        if (!EtchedMusicDiscItem.isValidURL(pkt.getUrl())) {
+            LOGGER.error("Server sent invalid music URL: " + pkt.getUrl());
+            return;
         }
 
         soundInstance = new OnlineRecordSoundInstance(pkt.getUrl(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundSource.RECORDS, new DownloadProgressListener() {

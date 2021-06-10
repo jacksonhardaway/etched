@@ -174,6 +174,14 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     /**
+     * Stops playing the current track and resets to the start.
+     */
+    @Environment(EnvType.CLIENT)
+    public void stopPlaying() {
+        this.playingIndex = -1;
+    }
+
+    /**
      * Cycles to the next index to begin playing.
      */
     @Environment(EnvType.CLIENT)

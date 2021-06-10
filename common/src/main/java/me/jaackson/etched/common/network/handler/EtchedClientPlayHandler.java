@@ -5,6 +5,7 @@ import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.client.sound.DownloadProgressListener;
 import me.jaackson.etched.client.sound.OnlineRecordSoundInstance;
 import me.jaackson.etched.client.sound.StopListeningSound;
+import me.jaackson.etched.common.block.AlbumJukeboxBlock;
 import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
@@ -159,7 +160,7 @@ public class EtchedClientPlayHandler {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
-        if (!force && !jukebox.recalculatePlayingIndex()) // Something must already be playing since it would otherwise be -1 and a change would occur
+        if (!level.getBlockState(pos).getValue(AlbumJukeboxBlock.POWERED) && !force && !jukebox.recalculatePlayingIndex()) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
         SoundInstance soundInstance = playingRecords.get(pos);
@@ -167,6 +168,9 @@ public class EtchedClientPlayHandler {
             soundManager.stop(soundInstance);
             playingRecords.remove(pos);
         }
+
+        if (level.getBlockState(pos).getValue(AlbumJukeboxBlock.POWERED))
+            jukebox.stopPlaying();
 
         if (jukebox.getPlayingIndex() < 0) // Nothing can be played inside the jukebox
             return;
@@ -178,12 +182,12 @@ public class EtchedClientPlayHandler {
             if (optional.isPresent()) {
                 EtchedMusicDiscItem.MusicInfo music = optional.get();
                 if (EtchedMusicDiscItem.isValidURL(optional.get().getUrl())) {
-                    sound = new StopListeningSound(getEtchedRecord(music.getUrl(), music.getDisplayName(), pos), () -> Minecraft.getInstance().execute(() -> playNextRecord(pos)));
+                    sound = new StopListeningSound(getEtchedRecord(music.getUrl(), music.getDisplayName(), pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(pos)));
                 }
             }
         }
         if (disc.getItem() instanceof RecordItem) {
-            sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().execute(() -> playNextRecord(pos)));
+            sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(pos)));
         }
 
         if (sound == null)

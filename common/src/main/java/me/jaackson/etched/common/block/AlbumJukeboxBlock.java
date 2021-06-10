@@ -1,18 +1,15 @@
 package me.jaackson.etched.common.block;
 
-import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
-import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -25,16 +22,19 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.Random;
+
 /**
  * @author Ocelot
  */
 public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     public static final BooleanProperty HAS_RECORD = BlockStateProperties.HAS_RECORD;
+    public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
     public AlbumJukeboxBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.getStateDefinition().any().setValue(HAS_RECORD, false));
+        this.registerDefaultState(this.getStateDefinition().any().setValue(HAS_RECORD, false).setValue(POWERED, false));
     }
 
     @Override
@@ -43,12 +43,30 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof AlbumJukeboxBlockEntity) {
+        if (blockEntity instanceof AlbumJukeboxBlockEntity)
             player.openMenu((AlbumJukeboxBlockEntity) blockEntity);
-            PiglinAi.angerNearbyPiglins(player, true);
-        }
 
         return InteractionResult.CONSUME;
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState().setValue(POWERED, ctx.getLevel().hasNeighborSignal(ctx.getClickedPos()));
+    }
+
+    @Override
+    public void neighborChanged(BlockState blockState, Level level, BlockPos pos, Block block, BlockPos blockPos2, boolean bl) {
+        if (!level.isClientSide()) {
+            boolean bl2 = blockState.getValue(POWERED);
+            if (bl2 != level.hasNeighborSignal(pos)) {
+                level.setBlock(pos, blockState.cycle(POWERED), 2);
+                level.sendBlockUpdated(pos, blockState, level.getBlockState(pos), 3);
+            }
+        }
+    }
+
+    @Override
+    public void tick(BlockState blockState, ServerLevel level, BlockPos pos, Random random) {
     }
 
     @Override
@@ -88,6 +106,6 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(HAS_RECORD);
+        builder.add(HAS_RECORD, POWERED);
     }
 }

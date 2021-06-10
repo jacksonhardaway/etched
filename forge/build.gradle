@@ -9,6 +9,25 @@ architectury {
 
 loom {
     mixinConfigs = ["etched-common.mixins.json", "etched.mixins.json"]
+
+    dataGen {
+        mod "etched"
+    }
+
+    runs {
+        client {
+            runDir "run/client"
+        }
+        server {
+            runDir "run/server"
+        }
+    }
+
+    launches {
+        data {
+            arg "--existing", file("src/main/resources").absolutePath
+        }
+    }
 }
 
 dependencies {

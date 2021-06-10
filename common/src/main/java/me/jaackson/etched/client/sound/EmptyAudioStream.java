@@ -11,9 +11,11 @@ import java.nio.ByteBuffer;
  *
  * @author Ocelot
  */
-public class EmptyAudioStream implements AudioStream {
+public enum EmptyAudioStream implements AudioStream {
 
-    private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 0, 16, 1, 0, 0, false);
+    INSTANCE;
+
+    private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 0, 16, 1, 4, 0, true);
 
     @Override
     public AudioFormat getFormat() {

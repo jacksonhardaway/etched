@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.FileInputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -45,7 +46,9 @@ public class SoundEngineMixin {
     public CompletableFuture<AudioStream> redirectSoundStream(SoundBufferLibrary soundBufferLibrary, ResourceLocation resourceLocation, boolean loop) {
         if (!(this.sound instanceof AbstractOnlineSoundInstance.OnlineSound))
             return soundBufferLibrary.getStream(resourceLocation, loop);
-        return SoundCache.getAudioStream(((AbstractOnlineSoundInstance.OnlineSound) this.sound).getURL(), ((AbstractOnlineSoundInstance.OnlineSound) this.sound).getProgressListener()).<AudioStream>thenApplyAsync(path -> {
+
+        AbstractOnlineSoundInstance.OnlineSound onlineSound = (AbstractOnlineSoundInstance.OnlineSound) this.sound;
+        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).<AudioStream>thenApplyAsync(path -> {
             FileInputStream is = null;
 
             // Try loading as OGG
@@ -74,14 +77,13 @@ public class SoundEngineMixin {
                         return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
                     } catch (Exception e2) {
                         IOUtils.closeQuietly(is);
-                        LOGGER.error("Failed to load audio", e2);
-                        throw new CompletionException(e);
+                        throw new CompletionException(new UnsupportedAudioFileException("Failed to load audio"));
                     }
                 }
             }
         }, Util.backgroundExecutor()).exceptionally((e) -> {
             e.printStackTrace();
-            return new EmptyAudioStream();
+            return EmptyAudioStream.INSTANCE;
         });
     }
 }

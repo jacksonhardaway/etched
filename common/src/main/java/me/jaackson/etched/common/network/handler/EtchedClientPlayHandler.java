@@ -29,6 +29,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import org.apache.logging.log4j.LogManager;
@@ -67,7 +68,7 @@ public class EtchedClientPlayHandler {
 
     private static SoundInstance getEtchedRecord(String url, Component title, BlockPos pos) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-        SoundInstance soundInstance = new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundSource.RECORDS, new DownloadProgressListener() {
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundSource.RECORDS, new DownloadProgressListener() {
             private float size;
             private Component requesting;
             private DownloadTextComponent component;
@@ -120,7 +121,6 @@ public class EtchedClientPlayHandler {
                 Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title), true);
             }
         });
-        return soundInstance;
     }
 
     private static void playRecord(ClientLevel level, BlockPos pos, SoundInstance sound) {
@@ -130,8 +130,9 @@ public class EtchedClientPlayHandler {
         playingRecords.put(pos, sound);
         soundManager.play(sound);
 
-        for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
-            livingEntity.setRecordPlayingNearby(pos, true);
+        if (level.getBlockState(pos).is(Blocks.JUKEBOX))
+            for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
+                livingEntity.setRecordPlayingNearby(pos, true);
     }
 
     private static void playNextRecord(BlockPos pos) {
@@ -160,7 +161,7 @@ public class EtchedClientPlayHandler {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
-        if (!level.getBlockState(pos).getValue(AlbumJukeboxBlock.POWERED) && !force && !jukebox.recalculatePlayingIndex()) // Something must already be playing since it would otherwise be -1 and a change would occur
+        if (!level.getBlockState(pos).getValue(AlbumJukeboxBlock.POWERED) && !jukebox.recalculatePlayingIndex() && !force) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
         SoundInstance soundInstance = playingRecords.get(pos);

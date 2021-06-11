@@ -3,9 +3,9 @@
   "textures": {
     "particle": "etched:block/album_jukebox_front",
     "north": "etched:block/album_jukebox_front",
-    "south": "etched:block/album_jukebox_side",
+    "south": "etched:block/album_jukebox_front",
     "east": "etched:block/album_jukebox_side",
-    "west": "etched:block/album_jukebox_front",
+    "west": "etched:block/album_jukebox_side",
     "up": "etched:block/album_jukebox_top",
     "down": "etched:block/album_jukebox_side"
   }

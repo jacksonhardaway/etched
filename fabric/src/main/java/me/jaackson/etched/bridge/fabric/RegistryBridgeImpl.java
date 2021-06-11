@@ -4,10 +4,12 @@ import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -62,5 +64,10 @@ public class RegistryBridgeImpl {
     @Environment(EnvType.CLIENT)
     public static void registerItemOverride(Item item, ResourceLocation resourceLocation, ItemPropertyFunction itemPropertyFunction) {
         FabricModelPredicateProviderRegistry.register(item, resourceLocation, itemPropertyFunction);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void registerBlockRenderType(Block block, RenderType type) {
+        BlockRenderLayerMap.INSTANCE.putBlock(block, type);
     }
 }

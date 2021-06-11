@@ -3,6 +3,8 @@ package me.jaackson.etched.bridge.forge;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.resources.ResourceLocation;
@@ -66,5 +68,10 @@ public class RegistryBridgeImpl {
     @OnlyIn(Dist.CLIENT)
     public static void registerItemOverride(Item item, ResourceLocation resourceLocation, ItemPropertyFunction itemPropertyFunction) {
         ItemProperties.register(item, resourceLocation, itemPropertyFunction);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void registerBlockRenderType(Block block, RenderType type) {
+        ItemBlockRenderTypes.setRenderLayer(block, type);
     }
 }

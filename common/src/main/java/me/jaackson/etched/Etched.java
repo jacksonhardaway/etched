@@ -5,6 +5,7 @@ import me.jaackson.etched.bridge.RegistryBridge;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeableLeatherItem;
 
@@ -31,6 +32,7 @@ public class Etched {
     }
 
     public static void clientPostInit() {
+        RegistryBridge.registerBlockRenderType(EtchedRegistry.ETCHER.get(), RenderType.cutout());
         RegistryBridge.registerItemOverride(EtchedRegistry.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
     }
 }

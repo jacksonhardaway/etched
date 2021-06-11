@@ -17,10 +17,16 @@ public class StopListeningSound implements SoundInstance, SoundStopListener {
 
     private final SoundInstance source;
     private final SoundStopListener listener;
+    private boolean ignoringEvents;
 
     public StopListeningSound(SoundInstance source, SoundStopListener listener) {
         this.source = source;
         this.listener = listener;
+        this.ignoringEvents = false;
+    }
+
+    public void stopListening() {
+        this.ignoringEvents = true;
     }
 
     @Override
@@ -91,6 +97,7 @@ public class StopListeningSound implements SoundInstance, SoundStopListener {
 
     @Override
     public void onStop() {
-        this.listener.onStop();
+        if (!this.ignoringEvents)
+            this.listener.onStop();
     }
 }

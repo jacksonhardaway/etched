@@ -165,6 +165,8 @@ public class EtchedClientPlayHandler {
 
         SoundInstance soundInstance = playingRecords.get(pos);
         if (soundInstance != null) {
+            if (soundInstance instanceof StopListeningSound)
+                ((StopListeningSound) soundInstance).stopListening();
             soundManager.stop(soundInstance);
             playingRecords.remove(pos);
         }

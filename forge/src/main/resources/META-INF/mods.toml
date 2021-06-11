@@ -12,7 +12,7 @@ authors = "Jackson, Ocelot"
 description = "Create custom music discs!"
 
 [modproperties.etched]
-catalogueItemIcon="etched:etched_music_disc"
+catalogueItemIcon="etched:album_jukebox"
 
 [[dependencies.etched]]
 modId = "forge"

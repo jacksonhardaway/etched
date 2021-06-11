@@ -14,15 +14,6 @@ loom {
         mod "etched"
     }
 
-    runs {
-        client {
-            runDir "run/client"
-        }
-        server {
-            runDir "run/server"
-        }
-    }
-
     launches {
         data {
             arg "--existing", file("src/main/resources").absolutePath

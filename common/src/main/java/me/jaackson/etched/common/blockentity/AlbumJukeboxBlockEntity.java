@@ -4,6 +4,7 @@ import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
+import me.shedaniel.architectury.annotations.PlatformOnly;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -11,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -82,6 +84,11 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         if (!this.trySaveLootTable(hbt))
             ContainerHelper.saveAllItems(hbt, this.items);
         return hbt;
+    }
+
+    @PlatformOnly(PlatformOnly.FORGE)
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        this.load(this.getBlockState(), pkt.getTag());
     }
 
     @Override

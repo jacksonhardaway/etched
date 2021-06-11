@@ -5,11 +5,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import me.jaackson.etched.Etched;
+import me.jaackson.etched.EtchedRegistry;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
 import net.minecraft.data.models.model.ModelLocationUtils;
 import net.minecraft.data.models.model.ModelTemplate;
+import net.minecraft.data.models.model.ModelTemplates;
 import net.minecraft.data.models.model.TextureMapping;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -23,7 +25,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public class ItemModelGen implements DataProvider {
-    
+
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private final DataGenerator dataGenerator;
@@ -49,6 +51,8 @@ public class ItemModelGen implements DataProvider {
     }
 
     private void register() {
+        this.generateFlatItem(EtchedRegistry.BLANK_MUSIC_DISC.get(), ModelTemplates.FLAT_ITEM);
+        this.generateFlatItem(EtchedRegistry.MUSIC_LABEL.get(), ModelTemplates.FLAT_ITEM);
     }
 
     private void generateFlatItem(Item item, ModelTemplate p_240076_2_) {

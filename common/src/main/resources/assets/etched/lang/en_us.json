@@ -1,10 +1,10 @@
 {
-  "block.etched.etcher": "Etcher",
   "block.etched.album_jukebox": "Album Jukebox",
+  "block.etched.etcher": "Etcher",
+  "container.etched.album_jukebox": "Album Jukebox",
   "item.etched.blank_music_disc": "Blank Music Disc",
   "item.etched.etched_music_disc": "Etched Music Disc",
   "item.etched.music_label": "Music Label",
-  "container.etched.album_jukebox": "Album Jukebox",
-  "record.etched.downloadProgress": "Downloading (%s MB / %s MB): %s",
-  "record.etched.downloadFail": "Failed to download %s"
+  "record.etched.downloadFail": "Failed to download %s",
+  "record.etched.downloadProgress": "Downloading (%s MB / %s MB): %s"
 }

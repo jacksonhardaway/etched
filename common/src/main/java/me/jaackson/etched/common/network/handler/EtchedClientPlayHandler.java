@@ -190,6 +190,7 @@ public class EtchedClientPlayHandler {
             }
         }
         if (disc.getItem() instanceof RecordItem) {
+            Minecraft.getInstance().gui.setNowPlaying(((RecordItem) disc.getItem()).getDisplayName());
             sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(pos)));
         }
 

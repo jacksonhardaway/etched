@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Jackson
@@ -19,7 +20,7 @@ import java.util.function.Function;
 public final class NetworkBridge {
 
     @ExpectPlatform
-    public static <T extends EtchedPacket> void registerPlayToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
+    public static <T extends EtchedPacket> void registerPlayToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Supplier<Consumer<T>> handle) {
         Platform.safeAssertionError();
     }
 

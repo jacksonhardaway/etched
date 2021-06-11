@@ -45,7 +45,7 @@ shadowJar {
     exclude "fabric.mod.json"
 
     configurations = [project.configurations.shade]
-    relocate "fr.delthas.javamp3", "me.jackson.etched.lib.javamp3"
+    relocate "fr.delthas.javamp3", "me.jaackson.etched.lib.javamp3"
     classifier "dev-shadow"
 }
 

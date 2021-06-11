@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Jackson
@@ -31,11 +32,11 @@ public class NetworkBridgeImpl {
             .simpleChannel();
     private static int currentIndex = -1;
 
-    public static <T extends EtchedPacket> void registerPlayToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Consumer<T> handle) {
+    public static <T extends EtchedPacket> void registerPlayToClient(ResourceLocation channel, Class<T> messageType, Function<FriendlyByteBuf, T> read, Supplier<Consumer<T>> handle) {
         PLAY.registerMessage(currentIndex++, messageType, EtchedPacket::write, read, (packet, context) -> {
             NetworkEvent.Context ctx = context.get();
             if (ctx.getDirection().getReceptionSide() == LogicalSide.CLIENT) {
-                ctx.enqueueWork(() -> handle.accept(packet));
+                ctx.enqueueWork(() -> handle.get().accept(packet));
                 ctx.setPacketHandled(true);
             }
         }, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
@@ -50,8 +51,7 @@ public class NetworkBridgeImpl {
                     if (ctx.getSender() == null)
                         return;
 
-                    ServerPlayer player = ctx.getSender();
-                    handle.accept(packet, player);
+                    handle.accept(packet, ctx.getSender());
                 });
                 ctx.setPacketHandled(true);
             }

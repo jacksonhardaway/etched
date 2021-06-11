@@ -36,11 +36,13 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
     private NonNullList<ItemStack> items;
     private int playingIndex;
+    private ItemStack playingStack;
 
     public AlbumJukeboxBlockEntity() {
         super(EtchedRegistry.ALBUM_JUKEBOX_BE.get());
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         this.playingIndex = -1;
+        this.playingStack = ItemStack.EMPTY;
     }
 
     private void updatePlaying() {
@@ -186,6 +188,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     @Environment(EnvType.CLIENT)
     public void stopPlaying() {
         this.playingIndex = -1;
+        this.playingStack = ItemStack.EMPTY;
     }
 
     /**
@@ -195,6 +198,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     public void next() {
         this.playingIndex++;
         this.playingIndex %= this.getContainerSize();
+        this.playingStack = ItemStack.EMPTY;
     }
 
     /**
@@ -211,11 +215,13 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
                 this.playingIndex = 0;
                 if (wrap) {
                     this.playingIndex = -1;
+                    this.playingStack = ItemStack.EMPTY;
                     return;
                 }
                 wrap = true;
             }
         }
+        this.playingStack = this.getItem(this.playingIndex).copy();
     }
 
     /**
@@ -233,7 +239,8 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         }
 
         int oldIndex = this.playingIndex;
+        ItemStack oldStack = this.playingStack.copy();
         this.nextPlayingIndex();
-        return oldIndex != this.playingIndex;
+        return oldIndex != this.playingIndex || !ItemStack.matches(oldStack, this.playingStack);
     }
 }

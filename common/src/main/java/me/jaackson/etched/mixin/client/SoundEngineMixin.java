@@ -1,7 +1,8 @@
 package me.jaackson.etched.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
-import me.jaackson.etched.client.sound.*;
+import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
+import me.jaackson.etched.client.sound.SoundStopListener;
 import me.jaackson.etched.client.sound.download.*;
 import net.minecraft.Util;
 import net.minecraft.client.resources.sounds.Sound;

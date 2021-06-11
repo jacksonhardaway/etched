@@ -2,6 +2,7 @@ package me.jaackson.etched;
 
 import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.bridge.RegistryBridge;
+import me.jaackson.etched.client.screen.EtchingScreen;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
@@ -20,7 +21,6 @@ public class Etched {
     public static void commonInit() {
         EtchedRegistry.register();
         NetworkBridge.registerPlayToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMusicPacket);
-//        NetworkBridge.registerPlayToClient(ClientboundUpdateAlbumPacket.CHANNEL, ClientboundUpdateAlbumPacket.class, ClientboundUpdateAlbumPacket::new, EtchedClientPlayHandler::handleUpdateAlbumPacket);
     }
 
     public static void clientInit() {
@@ -32,7 +32,7 @@ public class Etched {
     }
 
     public static void clientPostInit() {
-        RegistryBridge.registerBlockRenderType(EtchedRegistry.ETCHER.get(), RenderType.cutout());
+        RegistryBridge.registerBlockRenderType(EtchedRegistry.ETCHING_TABLE.get(), RenderType.cutout());
         RegistryBridge.registerItemOverride(EtchedRegistry.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
     }
 }

@@ -12,8 +12,6 @@ public class EtchedFabric implements ModInitializer {
     public void onInitialize() {
         Etched.commonInit();
         Etched.commonPostInit();
-
-
     }
 
 }

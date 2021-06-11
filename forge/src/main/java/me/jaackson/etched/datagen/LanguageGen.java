@@ -3,7 +3,6 @@ package me.jaackson.etched.datagen;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.data.LanguageProvider;
 
 public class LanguageGen extends LanguageProvider {
@@ -14,7 +13,7 @@ public class LanguageGen extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        this.addBlock(EtchedRegistry.ETCHER, "Etcher");
+        this.addBlock(EtchedRegistry.ETCHING_TABLE, "Etching Table");
         this.addBlock(EtchedRegistry.ALBUM_JUKEBOX, "Album Jukebox");
         this.addItem(EtchedRegistry.BLANK_MUSIC_DISC, "Blank Music Disc");
         this.addItem(EtchedRegistry.ETCHED_MUSIC_DISC, "Etched Music Disc");

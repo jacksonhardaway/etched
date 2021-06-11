@@ -2,10 +2,10 @@
 	"credit": "Made by Farcr",
 	"parent": "block/block",
 	"textures": {
-		"0": "etched:block/etcher_bottom",
-		"1": "etched:block/etcher_side",
-		"2": "etched:block/etcher_top",
-		"particle": "etched:block/etcher_top"
+		"0": "etched:block/etching_table_bottom",
+		"1": "etched:block/etching_table_side",
+		"2": "etched:block/etching_table_top",
+		"particle": "etched:block/etching_table_top"
 	},
 	"elements": [
 		{

@@ -1,7 +1,11 @@
 {
-  "ui.etcher.take_result": {
+  "ui.etching_table.take_result": {
     "sounds": [
-      "etched:ui/etcher/take_result"
-    ]
+      {
+        "name": "etched:ui/etching_table/take_result",
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.etched.ui.etching_table.take_result"
   }
 }

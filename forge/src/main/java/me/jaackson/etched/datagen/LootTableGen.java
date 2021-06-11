@@ -63,7 +63,7 @@ public class LootTableGen extends ForgeLootTableProvider {
     private static class BlockProvider extends BlockLoot {
         @Override
         protected void addTables() {
-            this.dropSelf(EtchedRegistry.ETCHER.get());
+            this.dropSelf(EtchedRegistry.ETCHING_TABLE.get());
             this.dropSelf(EtchedRegistry.ALBUM_JUKEBOX.get());
         }
 

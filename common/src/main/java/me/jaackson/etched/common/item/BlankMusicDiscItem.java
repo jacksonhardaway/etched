@@ -13,7 +13,7 @@ public class BlankMusicDiscItem extends Item implements DyeableLeatherItem {
     @Override
     public int getColor(ItemStack itemStack) {
         CompoundTag compoundTag = itemStack.getTagElement("display");
-        return compoundTag != null && compoundTag.contains("color", 99) ? compoundTag.getInt("color") : 0xFFFFFF;
+        return compoundTag != null && compoundTag.contains("color", 99) ? compoundTag.getInt("color") : 0x515151;
     }
 
 }

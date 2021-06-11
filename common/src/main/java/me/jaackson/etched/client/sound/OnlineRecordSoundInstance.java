@@ -1,5 +1,6 @@
 package me.jaackson.etched.client.sound;
 
+import me.jaackson.etched.client.sound.download.DownloadProgressListener;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.Nullable;
 

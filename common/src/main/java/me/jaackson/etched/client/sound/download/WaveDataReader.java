@@ -1,4 +1,4 @@
-package me.jaackson.etched.client.sound;
+package me.jaackson.etched.client.sound.download;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;

@@ -1,4 +1,4 @@
-package me.jaackson.etched.client.sound;
+package me.jaackson.etched.client.sound.download;
 
 import me.jaackson.etched.Etched;
 import net.minecraft.SharedConstants;

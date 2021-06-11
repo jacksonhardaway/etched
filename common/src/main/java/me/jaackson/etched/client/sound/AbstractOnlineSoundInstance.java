@@ -1,6 +1,7 @@
 package me.jaackson.etched.client.sound;
 
 import me.jaackson.etched.Etched;
+import me.jaackson.etched.client.sound.download.DownloadProgressListener;
 import net.minecraft.client.resources.sounds.AbstractSoundInstance;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.sounds.SoundManager;

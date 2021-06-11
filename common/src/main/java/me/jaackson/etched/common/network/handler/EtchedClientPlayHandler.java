@@ -2,9 +2,9 @@ package me.jaackson.etched.common.network.handler;
 
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
-import me.jaackson.etched.client.sound.DownloadProgressListener;
 import me.jaackson.etched.client.sound.OnlineRecordSoundInstance;
 import me.jaackson.etched.client.sound.StopListeningSound;
+import me.jaackson.etched.client.sound.download.DownloadProgressListener;
 import me.jaackson.etched.common.block.AlbumJukeboxBlock;
 import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;

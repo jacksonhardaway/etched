@@ -11,6 +11,9 @@ updateJSONURL = "https://raw.githubusercontent.com/JacksonPlayz/etched/main/upda
 authors = "Jackson, Ocelot"
 description = "Create custom music discs!"
 
+[modproperties.etched]
+catalogueItemIcon="etched:etched_music_disc"
+
 [[dependencies.etched]]
 modId = "forge"
 mandatory = true

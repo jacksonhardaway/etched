@@ -66,10 +66,6 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void tick(BlockState blockState, ServerLevel level, BlockPos pos, Random random) {
-    }
-
-    @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
         if (!state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);

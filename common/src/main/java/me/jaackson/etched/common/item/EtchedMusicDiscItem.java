@@ -114,7 +114,7 @@ public class EtchedMusicDiscItem extends Item {
     public static int getPrimaryColor(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
         if (nbt == null || !nbt.contains("PrimaryColor", 99))
-            return 0xFFFFFF;
+            return 0x515151;
         return nbt.getInt("PrimaryColor");
     }
 

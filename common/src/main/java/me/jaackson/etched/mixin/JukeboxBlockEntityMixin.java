@@ -6,6 +6,7 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -48,7 +49,7 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Wor
             return;
 
         BlockState state = this.level.getBlockState(this.getBlockPos());
-        if (state.getValue(JukeboxBlock.HAS_RECORD)) {
+        if (state.is(Blocks.JUKEBOX) && state.getValue(JukeboxBlock.HAS_RECORD)) {
             this.level.levelEvent(1010, this.getBlockPos(), 0);
             state = state.setValue(JukeboxBlock.HAS_RECORD, false);
             this.level.setBlock(this.getBlockPos(), state, 2);

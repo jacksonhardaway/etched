@@ -35,12 +35,12 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     private static final int[] SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
     private NonNullList<ItemStack> items;
-    @Environment(EnvType.CLIENT)
-    private int playingIndex = -1;
+    private int playingIndex;
 
     public AlbumJukeboxBlockEntity() {
         super(EtchedRegistry.ALBUM_JUKEBOX_BE.get());
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+        this.playingIndex = -1;
     }
 
     private void updatePlaying() {

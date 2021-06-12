@@ -20,7 +20,7 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.DispenserMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -151,7 +151,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
     @Override
     protected AbstractContainerMenu createMenu(int menuId, Inventory inventory) {
-        return new AlbumJukeboxMenu(menuId, inventory, this);
+        return new AlbumJukeboxMenu(menuId, inventory, this, this.getBlockPos());
     }
 
     @Override

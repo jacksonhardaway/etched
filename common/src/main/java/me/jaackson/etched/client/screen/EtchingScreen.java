@@ -1,13 +1,16 @@
 package me.jaackson.etched.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
+import me.jaackson.etched.common.item.MusicLabelItem;
 import me.jaackson.etched.common.menu.EtchingMenu;
 import me.jaackson.etched.common.network.ServerboundSetEtcherUrlPacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -20,6 +23,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
+
+import static org.lwjgl.opengl.GL11C.GL_EQUAL;
 
 public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implements ContainerListener {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/container/etching_table.png");
@@ -136,8 +141,26 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
 
                 int v = 212 + (index == this.menu.getLabelIndex() ? 14 : mouseX >= x && mouseY >= y && mouseX < x + 14 && mouseY < y + 14 ? 28 : 0);
                 this.blit(poseStack, x, y, 0, v, 14, 14);
+                this.renderLabel(poseStack, x, y, index);
             }
         }
+    }
+
+    private void renderLabel(PoseStack poseStack, int x, int y, int index) {
+        if (this.labelStack.isEmpty() || this.discStack.isEmpty())
+            return;
+
+        EtchedMusicDiscItem.LabelPattern pattern = EtchedMusicDiscItem.LabelPattern.values()[index];
+        int labelColor = this.labelStack.getItem() instanceof MusicLabelItem ? ((MusicLabelItem) this.labelStack.getItem()).getColor(this.labelStack) : 0xFFFFFF;
+
+        if (pattern.isColorable())
+            RenderSystem.color3f((float) (labelColor >> 16 & 255) / 255.0F, (float) (labelColor >> 8 & 255) / 255.0F, (float) (labelColor & 255) / 255.0F);
+        RenderSystem.alphaFunc(GL_EQUAL, 1);
+        RenderSystem.enableAlphaTest();
+        Minecraft.getInstance().getTextureManager().bind(pattern.getTexture());
+        Gui.blit(poseStack, x, y, 1, 1, 14, 14, 16, 16);
+        RenderSystem.disableAlphaTest();
+        RenderSystem.color4f(1F, 1F, 1F, 1F);
     }
 
     @Override

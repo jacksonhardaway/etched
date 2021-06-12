@@ -170,7 +170,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
                 int y = this.topPos + 65;
 
                 if (mouseX >= x && mouseY >= y && mouseX < x + 14 && mouseY < y + 14 && this.menu.getLabelIndex() != index) {
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_LOOM_SELECT_PATTERN, 1.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                     this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, index);
                     return true;
                 }

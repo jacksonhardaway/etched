@@ -20,8 +20,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -29,12 +28,42 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Ocelot
  */
-public class SoundCache {
+public final class SoundCache {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Path SOUND_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
     private static final ReentrantLock LOCK = new ReentrantLock();
     private static final Map<String, CompletableFuture<Path>> DOWNLOADING = new HashMap<>();
+    private static LinkedHashSet<Path> files = new LinkedHashSet<>();
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LinkedHashSet<Path> theFiles;
+
+            synchronized (SoundCache.class) {
+                theFiles = files;
+                files = null;
+            }
+
+            List<Path> toBeDeleted = new ArrayList<>(theFiles);
+            Collections.reverse(toBeDeleted);
+            for (Path filename : toBeDeleted) {
+                try {
+                    Files.deleteIfExists(filename);
+                } catch (Exception ignored) {
+                }
+            }
+        }));
+    }
+
+    private SoundCache() {
+    }
+
+    private static synchronized void deleteOnExit(Path file) {
+        if (files == null)
+            throw new IllegalStateException("Shutdown in progress");
+        files.add(file);
+    }
 
     private static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = new HashMap<>();
@@ -67,6 +96,8 @@ public class SoundCache {
             if (!soundCloud && !Files.exists(SOUND_FOLDER))
                 Files.createDirectories(SOUND_FOLDER);
             Path file = soundCloud ? Files.createTempFile(DigestUtils.md5Hex(url), null) : SOUND_FOLDER.resolve(DigestUtils.md5Hex(url));
+            if (soundCloud)
+                deleteOnExit(file);
 
             CompletableFuture<String> urlFuture = soundCloud ? CompletableFuture.supplyAsync(() -> {
                 try {

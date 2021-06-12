@@ -8,7 +8,6 @@ import me.shedaniel.architectury.annotations.PlatformOnly;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -22,7 +21,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.DispenserMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -48,24 +46,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     private void updatePlaying() {
         if (this.level == null)
             return;
-
-        BlockPos pos = this.getBlockPos();
-        BlockState state = this.level.getBlockState(pos);
         this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
-        for (int i = 0; i < this.getContainerSize(); i++) {
-            ItemStack stack = this.getItem(i);
-            if (EtchedMusicDiscItem.isPlayableRecord(stack)) {
-                state = state.setValue(JukeboxBlock.HAS_RECORD, true);
-                this.level.setBlock(pos, state, 2);
-                return;
-            }
-        }
-
-        if (state.getValue(JukeboxBlock.HAS_RECORD)) {
-            this.level.levelEvent(1010, this.getBlockPos(), 0);
-            state = state.setValue(JukeboxBlock.HAS_RECORD, false);
-            this.level.setBlock(this.getBlockPos(), state, 2);
-        }
     }
 
     @Override

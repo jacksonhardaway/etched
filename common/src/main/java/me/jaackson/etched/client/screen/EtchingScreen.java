@@ -87,6 +87,8 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     public void slotChanged(AbstractContainerMenu abstractContainerMenu, int slot, ItemStack stack) {
         if (slot == 0) {
             EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> this.url.setValue(musicInfo.getUrl()));
+            if (stack.isEmpty())
+                this.url.setValue("");
             this.url.setEditable(!stack.isEmpty());
             this.setFocused(this.url);
         }

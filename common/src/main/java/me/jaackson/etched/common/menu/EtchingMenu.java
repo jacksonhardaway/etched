@@ -18,7 +18,6 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 
 public class EtchingMenu extends AbstractContainerMenu {
-
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
 
@@ -32,9 +31,6 @@ public class EtchingMenu extends AbstractContainerMenu {
     private final String author;
 
     private String url;
-
-    private final Runnable slotUpdateListener = () -> {
-    };
     private long lastSoundTime;
 
     public EtchingMenu(int id, Inventory inventory) {
@@ -49,14 +45,12 @@ public class EtchingMenu extends AbstractContainerMenu {
             public void setChanged() {
                 super.setChanged();
                 EtchingMenu.this.slotsChanged(this);
-                EtchingMenu.this.slotUpdateListener.run();
             }
         };
         this.result = new SimpleContainer(1) {
             @Override
             public void setChanged() {
                 super.setChanged();
-                EtchingMenu.this.slotUpdateListener.run();
             }
         };
 

@@ -2,6 +2,7 @@ package me.jaackson.etched.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import me.jaackson.etched.Etched;
+import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.menu.EtchingMenu;
@@ -23,6 +24,8 @@ import net.minecraft.world.item.ItemStack;
 public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implements ContainerListener {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/container/etching_table.png");
 
+    private ItemStack discStack;
+    private ItemStack labelStack;
     private EditBox url;
     private boolean displayLabels;
 
@@ -30,6 +33,9 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         super(menu, inventory, component);
         this.imageHeight = 180;
         this.inventoryLabelY += 14;
+
+        this.discStack = ItemStack.EMPTY;
+        this.labelStack = ItemStack.EMPTY;
     }
 
 
@@ -41,11 +47,10 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         this.url.setTextColor(-1);
         this.url.setTextColorUneditable(-1);
         this.url.setBordered(false);
-//        this.url.setMaxLength(35); TODO: change to higher number for longer urls
+        this.url.setMaxLength(32500);
         this.url.setResponder(this::onUrlChanged);
-        this.url.setCanLoseFocus(false);
+        this.url.setCanLoseFocus(true);
         this.children.add(this.url);
-        this.setInitialFocus(this.url);
         this.menu.addSlotListener(this);
     }
 
@@ -59,7 +64,6 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     @Override
     public void removed() {
         super.removed();
-        this.menu.addSlotListener(this);
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
@@ -89,13 +93,20 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> this.url.setValue(musicInfo.getUrl()));
             if (stack.isEmpty())
                 this.url.setValue("");
-            this.url.setEditable(!stack.isEmpty());
-            this.setFocused(this.url);
+            this.discStack = stack;
         }
 
         if (slot == 1) {
-            this.displayLabels = !stack.isEmpty();
+            this.labelStack = stack;
         }
+
+        boolean editable = this.discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get() || (!this.discStack.isEmpty() && !this.labelStack.isEmpty());
+        this.url.setEditable(editable);
+        this.url.setVisible(editable);
+        this.url.setFocus(editable);
+        this.setFocused(editable ? this.url : null);
+
+        this.displayLabels = !this.discStack.isEmpty() && !this.labelStack.isEmpty();
     }
 
     @Override
@@ -115,7 +126,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
 
         this.minecraft.getTextureManager().bind(TEXTURE);
         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        this.blit(poseStack, this.leftPos + 9, this.topPos + 21, 0, (this.menu.getSlot(0).hasItem() ? 180 : 196), 158, 16);
+        this.blit(poseStack, this.leftPos + 9, this.topPos + 21, 0, (this.discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get() || (!this.discStack.isEmpty() && !this.labelStack.isEmpty()) ? 180 : 196), 158, 16);
 
         if (this.displayLabels) {
             for (int index = 0; index < 6; index++) {

@@ -5,7 +5,9 @@ import me.jaackson.etched.bridge.RegistryBridge;
 import me.jaackson.etched.client.screen.EtchingScreen;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
+import me.jaackson.etched.common.network.ServerboundSetEtcherUrlPacket;
 import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
+import me.jaackson.etched.common.network.handler.EtchedServerPlayHandler;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -22,6 +24,7 @@ public class Etched {
     public static void commonInit() {
         EtchedRegistry.register();
         NetworkBridge.registerPlayToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMusicPacket);
+        NetworkBridge.registerPlayToServer(ServerboundSetEtcherUrlPacket.CHANNEL, ServerboundSetEtcherUrlPacket.class, ServerboundSetEtcherUrlPacket::new, EtchedServerPlayHandler::handleSetEtcherUrl);
     }
 
     public static void clientInit() {

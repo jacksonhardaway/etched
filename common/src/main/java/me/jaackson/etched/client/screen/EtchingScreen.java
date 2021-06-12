@@ -20,8 +20,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Optional;
-
 public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implements ContainerListener {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/container/etching_table.png");
 
@@ -149,15 +147,8 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     }
 
     private void onUrlChanged(String url) {
-        if (!url.isEmpty()) {
-//            String string2 = url;
-//            Slot slot = this.menu.getSlot(0);
-//            if (slot != null && slot.hasItem() && !slot.getItem().hasCustomHoverName() && url.equals(slot.getItem().getHoverName().getString())) {
-//                string2 = "";
-//            }
-
-            this.menu.setUrl(url);
-            NetworkBridge.sendToServer(new ServerboundSetEtcherUrlPacket(url));
-        }
+        this.url.setTextColor(EtchedMusicDiscItem.isValidURL(url) ? 16777215 : 16733525);
+        this.menu.setUrl(url);
+        NetworkBridge.sendToServer(new ServerboundSetEtcherUrlPacket(url));
     }
 }

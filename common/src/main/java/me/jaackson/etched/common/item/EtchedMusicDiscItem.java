@@ -285,7 +285,7 @@ public class EtchedMusicDiscItem extends Item {
     public static boolean isValidURL(String url) {
         try {
             String scheme = new URI(url).getScheme();
-            return scheme.equals("http") || scheme.equals("https");
+            return "http".equals(scheme) || "https".equals(scheme);
         } catch (URISyntaxException e) {
             return false;
         }
@@ -300,10 +300,8 @@ public class EtchedMusicDiscItem extends Item {
     public static boolean isPlayableRecord(ItemStack stack) {
         if (stack.getItem() instanceof RecordItem)
             return true;
-        if (stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
-            Optional<MusicInfo> music = getMusic(stack);
-            return music.isPresent() && isValidURL(music.get().getUrl());
-        }
+        if (stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get())
+            return getMusic(stack).isPresent();
         return false;
     }
 }

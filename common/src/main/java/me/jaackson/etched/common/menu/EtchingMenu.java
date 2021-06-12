@@ -15,11 +15,10 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
 public class EtchingMenu extends AbstractContainerMenu {
+
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
 
@@ -131,14 +130,46 @@ public class EtchingMenu extends AbstractContainerMenu {
         return stillValid(this.access, player, EtchedRegistry.ETCHING_TABLE.get());
     }
 
+    @Override
     public boolean clickMenuButton(Player player, int index) {
-        if (index >= 0 && index < 6) {
+        if (index >= 0 && index < EtchedMusicDiscItem.LabelPattern.values().length) {
             this.labelIndex.set(index);
             this.setupResultSlot();
             return true;
         } else {
             return false;
         }
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack itemStack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemStack2 = slot.getItem();
+            itemStack = itemStack2.copy();
+            if (index < 3) {
+                if (!this.moveItemStackTo(itemStack2, 3, this.slots.size(), true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemStack2, 0, 3, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemStack2.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+
+            if (itemStack2.getCount() == itemStack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onTake(player, itemStack2);
+        }
+
+        return itemStack;
     }
 
     @Override
@@ -161,7 +192,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     private void setupResultSlot() {
         this.resultSlot.set(ItemStack.EMPTY);
-        if (this.labelIndex.get() >= 0 && this.labelIndex.get() < EtchedMusicDiscItem.LabelPattern.values().length) {
+        if (this.labelIndex.get() >= 0 && this.labelIndex.get() < EtchedMusicDiscItem.LabelPattern.values().length && this.url != null && EtchedMusicDiscItem.isValidURL(this.url)) {
             ItemStack discStack = this.discSlot.getItem();
             ItemStack labelStack = this.labelSlot.getItem();
             ItemStack resultStack = ItemStack.EMPTY;
@@ -172,9 +203,11 @@ public class EtchingMenu extends AbstractContainerMenu {
 
                 int discColor = 0x515151;
                 int labelColor = 0xFFFFFF;
+                String author = this.author;
                 if (discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
                     discColor = EtchedMusicDiscItem.getPrimaryColor(discStack);
                     labelColor = EtchedMusicDiscItem.getSecondaryColor(discStack);
+                    author = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
                 }
                 if (discStack.getItem() instanceof BlankMusicDiscItem)
                     discColor = ((BlankMusicDiscItem) discStack.getItem()).getColor(discStack);
@@ -182,8 +215,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                     labelColor = ((MusicLabelItem) labelStack.getItem()).getColor(labelStack);
 
                 EtchedMusicDiscItem.MusicInfo info = new EtchedMusicDiscItem.MusicInfo();
-                if (discStack.getItem() == EtchedRegistry.BLANK_MUSIC_DISC.get())
-                    info.setAuthor(this.author);
+                info.setAuthor(author != null ? author : this.author);
                 if (labelStack.hasCustomHoverName())
                     info.setTitle(labelStack.getHoverName().getString());
                 info.setUrl(this.url);

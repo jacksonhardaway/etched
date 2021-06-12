@@ -26,12 +26,11 @@ import net.minecraft.world.phys.BlockHitResult;
  */
 public class AlbumJukeboxBlock extends BaseEntityBlock {
 
-    public static final BooleanProperty HAS_RECORD = BlockStateProperties.HAS_RECORD;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
     public AlbumJukeboxBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.getStateDefinition().any().setValue(HAS_RECORD, false).setValue(POWERED, false));
+        this.registerDefaultState(this.getStateDefinition().any().setValue(POWERED, false));
     }
 
     @Override
@@ -99,6 +98,6 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(HAS_RECORD, POWERED);
+        builder.add(POWERED);
     }
 }

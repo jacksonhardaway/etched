@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(JukeboxBlock.class)
-public class JukeboxMixin {
+public class JukeboxBlockMixin {
 
     @Inject(method = "getAnalogOutputSignal", at = @At("TAIL"), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)
     public void getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, CallbackInfoReturnable<Integer> cir, BlockEntity blockEntity) {

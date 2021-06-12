@@ -15,6 +15,6 @@
   },
   "mixins": [
     "JukeboxBlockEntityMixin",
-    "JukeboxMixin"
+    "JukeboxBlockMixin"
   ]
 }

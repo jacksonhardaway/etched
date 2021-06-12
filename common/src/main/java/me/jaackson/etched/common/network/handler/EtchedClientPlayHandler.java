@@ -63,10 +63,14 @@ public class EtchedClientPlayHandler {
             return;
         }
 
-        playRecord(level, pos, getEtchedRecord(pkt.getUrl(), pkt.getTitle(), pos));
+        playRecord(pos, new StopListeningSound(getEtchedRecord(pkt.getUrl(), pkt.getTitle(), level, pos), () -> {
+            if (level.getBlockState(pos).is(Blocks.JUKEBOX))
+                for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
+                    livingEntity.setRecordPlayingNearby(pos, false);
+        }));
     }
 
-    private static SoundInstance getEtchedRecord(String url, Component title, BlockPos pos) {
+    private static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
         return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundSource.RECORDS, new DownloadProgressListener() {
             private float size;
@@ -113,6 +117,9 @@ public class EtchedClientPlayHandler {
                     }
                 } else {
                     Minecraft.getInstance().gui.setNowPlaying(title);
+                    if (level.getBlockState(pos).is(Blocks.JUKEBOX))
+                        for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
+                            livingEntity.setRecordPlayingNearby(pos, true);
                 }
             }
 
@@ -123,23 +130,14 @@ public class EtchedClientPlayHandler {
         });
     }
 
-    private static void playRecord(ClientLevel level, BlockPos pos, SoundInstance sound) {
+    private static void playRecord(BlockPos pos, SoundInstance sound) {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-
         playingRecords.put(pos, sound);
         soundManager.play(sound);
-
-        if (level.getBlockState(pos).is(Blocks.JUKEBOX))
-            for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
-                livingEntity.setRecordPlayingNearby(pos, true);
     }
 
-    private static void playNextRecord(BlockPos pos) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null)
-            return;
-
+    private static void playNextRecord(ClientLevel level, BlockPos pos) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof AlbumJukeboxBlockEntity))
             return;
@@ -185,19 +183,23 @@ public class EtchedClientPlayHandler {
             if (optional.isPresent()) {
                 EtchedMusicDiscItem.MusicInfo music = optional.get();
                 if (EtchedMusicDiscItem.isValidURL(optional.get().getUrl())) {
-                    sound = new StopListeningSound(getEtchedRecord(music.getUrl(), music.getDisplayName(), pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(pos)));
+                    sound = new StopListeningSound(getEtchedRecord(music.getUrl(), music.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }
         }
         if (disc.getItem() instanceof RecordItem) {
             Minecraft.getInstance().gui.setNowPlaying(((RecordItem) disc.getItem()).getDisplayName());
-            sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(pos)));
+            sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
         }
 
         if (sound == null)
             return;
 
-        playRecord(level, pos, sound);
+        playRecord(pos, sound);
+
+        if (disc.getItem() instanceof RecordItem && level.getBlockState(pos).is(Blocks.JUKEBOX))
+            for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
+                livingEntity.setRecordPlayingNearby(pos, true);
     }
 
     public static class DownloadTextComponent extends BaseComponent {

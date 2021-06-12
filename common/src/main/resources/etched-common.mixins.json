@@ -8,6 +8,7 @@
     "client.GuiAccessor",
     "client.GuiMixin",
     "client.LevelRendererAccessor",
+    "client.LevelRendererMixin",
     "client.SoundEngineMixin"
   ],
   "injectors": {

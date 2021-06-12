@@ -72,8 +72,6 @@ public class SoundCache {
                 try {
                     return SoundCloud.resolveUrl(url, progressListener);
                 } catch (Exception e) {
-                    if (progressListener != null)
-                        progressListener.onFail();
                     throw new CompletionException(e);
                 }
             }, HttpUtil.DOWNLOAD_EXECUTOR) : CompletableFuture.completedFuture(url);
@@ -82,18 +80,17 @@ public class SoundCache {
                 try {
                     if (!Files.exists(file))
                         throw new FileNotFoundException();
-                    if (progressListener != null)
-                        progressListener.onSuccess();
                     return file;
                 } catch (Exception e) {
-                    if (progressListener != null)
-                        progressListener.onFail();
                     throw new CompletionException(e);
                 }
-            }, Util.ioPool()).exceptionally(e -> {
-                if (progressListener != null)
-                    progressListener.onFail();
-                return null;
+            }, Util.ioPool()).handle((path, e) -> {
+                if (e != null) {
+                    if (progressListener != null)
+                        progressListener.onFail();
+                    return null;
+                }
+                return path;
             }).thenApplyAsync(path -> {
                 DOWNLOADING.remove(url);
                 return path;
@@ -121,79 +118,79 @@ public class SoundCache {
             }
 
             try {
-                try {
-                    byte[] bs = new byte[4096];
-                    URL uRL = new URL(url);
-                    httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
-                    httpURLConnection.setInstanceFollowRedirects(true);
-                    float f = 0.0F;
-                    float g = (float) map.entrySet().size();
+                byte[] bs = new byte[4096];
+                URL uRL = new URL(url);
+                httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
+                httpURLConnection.setInstanceFollowRedirects(true);
+                float f = 0.0F;
+                float g = (float) map.entrySet().size();
 
-                    for (Map.Entry<String, String> entry : map.entrySet()) {
-                        httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
-                        if (progressListener != null)
-                            progressListener.progressStagePercentage((int) (++f / g * 100.0F));
-                    }
-
-                    inputStream = httpURLConnection.getInputStream();
-                    g = (float) httpURLConnection.getContentLength();
-                    int j = httpURLConnection.getContentLength();
+                for (Map.Entry<String, String> entry : map.entrySet()) {
+                    httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
                     if (progressListener != null)
-                        progressListener.progressStartDownload(g / 1000.0F / 1000.0F);
+                        progressListener.progressStagePercentage((int) (++f / g * 100.0F));
+                }
 
-                    // Temp file is assumed to be created with parent directories
-                    if (!isTempFile) {
-                        if (file.exists()) {
-                            long l = file.length();
-                            if (l == (long) j)
-                                return null;
+                inputStream = httpURLConnection.getInputStream();
+                g = (float) httpURLConnection.getContentLength();
+                int j = httpURLConnection.getContentLength();
+                if (progressListener != null)
+                    progressListener.progressStartDownload(g / 1000.0F / 1000.0F);
 
-                            LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", file, j, l);
-                            FileUtils.deleteQuietly(file);
-                        } else if (file.getParentFile() != null) {
-                            file.getParentFile().mkdirs();
-                        }
-                    }
-
-                    outputStream = new DataOutputStream(new FileOutputStream(file));
-                    if (i > 0 && g > (float) i)
-                        throw new IOException("Filesize is bigger than maximum allowed (file is " + f + ", limit is " + i + ")");
-
-                    int k;
-                    while ((k = inputStream.read(bs)) >= 0) {
-                        f += (float) k;
-                        if (progressListener != null) {
-                            progressListener.progressStagePercentage((int) (f / g * 100.0F));
-                        }
-
-                        if (i > 0 && f > (float) i)
-                            throw new IOException("Filesize was bigger than maximum allowed (got >= " + f + ", limit was " + i + ")");
-
-                        if (Thread.interrupted()) {
-                            LOGGER.error("INTERRUPTED");
+                // Temp file is assumed to be created with parent directories
+                if (!isTempFile) {
+                    if (file.exists()) {
+                        long l = file.length();
+                        if (l == (long) j)
                             return null;
-                        }
 
-                        outputStream.write(bs, 0, k);
-                    }
-                } catch (Throwable var22) {
-                    var22.printStackTrace();
-                    if (httpURLConnection != null) {
-                        InputStream inputStream2 = httpURLConnection.getErrorStream();
-
-                        try {
-                            LOGGER.error(IOUtils.toString(inputStream2, StandardCharsets.UTF_8));
-                        } catch (IOException var21) {
-                            var21.printStackTrace();
-                        }
+                        LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", file, j, l);
+                        FileUtils.deleteQuietly(file);
+                    } else if (file.getParentFile() != null) {
+                        file.getParentFile().mkdirs();
                     }
                 }
 
-                return null;
+                outputStream = new DataOutputStream(new FileOutputStream(file));
+                if (i > 0 && g > (float) i)
+                    throw new IOException("Filesize is bigger than maximum allowed (file is " + f + ", limit is " + i + ")");
+
+                int k;
+                while ((k = inputStream.read(bs)) >= 0) {
+                    f += (float) k;
+                    if (progressListener != null) {
+                        progressListener.progressStagePercentage((int) (f / g * 100.0F));
+                    }
+
+                    if (i > 0 && f > (float) i)
+                        throw new IOException("Filesize was bigger than maximum allowed (got >= " + f + ", limit was " + i + ")");
+
+                    if (Thread.interrupted()) {
+                        LOGGER.error("INTERRUPTED");
+                        return null;
+                    }
+
+                    outputStream.write(bs, 0, k);
+                }
+            } catch (Throwable var22) {
+                var22.printStackTrace();
+                if (httpURLConnection != null) {
+                    InputStream inputStream2 = httpURLConnection.getErrorStream();
+
+                    try {
+                        LOGGER.error(IOUtils.toString(inputStream2, StandardCharsets.UTF_8));
+                    } catch (IOException var21) {
+                        var21.printStackTrace();
+                    }
+                }
+
+                throw new CompletionException(var22);
             } finally {
                 IOUtils.closeQuietly(inputStream);
                 IOUtils.closeQuietly(outputStream);
             }
+
+            return null;
         }, HttpUtil.DOWNLOAD_EXECUTOR);
     }
 }

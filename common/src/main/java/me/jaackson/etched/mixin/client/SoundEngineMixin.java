@@ -93,9 +93,13 @@ public abstract class SoundEngineMixin {
                     }
                 }
             }
-        }, Util.backgroundExecutor()).exceptionally((e) -> {
-            e.printStackTrace();
-            return EmptyAudioStream.INSTANCE;
+        }, Util.backgroundExecutor()).handle((stream, e) -> {
+            if (e != null) {
+                e.printStackTrace();
+                return EmptyAudioStream.INSTANCE;
+            }
+            onlineSound.getProgressListener().onSuccess();
+            return stream;
         });
     }
 }

@@ -41,7 +41,7 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof AlbumJukeboxBlockEntity)
             player.openMenu((AlbumJukeboxBlockEntity) blockEntity);
-
+        // TODO: stats
         return InteractionResult.CONSUME;
     }
 

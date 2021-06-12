@@ -4,8 +4,11 @@ import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.player.Inventory;
@@ -69,6 +72,18 @@ public final class RegistryBridge {
         Platform.safeAssertionError();
     }
 
+    @ExpectPlatform
+    @Environment(EnvType.CLIENT)
+    public static <M extends AbstractContainerMenu, S extends Screen & MenuAccess<M>> void registerScreenFactory(MenuType<M> type, ScreenFactory<M, S> object) {
+        Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    @Environment(EnvType.CLIENT)
+    public static void registerSprite(ResourceLocation sprite, ResourceLocation atlas) {
+        Platform.safeAssertionError();
+    }
+
     public static Supplier<Block> registerBlock(String name, Supplier<Block> block, Item.Properties properties) {
         return registerBlock(name, block, blockSupplier -> new BlockItem(blockSupplier.get(), properties));
     }
@@ -79,7 +94,13 @@ public final class RegistryBridge {
         return register;
     }
 
+    @FunctionalInterface
     public interface MenuFactory<T extends AbstractContainerMenu> {
         T create(int id, Inventory inventory);
+    }
+
+    @FunctionalInterface
+    public interface ScreenFactory<M extends AbstractContainerMenu, S extends Screen & MenuAccess<M>> {
+        S create(M menu, Inventory inventory, Component title);
     }
 }

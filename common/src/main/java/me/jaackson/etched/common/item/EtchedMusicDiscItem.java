@@ -1,13 +1,17 @@
 package me.jaackson.etched.common.item;
 
+import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
@@ -26,9 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.WeakHashMap;
 
 /**
  * @author Ocelot
@@ -164,8 +167,6 @@ public class EtchedMusicDiscItem extends Item {
      * @param secondaryColor The color to use for the label
      */
     public static void setColor(ItemStack stack, int primaryColor, int secondaryColor) {
-        if (stack.getItem() != EtchedRegistry.MUSIC_LABEL.get())
-            return;
         stack.getOrCreateTag().putInt("PrimaryColor", primaryColor);
         stack.getOrCreateTag().putInt("SecondaryColor", secondaryColor);
     }
@@ -263,16 +264,26 @@ public class EtchedMusicDiscItem extends Item {
      */
     public enum LabelPattern {
 
-        FLAT,
-        CROSS,
-        EYE,
-        PARALLEL,
-        STAR,
-        GOLD;
+        FLAT, CROSS, EYE, PARALLEL, STAR, GOLD;
+
+        private final ResourceLocation texture;
+
+        LabelPattern() {
+            this.texture = new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_etched_music_disc_label.png");
+        }
+
+        /**
+         * @return The location of the label texture
+         */
+        @Environment(EnvType.CLIENT)
+        public ResourceLocation getTexture() {
+            return texture;
+        }
 
         /**
          * @return Whether or not this label can be colored
          */
+        @Environment(EnvType.CLIENT)
         public boolean isColorable() {
             return this != GOLD;
         }
@@ -287,7 +298,7 @@ public class EtchedMusicDiscItem extends Item {
     public static boolean isValidURL(String url) {
         try {
             String scheme = new URI(url).getScheme();
-            return scheme.equals("http") || scheme.equals("https");
+            return "http".equals(scheme) || "https".equals(scheme);
         } catch (URISyntaxException e) {
             return false;
         }
@@ -302,10 +313,8 @@ public class EtchedMusicDiscItem extends Item {
     public static boolean isPlayableRecord(ItemStack stack) {
         if (stack.getItem() instanceof RecordItem)
             return true;
-        if (stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
-            Optional<MusicInfo> music = getMusic(stack);
-            return music.isPresent() && isValidURL(music.get().getUrl());
-        }
+        if (stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get())
+            return getMusic(stack).isPresent();
         return false;
     }
 }

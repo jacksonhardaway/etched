@@ -225,7 +225,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                 EtchedMusicDiscItem.setPattern(resultStack, EtchedMusicDiscItem.LabelPattern.values()[this.labelIndex.get()]);
             }
 
-            if (!ItemStack.matches(resultStack, this.resultSlot.getItem())) {
+            if (!ItemStack.matches(resultStack, this.resultSlot.getItem()) && !ItemStack.matches(resultStack, this.discSlot.getItem())) {
                 this.resultSlot.set(resultStack);
             }
         }

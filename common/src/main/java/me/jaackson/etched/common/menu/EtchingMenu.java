@@ -126,6 +126,12 @@ public class EtchingMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void removed(Player player) {
+        super.removed(player);
+        this.access.execute((level, pos) -> this.clearContainer(player, level, this.input));
+    }
+
+    @Override
     public boolean stillValid(Player player) {
         return stillValid(this.access, player, EtchedRegistry.ETCHING_TABLE.get());
     }

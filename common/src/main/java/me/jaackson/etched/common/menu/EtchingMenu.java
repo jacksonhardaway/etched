@@ -3,19 +3,25 @@ package me.jaackson.etched.common.menu;
 import com.mojang.datafixers.util.Pair;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
+import me.jaackson.etched.client.sound.download.SoundCloud;
 import me.jaackson.etched.common.item.BlankMusicDiscItem;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.HttpUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Jackson
@@ -35,6 +41,9 @@ public class EtchingMenu extends AbstractContainerMenu {
     private final String author;
 
     private String url;
+    private String cachedAuthor;
+    private String cachedTitle;
+    private int urlId;
     private long lastSoundTime;
 
     public EtchingMenu(int id, Inventory inventory) {
@@ -200,49 +209,82 @@ public class EtchingMenu extends AbstractContainerMenu {
         if (this.labelIndex.get() >= 0 && this.labelIndex.get() < EtchedMusicDiscItem.LabelPattern.values().length && this.url != null && EtchedMusicDiscItem.isValidURL(this.url)) {
             ItemStack discStack = this.discSlot.getItem();
             ItemStack labelStack = this.labelSlot.getItem();
-            ItemStack resultStack = ItemStack.EMPTY;
 
             if (discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get() || (!discStack.isEmpty() && !labelStack.isEmpty())) {
-                resultStack = new ItemStack(EtchedRegistry.ETCHED_MUSIC_DISC.get());
-                resultStack.setCount(1);
+                int currentId = this.urlId;
+                CompletableFuture.supplyAsync(() -> {
+                    ItemStack resultStack = new ItemStack(EtchedRegistry.ETCHED_MUSIC_DISC.get());
+                    resultStack.setCount(1);
 
-                int discColor = 0x515151;
-                int labelColor = 0xFFFFFF;
-                String author = this.author;
-                if (discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
-                    discColor = EtchedMusicDiscItem.getPrimaryColor(discStack);
-                    labelColor = EtchedMusicDiscItem.getSecondaryColor(discStack);
-                    author = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
-                }
-                if (discStack.getItem() instanceof BlankMusicDiscItem)
-                    discColor = ((BlankMusicDiscItem) discStack.getItem()).getColor(discStack);
-                if (labelStack.getItem() instanceof MusicLabelItem)
-                    labelColor = ((MusicLabelItem) labelStack.getItem()).getColor(labelStack);
+                    int discColor = 0x515151;
+                    int labelColor = 0xFFFFFF;
+                    String author = this.author;
+                    String title = null;
+                    if (discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
+                        discColor = EtchedMusicDiscItem.getPrimaryColor(discStack);
+                        labelColor = EtchedMusicDiscItem.getSecondaryColor(discStack);
+                        author = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
+                    }
+                    if (SoundCloud.isValidUrl(this.url)) {
+                        if (this.cachedAuthor == null || this.cachedTitle == null) {
+                            try {
+                                Pair<String, String> track = SoundCloud.resolveTrack(this.url, null);
+                                this.cachedAuthor = track.getFirst();
+                                this.cachedTitle = track.getSecond();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                this.cachedAuthor = null;
+                                this.cachedTitle = null;
+                                return null;
+                            }
+                        }
+                        author = this.cachedAuthor;
+                        title = this.cachedTitle;
+                    }
+                    if (discStack.getItem() instanceof BlankMusicDiscItem)
+                        discColor = ((BlankMusicDiscItem) discStack.getItem()).getColor(discStack);
+                    if (labelStack.getItem() instanceof MusicLabelItem)
+                        labelColor = ((MusicLabelItem) labelStack.getItem()).getColor(labelStack);
 
-                EtchedMusicDiscItem.MusicInfo info = new EtchedMusicDiscItem.MusicInfo();
-                info.setAuthor(author != null ? author : this.author);
-                if (labelStack.hasCustomHoverName())
-                    info.setTitle(labelStack.getHoverName().getString());
-                info.setUrl(this.url);
+                    EtchedMusicDiscItem.MusicInfo info = new EtchedMusicDiscItem.MusicInfo();
+                    info.setAuthor(author != null ? author : this.author);
+                    if (labelStack.hasCustomHoverName())
+                        info.setTitle(labelStack.getHoverName().getString());
+                    if (title != null)
+                        info.setTitle(title);
+                    info.setUrl(this.url);
 
-                EtchedMusicDiscItem.setMusic(resultStack, info);
-                EtchedMusicDiscItem.setColor(resultStack, discColor, labelColor);
-                EtchedMusicDiscItem.setPattern(resultStack, EtchedMusicDiscItem.LabelPattern.values()[this.labelIndex.get()]);
-            }
+                    EtchedMusicDiscItem.setMusic(resultStack, info);
+                    EtchedMusicDiscItem.setColor(resultStack, discColor, labelColor);
+                    EtchedMusicDiscItem.setPattern(resultStack, EtchedMusicDiscItem.LabelPattern.values()[this.labelIndex.get()]);
 
-            if (!ItemStack.matches(resultStack, this.resultSlot.getItem()) && !ItemStack.matches(resultStack, this.discSlot.getItem())) {
-                this.resultSlot.set(resultStack);
+                    return resultStack;
+                }, HttpUtil.DOWNLOAD_EXECUTOR).thenAcceptAsync(resultStack -> {
+                    if (this.urlId == currentId && resultStack != null && !ItemStack.matches(resultStack, this.resultSlot.getItem()) && !ItemStack.matches(resultStack, this.discSlot.getItem())) {
+                        this.resultSlot.set(resultStack);
+                    }
+                });
             }
         }
-
     }
 
     public int getLabelIndex() {
         return labelIndex.get();
     }
 
+    /**
+     * Sets the URL for the resulting stack to the specified value.
+     *
+     * @param string The new URL
+     */
     public void setUrl(String string) {
-        this.url = string;
-        this.setupResultSlot();
+        if (!Objects.equals(this.url, string)) {
+            this.url = string;
+            this.urlId++;
+            this.urlId %= 1000;
+            this.cachedAuthor = null;
+            this.cachedTitle = null;
+            this.setupResultSlot();
+        }
     }
 }

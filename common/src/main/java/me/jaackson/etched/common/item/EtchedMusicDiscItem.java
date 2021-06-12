@@ -3,6 +3,7 @@ package me.jaackson.etched.common.item;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.bridge.NetworkBridge;
+import me.jaackson.etched.client.sound.download.SoundCloud;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -10,7 +11,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
@@ -44,7 +47,11 @@ public class EtchedMusicDiscItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
-        getMusic(stack).ifPresent(music -> list.add(music.getDisplayName().copy().withStyle(ChatFormatting.GRAY)));
+        getMusic(stack).ifPresent(music -> {
+            list.add(music.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
+            if (SoundCloud.isValidUrl(music.getUrl()))
+                list.add(new TranslatableComponent(this.getDescriptionId(stack) + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500))));
+        });
     }
 
     @Override
@@ -209,7 +216,6 @@ public class EtchedMusicDiscItem extends Item {
         /**
          * @return The URL of the music
          */
-        @Nullable
         public String getUrl() {
             return url;
         }

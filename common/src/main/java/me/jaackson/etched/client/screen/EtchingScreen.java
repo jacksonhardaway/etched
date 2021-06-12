@@ -24,14 +24,18 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Objects;
+
 import static org.lwjgl.opengl.GL11C.GL_EQUAL;
 
 public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implements ContainerListener {
+
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/container/etching_table.png");
 
     private ItemStack discStack;
     private ItemStack labelStack;
     private EditBox url;
+    private String oldUrl;
     private boolean displayLabels;
 
     public EtchingScreen(EtchingMenu menu, Inventory inventory, Component component) {
@@ -72,15 +76,6 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     }
 
     @Override
-    public boolean keyPressed(int i, int j, int k) {
-        if (i == 256) {
-            this.minecraft.player.closeContainer();
-        }
-
-        return this.url.keyPressed(i, j, k) || this.url.canConsumeInput() || super.keyPressed(i, j, k);
-    }
-
-    @Override
     public void tick() {
         super.tick();
         this.url.tick();
@@ -89,6 +84,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     @Override
     public void refreshContainer(AbstractContainerMenu abstractContainerMenu, NonNullList<ItemStack> nonNullList) {
         this.slotChanged(abstractContainerMenu, 0, abstractContainerMenu.getSlot(0).getItem());
+        this.slotChanged(abstractContainerMenu, 1, abstractContainerMenu.getSlot(1).getItem());
     }
 
     @Override
@@ -181,7 +177,9 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     }
 
     private void onUrlChanged(String url) {
-        this.menu.setUrl(url);
-        NetworkBridge.sendToServer(new ServerboundSetEtcherUrlPacket(url));
+        if (!Objects.equals(this.oldUrl, url)) {
+            this.oldUrl = url;
+            NetworkBridge.sendToServer(new ServerboundSetEtcherUrlPacket(url));
+        }
     }
 }

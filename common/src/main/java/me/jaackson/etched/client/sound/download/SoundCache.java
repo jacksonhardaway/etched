@@ -62,18 +62,23 @@ public class SoundCache {
         try {
             LOCK.lock();
 
-            Path file = SOUND_FOLDER.resolve(DigestUtils.md5Hex(url));
-            try {
-                if (!Files.exists(SOUND_FOLDER))
-                    Files.createDirectories(SOUND_FOLDER);
-            } catch (Exception e) {
-                if (progressListener != null)
-                    progressListener.onFail();
-                throw new CompletionException(e);
-            }
+            boolean soundCloud = SoundCloud.isValidUrl(url);
 
-            // TODO add config for file size download limit?
-            CompletableFuture<Path> future = downloadTo(file.toFile(), url, getDownloadHeaders(), 104857600, progressListener, Minecraft.getInstance().getProxy()).thenApplyAsync(__ -> {
+            if (!soundCloud && !Files.exists(SOUND_FOLDER))
+                Files.createDirectories(SOUND_FOLDER);
+            Path file = soundCloud ? Files.createTempFile(DigestUtils.md5Hex(url), null) : SOUND_FOLDER.resolve(DigestUtils.md5Hex(url));
+
+            CompletableFuture<String> urlFuture = soundCloud ? CompletableFuture.supplyAsync(() -> {
+                try {
+                    return SoundCloud.resolveUrl(url, progressListener);
+                } catch (Exception e) {
+                    if (progressListener != null)
+                        progressListener.onFail();
+                    throw new CompletionException(e);
+                }
+            }, HttpUtil.DOWNLOAD_EXECUTOR) : CompletableFuture.completedFuture(url);
+
+            CompletableFuture<Path> future = downloadTo(file.toFile(), urlFuture, getDownloadHeaders(), 104857600, progressListener, Minecraft.getInstance().getProxy(), soundCloud).thenApplyAsync(__ -> {
                 try {
                     if (!Files.exists(file))
                         throw new FileNotFoundException();
@@ -96,24 +101,29 @@ public class SoundCache {
 
             DOWNLOADING.put(url, future);
             return future;
+
+        } catch (Exception e) {
+            if (progressListener != null)
+                progressListener.onFail();
+            throw new CompletionException(e);
         } finally {
             LOCK.unlock();
         }
     }
 
-    private static CompletableFuture<?> downloadTo(File file, String string, Map<String, String> map, int i, @Nullable DownloadProgressListener progressListener, Proxy proxy) {
-        return CompletableFuture.supplyAsync(() -> {
+    private static CompletableFuture<?> downloadTo(File file, CompletableFuture<String> urlFuture, Map<String, String> map, int i, @Nullable DownloadProgressListener progressListener, Proxy proxy, boolean isTempFile) {
+        return urlFuture.thenApplyAsync(url -> {
             HttpURLConnection httpURLConnection = null;
             InputStream inputStream = null;
             OutputStream outputStream = null;
-            if (progressListener != null && !file.exists()) {
+            if (progressListener != null && (isTempFile || !file.exists())) {
                 progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
             }
 
             try {
                 try {
                     byte[] bs = new byte[4096];
-                    URL uRL = new URL(string);
+                    URL uRL = new URL(url);
                     httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
                     httpURLConnection.setInstanceFollowRedirects(true);
                     float f = 0.0F;
@@ -131,15 +141,18 @@ public class SoundCache {
                     if (progressListener != null)
                         progressListener.progressStartDownload(g / 1000.0F / 1000.0F);
 
-                    if (file.exists()) {
-                        long l = file.length();
-                        if (l == (long) j)
-                            return null;
+                    // Temp file is assumed to be created with parent directories
+                    if (!isTempFile) {
+                        if (file.exists()) {
+                            long l = file.length();
+                            if (l == (long) j)
+                                return null;
 
-                        LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", file, j, l);
-                        FileUtils.deleteQuietly(file);
-                    } else if (file.getParentFile() != null) {
-                        file.getParentFile().mkdirs();
+                            LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", file, j, l);
+                            FileUtils.deleteQuietly(file);
+                        } else if (file.getParentFile() != null) {
+                            file.getParentFile().mkdirs();
+                        }
                     }
 
                     outputStream = new DataOutputStream(new FileOutputStream(file));

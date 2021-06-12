@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
-import me.jaackson.etched.client.sound.download.DownloadProgressListener;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.GsonHelper;
 import org.apache.http.StatusLine;
@@ -117,8 +116,8 @@ public class SoundCloud {
      */
     public static Pair<String, String> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener) throws IOException, JsonParseException {
         return resolve(trackUrl, progressListener, json -> {
-            JsonObject user = GsonHelper.getAsJsonObject(json, "publisher_metadata");
-            String artist = GsonHelper.getAsString(user, "artist");
+            JsonObject user = GsonHelper.getAsJsonObject(json, "user");
+            String artist = GsonHelper.getAsString(user, "username");
             String title = GsonHelper.getAsString(json, "title");
             return Pair.of(artist, title);
         });

@@ -6,9 +6,13 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
+import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.core.Registry;
@@ -69,5 +73,15 @@ public class RegistryBridgeImpl {
     @Environment(EnvType.CLIENT)
     public static void registerBlockRenderType(Block block, RenderType type) {
         BlockRenderLayerMap.INSTANCE.putBlock(block, type);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void registerSprite(ResourceLocation sprite, ResourceLocation atlas) {
+        ClientSpriteRegistryCallback.event(atlas).register((atlasTexture, registry) -> registry.register(sprite));
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static <M extends AbstractContainerMenu, S extends Screen & MenuAccess<M>> void registerScreenFactory(MenuType<M> type, RegistryBridge.ScreenFactory<M, S> object) {
+        ScreenRegistry.register(type, object::create);
     }
 }

@@ -3,10 +3,14 @@ package me.jaackson.etched.bridge.forge;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -18,6 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ColorHandlerEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -73,5 +78,20 @@ public class RegistryBridgeImpl {
     @OnlyIn(Dist.CLIENT)
     public static void registerBlockRenderType(Block block, RenderType type) {
         ItemBlockRenderTypes.setRenderLayer(block, type);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void registerSprite(ResourceLocation sprite, ResourceLocation atlas) {
+        FMLJavaModLoadingContext.get().getModEventBus().<TextureStitchEvent.Pre>addListener(e -> {
+            TextureAtlas texture = e.getMap();
+            if (atlas.equals(texture.location())) {
+                e.addSprite(sprite);
+            }
+        });
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static <M extends AbstractContainerMenu, S extends Screen & MenuAccess<M>> void registerScreenFactory(MenuType<M> type, RegistryBridge.ScreenFactory<M, S> object) {
+        MenuScreens.register(type, object::create);
     }
 }

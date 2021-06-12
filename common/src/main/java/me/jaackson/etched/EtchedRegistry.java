@@ -8,9 +8,11 @@ import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import me.jaackson.etched.common.item.BlankMusicDiscItem;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
+import me.jaackson.etched.common.menu.EtchingMenu;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -24,6 +26,8 @@ import java.util.function.Supplier;
 public class EtchedRegistry {
 
     public static final Supplier<SoundEvent> UI_ETCHER_TAKE_RESULT = RegistryBridge.registerSound("ui.etcher.take_result", () -> new SoundEvent(new ResourceLocation(Etched.MOD_ID, "ui.etcher.take_result")));
+
+    public static final Supplier<MenuType<EtchingMenu>> ETCHING_MENU = RegistryBridge.registerMenu("etcher", EtchingMenu::new);
 
     public static final Supplier<Item> MUSIC_LABEL = RegistryBridge.registerItem("music_label", () -> new MusicLabelItem(new Item.Properties().stacksTo(1).tab(CreativeModeTab.TAB_MISC)));
     public static final Supplier<Item> BLANK_MUSIC_DISC = RegistryBridge.registerItem("blank_music_disc", () -> new BlankMusicDiscItem(new Item.Properties().stacksTo(1).tab(CreativeModeTab.TAB_MISC)));

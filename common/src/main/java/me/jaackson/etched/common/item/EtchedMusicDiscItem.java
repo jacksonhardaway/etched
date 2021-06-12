@@ -169,8 +169,6 @@ public class EtchedMusicDiscItem extends Item {
      * @param secondaryColor The color to use for the label
      */
     public static void setColor(ItemStack stack, int primaryColor, int secondaryColor) {
-        if (stack.getItem() != EtchedRegistry.MUSIC_LABEL.get())
-            return;
         stack.getOrCreateTag().putInt("PrimaryColor", primaryColor);
         stack.getOrCreateTag().putInt("SecondaryColor", secondaryColor);
     }

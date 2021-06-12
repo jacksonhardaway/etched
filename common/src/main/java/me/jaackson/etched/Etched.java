@@ -2,6 +2,7 @@ package me.jaackson.etched;
 
 import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.bridge.RegistryBridge;
+import me.jaackson.etched.client.screen.AlbumJukeboxScreen;
 import me.jaackson.etched.client.screen.EtchingScreen;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
@@ -39,6 +40,7 @@ public class Etched {
 
     public static void clientPostInit() {
         RegistryBridge.registerScreenFactory(EtchedRegistry.ETCHING_MENU.get(), EtchingScreen::new);
+        RegistryBridge.registerScreenFactory(EtchedRegistry.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
         RegistryBridge.registerBlockRenderType(EtchedRegistry.ETCHING_TABLE.get(), RenderType.cutout());
         RegistryBridge.registerItemOverride(EtchedRegistry.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
     }

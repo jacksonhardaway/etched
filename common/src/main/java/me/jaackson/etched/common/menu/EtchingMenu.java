@@ -17,7 +17,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 
+/**
+ * @author Jackson
+ */
 public class EtchingMenu extends AbstractContainerMenu {
+
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
 
@@ -42,6 +46,7 @@ public class EtchingMenu extends AbstractContainerMenu {
         this.author = inventory.player.getDisplayName().getString();
         this.labelIndex = DataSlot.standalone();
         this.input = new SimpleContainer(2) {
+            @Override
             public void setChanged() {
                 super.setChanged();
                 EtchingMenu.this.slotsChanged(this);

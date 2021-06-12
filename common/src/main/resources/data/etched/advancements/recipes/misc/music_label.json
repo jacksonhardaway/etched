@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "etched:music_label"
+    ]
+  },
+  "criteria": {
+    "has_blank_music_disc": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "etched:blank_music_disc"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "etched:music_label"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_blank_music_disc",
+      "has_the_recipe"
+    ]
+  ]
+}

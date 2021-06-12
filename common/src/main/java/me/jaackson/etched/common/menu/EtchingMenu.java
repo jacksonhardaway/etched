@@ -196,12 +196,6 @@ public class EtchingMenu extends AbstractContainerMenu {
         this.broadcastChanges();
     }
 
-    @Override
-    public void removed(Player player) {
-        super.removed(player);
-        this.access.execute((level, blockPos) -> this.clearContainer(player, level, this.input));
-    }
-
     private void setupResultSlot() {
         this.resultSlot.set(ItemStack.EMPTY);
         if (this.labelIndex.get() >= 0 && this.labelIndex.get() < EtchedMusicDiscItem.LabelPattern.values().length && this.url != null && EtchedMusicDiscItem.isValidURL(this.url)) {

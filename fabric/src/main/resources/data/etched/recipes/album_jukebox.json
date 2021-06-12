@@ -10,7 +10,7 @@
       "tag": "c:redstone_dusts"
     },
     "H": {
-      "tag": "c:hoppers"
+      "item": "minecraft:repeater"
     },
     "J": {
       "item": "minecraft:jukebox"

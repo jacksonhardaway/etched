@@ -2,6 +2,7 @@ package me.jaackson.etched;
 
 import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.bridge.RegistryBridge;
+import me.jaackson.etched.client.screen.EtchingScreen;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import me.jaackson.etched.common.network.ServerboundSetEtcherUrlPacket;

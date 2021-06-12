@@ -38,12 +38,11 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         this.labelStack = ItemStack.EMPTY;
     }
 
-
     @Override
     protected void init() {
         super.init();
         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        this.url = new EditBox(this.font, this.leftPos + 11, this.topPos + 26, 154, 16, new TranslatableComponent("container.repair"));
+        this.url = new EditBox(this.font, this.leftPos + 11, this.topPos + 25, 154, 16, new TranslatableComponent("container.etched.etching_table"));
         this.url.setTextColor(-1);
         this.url.setTextColorUneditable(-1);
         this.url.setBordered(false);
@@ -90,9 +89,9 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     @Override
     public void slotChanged(AbstractContainerMenu abstractContainerMenu, int slot, ItemStack stack) {
         if (slot == 0) {
-            EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> this.url.setValue(musicInfo.getUrl()));
-            if (stack.isEmpty())
+            if (this.discStack.isEmpty() && !stack.isEmpty())
                 this.url.setValue("");
+            EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> this.url.setValue(musicInfo.getUrl()));
             this.discStack = stack;
         }
 
@@ -110,7 +109,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     }
 
     @Override
-    public void setContainerData(AbstractContainerMenu abstractContainerMenu, int i, int j) {
+    public void setContainerData(AbstractContainerMenu abstractContainerMenu, int index, int value) {
     }
 
     @Override
@@ -159,7 +158,6 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     }
 
     private void onUrlChanged(String url) {
-        this.url.setTextColor(EtchedMusicDiscItem.isValidURL(url) ? 16777215 : 16733525);
         this.menu.setUrl(url);
         NetworkBridge.sendToServer(new ServerboundSetEtcherUrlPacket(url));
     }

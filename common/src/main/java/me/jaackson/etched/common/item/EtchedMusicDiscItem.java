@@ -1,13 +1,17 @@
 package me.jaackson.etched.common.item;
 
+import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
@@ -26,9 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.WeakHashMap;
 
 /**
  * @author Ocelot
@@ -261,16 +264,26 @@ public class EtchedMusicDiscItem extends Item {
      */
     public enum LabelPattern {
 
-        FLAT,
-        CROSS,
-        EYE,
-        PARALLEL,
-        STAR,
-        GOLD;
+        FLAT, CROSS, EYE, PARALLEL, STAR, GOLD;
+
+        private final ResourceLocation texture;
+
+        LabelPattern() {
+            this.texture = new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_etched_music_disc_label.png");
+        }
+
+        /**
+         * @return The location of the label texture
+         */
+        @Environment(EnvType.CLIENT)
+        public ResourceLocation getTexture() {
+            return texture;
+        }
 
         /**
          * @return Whether or not this label can be colored
          */
+        @Environment(EnvType.CLIENT)
         public boolean isColorable() {
             return this != GOLD;
         }

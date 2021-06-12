@@ -35,8 +35,6 @@ import java.util.WeakHashMap;
  */
 public class EtchedMusicDiscItem extends Item {
 
-    private static final Map<ItemStack, MusicInfo> CACHE = new WeakHashMap<>();
-
     public EtchedMusicDiscItem(Properties properties) {
         super(properties);
     }
@@ -83,12 +81,9 @@ public class EtchedMusicDiscItem extends Item {
         if (nbt == null || !nbt.contains("Music", 10))
             return Optional.empty();
 
-        MusicInfo music = CACHE.computeIfAbsent(stack, key -> {
-            MusicInfo info = new MusicInfo();
-            info.load(nbt.getCompound("Music"));
-            return info.getUrl() != null ? info : MusicInfo.EMPTY;
-        });
-        return music != MusicInfo.EMPTY ? Optional.of(music) : Optional.empty();
+        MusicInfo music = new MusicInfo();
+        music.load(nbt.getCompound("Music"));
+        return music.getUrl() != null && isValidURL(music.getUrl()) ? Optional.of(music) : Optional.empty();
     }
 
     /**

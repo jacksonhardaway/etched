@@ -5,7 +5,13 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.Tags;
 
 import java.util.function.Consumer;
@@ -18,6 +24,15 @@ public class RecipeGen extends RecipeProvider {
 
     @Override
     protected void buildShapelessRecipes(Consumer<FinishedRecipe> consumer) {
+        ShapedRecipeBuilder.shaped(EtchedRegistry.ETCHING_TABLE.get())
+                .pattern(" DI")
+                .pattern("PPP")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_diamond", has(Tags.Items.GEMS_DIAMOND))
+                .unlockedBy("has_iron", has(Tags.Items.INGOTS_IRON))
+                .save(consumer);
         ShapedRecipeBuilder.shaped(EtchedRegistry.ALBUM_JUKEBOX.get())
                 .pattern("RHR")
                 .pattern("RJR")
@@ -29,5 +44,14 @@ public class RecipeGen extends RecipeProvider {
                 .unlockedBy("has_redstone", has(Tags.Items.DUSTS_REDSTONE))
                 .unlockedBy("has_jukebox", has(Items.JUKEBOX))
                 .save(consumer);
+        ShapedRecipeBuilder.shaped(EtchedRegistry.MUSIC_LABEL.get())
+                .pattern(" P ")
+                .pattern("P P")
+                .pattern(" P ")
+                .define('P', Items.PAPER)
+                .unlockedBy("has_blank_music_disc", has(EtchedRegistry.BLANK_MUSIC_DISC.get()))
+                .save(consumer);
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ItemTags.MUSIC_DISCS), EtchedRegistry.BLANK_MUSIC_DISC.get(), 0.0F, 200).unlockedBy("has_music_disc", has(ItemTags.MUSIC_DISCS)).save(consumer);
     }
 }

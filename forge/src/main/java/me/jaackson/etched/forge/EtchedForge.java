@@ -1,12 +1,11 @@
 package me.jaackson.etched.forge;
 
 import me.jaackson.etched.Etched;
-import me.jaackson.etched.datagen.ItemModelGen;
-import me.jaackson.etched.datagen.LanguageGen;
-import me.jaackson.etched.datagen.LootTableGen;
-import me.jaackson.etched.datagen.RecipeGen;
+import me.jaackson.etched.datagen.*;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
@@ -41,9 +40,11 @@ public class EtchedForge {
 
     private void dataSetup(GatherDataEvent event) {
         DataGenerator dataGenerator = event.getGenerator();
+        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         dataGenerator.addProvider(new RecipeGen(dataGenerator));
         dataGenerator.addProvider(new LootTableGen(dataGenerator));
         dataGenerator.addProvider(new ItemModelGen(dataGenerator));
+        dataGenerator.addProvider(new ItemTagGen(dataGenerator, new BlockTagsProvider(dataGenerator, Etched.MOD_ID, existingFileHelper), existingFileHelper));
         dataGenerator.addProvider(new LanguageGen(dataGenerator));
     }
 }

@@ -18,8 +18,10 @@ public class LanguageGen extends LanguageProvider {
         this.addItem(EtchedRegistry.BLANK_MUSIC_DISC, "Blank Music Disc");
         this.addItem(EtchedRegistry.ETCHED_MUSIC_DISC, "Etched Music Disc");
         this.addItem(EtchedRegistry.MUSIC_LABEL, "Music Label");
+        this.add("container." + Etched.MOD_ID + ".etching_table", "Etching Table");
         this.add("container." + Etched.MOD_ID + ".album_jukebox", "Album Jukebox");
         this.add("record." + Etched.MOD_ID + ".downloadProgress", "Downloading (%s MB / %s MB): %s");
         this.add("record." + Etched.MOD_ID + ".downloadFail", "Failed to download %s");
+        this.add("subtitles." + Etched.MOD_ID + ".ui.etching_table.take_result", "Etching Table used");
     }
 }

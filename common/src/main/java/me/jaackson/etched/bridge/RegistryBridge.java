@@ -11,6 +11,8 @@ import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -19,6 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -50,6 +53,16 @@ public final class RegistryBridge {
 
     @ExpectPlatform
     public static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, RegistryBridge.MenuFactory<T> object) {
+        return Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    public static Supplier<VillagerProfession> registerProfession(String name, Supplier<PoiType> poiType, @Nullable Supplier<SoundEvent> workSound) {
+        return Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    public static Supplier<PoiType> registerPOI(String name, Supplier<Block> block, int maxTickets, int validRange) {
         return Platform.safeAssertionError();
     }
 

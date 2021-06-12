@@ -1,5 +1,6 @@
 package me.jaackson.etched.bridge.fabric;
 
+import com.google.common.collect.ImmutableSet;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.fabricmc.api.EnvType;
@@ -9,6 +10,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
+import net.fabricmc.fabric.api.object.builder.v1.villager.VillagerProfessionBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,12 +21,15 @@ import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
@@ -54,6 +60,21 @@ public class RegistryBridgeImpl {
 
     public static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, RegistryBridge.MenuFactory<T> object) {
         MenuType<T> register = ScreenHandlerRegistry.registerSimple(new ResourceLocation(Etched.MOD_ID, name), object::create);
+        return () -> register;
+    }
+
+    public static Supplier<VillagerProfession> registerProfession(String name, Supplier<PoiType> poiType, @Nullable Supplier<SoundEvent> workSound) {
+        VillagerProfession register = Registry.register(Registry.VILLAGER_PROFESSION, new ResourceLocation(Etched.MOD_ID, name),
+                VillagerProfessionBuilder.create()
+                        .id(new ResourceLocation(Etched.MOD_ID, name))
+                        .workstation(poiType.get())
+                        .workSound(workSound != null ? workSound.get() : null)
+                        .build());
+        return () -> register;
+    }
+
+    public static Supplier<PoiType> registerPOI(String name, Supplier<Block> block, int maxTickets, int validRange) {
+        PoiType register = PointOfInterestHelper.register(new ResourceLocation(Etched.MOD_ID, name), maxTickets, validRange, ImmutableSet.copyOf(block.get().getStateDefinition().getPossibleStates()));
         return () -> register;
     }
 

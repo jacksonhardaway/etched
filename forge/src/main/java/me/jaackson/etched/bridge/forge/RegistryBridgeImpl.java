@@ -1,5 +1,7 @@
 package me.jaackson.etched.bridge.forge;
 
+import com.google.common.collect.ImmutableSet;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.minecraft.client.color.item.ItemColor;
@@ -13,6 +15,8 @@ import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
@@ -26,6 +30,7 @@ import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
@@ -39,6 +44,8 @@ public class RegistryBridgeImpl {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Etched.MOD_ID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, Etched.MOD_ID);
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.CONTAINERS, Etched.MOD_ID);
+    public static final DeferredRegister<VillagerProfession> VILLAGER_PROFESSIONS = DeferredRegister.create(ForgeRegistries.PROFESSIONS, Etched.MOD_ID);
+    public static final DeferredRegister<PoiType> POINT_OF_INTEREST_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, Etched.MOD_ID);
 
     public static <T extends SoundEvent> Supplier<T> registerSound(String name, Supplier<T> object) {
         return SOUND_EVENTS.register(name, object);
@@ -58,6 +65,14 @@ public class RegistryBridgeImpl {
 
     public static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, RegistryBridge.MenuFactory<T> object) {
         return MENU_TYPES.register(name, () -> new MenuType<>(object::create));
+    }
+
+    public static Supplier<VillagerProfession> registerProfession(String name, Supplier<PoiType> poiType, @Nullable Supplier<SoundEvent> workSound) {
+        return VILLAGER_PROFESSIONS.register(name, () -> new VillagerProfession(Etched.MOD_ID + ":" + name, poiType.get(), ImmutableSet.of(), ImmutableSet.of(), workSound.get()));
+    }
+
+    public static Supplier<PoiType> registerPOI(String name, Supplier<Block> block, int maxTickets, int validRange) {
+        return POINT_OF_INTEREST_TYPES.register(name, () -> new PoiType(Etched.MOD_ID + ":" + name, PoiType.getBlockStates(block.get()), maxTickets, validRange));
     }
 
     @SafeVarargs

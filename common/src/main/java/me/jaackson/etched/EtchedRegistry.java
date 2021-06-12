@@ -25,8 +25,8 @@ public class EtchedRegistry {
 
     public static final Supplier<SoundEvent> UI_ETCHER_TAKE_RESULT = RegistryBridge.registerSound("ui.etcher.take_result", () -> new SoundEvent(new ResourceLocation(Etched.MOD_ID, "ui.etcher.take_result")));
 
-    public static final Supplier<Item> MUSIC_LABEL = RegistryBridge.registerItem("music_label", () -> new MusicLabelItem(new Item.Properties().stacksTo(1).tab(CreativeModeTab.TAB_MISC)));
-    public static final Supplier<Item> BLANK_MUSIC_DISC = RegistryBridge.registerItem("blank_music_disc", () -> new BlankMusicDiscItem(new Item.Properties().stacksTo(1).tab(CreativeModeTab.TAB_MISC)));
+    public static final Supplier<Item> MUSIC_LABEL = RegistryBridge.registerItem("music_label", () -> new MusicLabelItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+    public static final Supplier<Item> BLANK_MUSIC_DISC = RegistryBridge.registerItem("blank_music_disc", () -> new BlankMusicDiscItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
     public static final Supplier<Item> ETCHED_MUSIC_DISC = RegistryBridge.registerItem("etched_music_disc", () -> new EtchedMusicDiscItem(new Item.Properties().stacksTo(1)));
 
     public static final Supplier<Block> ETCHING_TABLE = RegistryBridge.registerBlock("etching_table", () -> new EtchingTableBlock(BlockBehaviour.Properties.of(Material.STONE).requiresCorrectToolForDrops().strength(3.5F)), new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));

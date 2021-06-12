@@ -8,6 +8,7 @@ import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import me.jaackson.etched.common.item.BlankMusicDiscItem;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
+import me.jaackson.etched.common.menu.AlbumJukeboxMenu;
 import me.jaackson.etched.common.menu.EtchingMenu;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceLocation;
@@ -29,6 +30,7 @@ public class EtchedRegistry {
     public static final Supplier<SoundEvent> UI_ETCHER_TAKE_RESULT = RegistryBridge.registerSound("ui.etching_table.take_result", () -> new SoundEvent(new ResourceLocation(Etched.MOD_ID, "ui.etching_table.take_result")));
 
     public static final Supplier<MenuType<EtchingMenu>> ETCHING_MENU = RegistryBridge.registerMenu("etching_table", EtchingMenu::new);
+    public static final Supplier<MenuType<AlbumJukeboxMenu>> ALBUM_JUKEBOX_MENU = RegistryBridge.registerMenu("album_jukebox", AlbumJukeboxMenu::new);
 
     public static final Supplier<Item> MUSIC_LABEL = RegistryBridge.registerItem("music_label", () -> new MusicLabelItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
     public static final Supplier<Item> BLANK_MUSIC_DISC = RegistryBridge.registerItem("blank_music_disc", () -> new BlankMusicDiscItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC)));

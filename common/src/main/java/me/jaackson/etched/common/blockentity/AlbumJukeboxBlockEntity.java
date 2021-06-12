@@ -3,6 +3,7 @@ package me.jaackson.etched.common.blockentity;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
+import me.jaackson.etched.common.menu.AlbumJukeboxMenu;
 import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
 import me.shedaniel.architectury.annotations.PlatformOnly;
 import net.fabricmc.api.EnvType;
@@ -150,7 +151,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
     @Override
     protected AbstractContainerMenu createMenu(int menuId, Inventory inventory) {
-        return new DispenserMenu(menuId, inventory, this);
+        return new AlbumJukeboxMenu(menuId, inventory, this);
     }
 
     @Override

@@ -176,6 +176,11 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         return super.mouseClicked(mouseX, mouseY, i);
     }
 
+    @Override
+    public boolean keyPressed(int i, int j, int k) {
+        return this.url.keyPressed(i, j, k) || (this.url.isFocused() && this.url.isVisible() && i != 256) || super.keyPressed(i, j, k);
+    }
+
     private void onUrlChanged(String url) {
         if (!Objects.equals(this.oldUrl, url)) {
             this.oldUrl = url;

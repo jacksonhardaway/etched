@@ -4,7 +4,9 @@ import com.mojang.blaze3d.audio.OggAudioStream;
 import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
 import me.jaackson.etched.client.sound.SoundStopListener;
 import me.jaackson.etched.client.sound.download.*;
+import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.*;
@@ -26,6 +28,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -58,6 +61,21 @@ public abstract class SoundEngineMixin {
             return soundBufferLibrary.getStream(resourceLocation, loop);
 
         AbstractOnlineSoundInstance.OnlineSound onlineSound = (AbstractOnlineSoundInstance.OnlineSound) this.sound;
+        if (EtchedMusicDiscItem.isLocalSound(onlineSound.getURL())) {
+            WeighedSoundEvents weighedSoundEvents = Minecraft.getInstance().getSoundManager().getSoundEvent(new ResourceLocation(onlineSound.getURL()));
+            if (weighedSoundEvents == null)
+                throw new CompletionException(new FileNotFoundException("Unable to play unknown soundEvent: " + resourceLocation));
+
+            return soundBufferLibrary.getStream(weighedSoundEvents.getSound().getPath(), loop).thenApplyAsync(MonoWrapper::new, Util.backgroundExecutor()).handleAsync((stream, e) -> {
+                if (e != null) {
+                    e.printStackTrace();
+                    return EmptyAudioStream.INSTANCE;
+                }
+                onlineSound.getProgressListener().onSuccess();
+                return stream;
+            }, Util.backgroundExecutor());
+        }
+
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).<AudioStream>thenApplyAsync(path -> {
             FileInputStream is = null;
 
@@ -93,13 +111,13 @@ public abstract class SoundEngineMixin {
                     }
                 }
             }
-        }, Util.backgroundExecutor()).handle((stream, e) -> {
+        }, Util.backgroundExecutor()).handleAsync((stream, e) -> {
             if (e != null) {
                 e.printStackTrace();
                 return EmptyAudioStream.INSTANCE;
             }
             onlineSound.getProgressListener().onSuccess();
             return stream;
-        });
+        }, Util.backgroundExecutor());
     }
 }

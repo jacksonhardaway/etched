@@ -63,11 +63,11 @@ public class EtchedClientPlayHandler {
             return;
         }
 
-        playRecord(pos, new StopListeningSound(getEtchedRecord(pkt.getUrl(), pkt.getTitle(), level, pos), () -> {
+        playRecord(pos, new StopListeningSound(getEtchedRecord(pkt.getUrl(), pkt.getTitle(), level, pos), () -> Minecraft.getInstance().tell(() -> {
             if (level.getBlockState(pos).is(Blocks.JUKEBOX))
                 for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
                     livingEntity.setRecordPlayingNearby(pos, false);
-        }));
+        })));
     }
 
     private static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos) {
@@ -182,7 +182,7 @@ public class EtchedClientPlayHandler {
             Optional<EtchedMusicDiscItem.MusicInfo> optional = EtchedMusicDiscItem.getMusic(disc);
             if (optional.isPresent()) {
                 EtchedMusicDiscItem.MusicInfo music = optional.get();
-                if (EtchedMusicDiscItem.isValidURL(optional.get().getUrl())) {
+                if (EtchedMusicDiscItem.isValidURL(music.getUrl())) {
                     sound = new StopListeningSound(getEtchedRecord(music.getUrl(), music.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }

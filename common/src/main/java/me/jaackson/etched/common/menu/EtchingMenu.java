@@ -9,7 +9,6 @@ import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.HttpUtil;
@@ -108,6 +107,8 @@ public class EtchingMenu extends AbstractContainerMenu {
                 if (!EtchingMenu.this.discSlot.hasItem() || !EtchingMenu.this.labelSlot.hasItem()) {
                     EtchingMenu.this.labelIndex.set(0);
                 }
+                EtchingMenu.this.setupResultSlot();
+                EtchingMenu.this.broadcastChanges();
 
                 containerLevelAccess.execute((level, pos) -> {
                     long l = level.getGameTime();
@@ -224,7 +225,10 @@ public class EtchingMenu extends AbstractContainerMenu {
                         discColor = EtchedMusicDiscItem.getPrimaryColor(discStack);
                         labelColor = EtchedMusicDiscItem.getSecondaryColor(discStack);
                         author = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
+                        title = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getTitle).orElse(null);
                     }
+                    if (!labelStack.isEmpty() && labelStack.hasCustomHoverName())
+                        title = labelStack.getHoverName().getString();
                     if (SoundCloud.isValidUrl(this.url)) {
                         if (this.cachedAuthor == null || this.cachedTitle == null) {
                             try {
@@ -248,8 +252,6 @@ public class EtchingMenu extends AbstractContainerMenu {
 
                     EtchedMusicDiscItem.MusicInfo info = new EtchedMusicDiscItem.MusicInfo();
                     info.setAuthor(author != null ? author : this.author);
-                    if (labelStack.hasCustomHoverName())
-                        info.setTitle(labelStack.getHoverName().getString());
                     if (title != null)
                         info.setTitle(title);
                     info.setUrl(this.url);

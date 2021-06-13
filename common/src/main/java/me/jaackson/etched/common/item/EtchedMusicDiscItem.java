@@ -35,11 +35,14 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * @author Ocelot
  */
 public class EtchedMusicDiscItem extends Item {
+
+    private static final Pattern RESOURCE_LOCATION_PATTERN = Pattern.compile("[a-z0-9_.-]+");
 
     public EtchedMusicDiscItem(Properties properties) {
         super(properties);
@@ -185,8 +188,6 @@ public class EtchedMusicDiscItem extends Item {
      */
     public static class MusicInfo {
 
-        public static final MusicInfo EMPTY = new MusicInfo();
-
         private String url;
         private String title;
         private String author;
@@ -302,12 +303,30 @@ public class EtchedMusicDiscItem extends Item {
      * @return Whether or not the data is valid
      */
     public static boolean isValidURL(String url) {
+        if (isLocalSound(url))
+            return true;
         try {
             String scheme = new URI(url).getScheme();
             return "http".equals(scheme) || "https".equals(scheme);
         } catch (URISyntaxException e) {
             return false;
         }
+    }
+
+    /**
+     * Checks to see if the specified URL is a resource location sound.
+     *
+     * @param url The url to check
+     * @return Whether or not that sound can be played as a local sound event
+     */
+    public static boolean isLocalSound(String url) {
+        String[] parts = url.split(":");
+        if (parts.length > 2)
+            return false;
+        for (String part : parts)
+            if (!RESOURCE_LOCATION_PATTERN.matcher(part).matches())
+                return false;
+        return true;
     }
 
     /**

@@ -1,13 +1,18 @@
 package me.jaackson.etched.common.network.handler;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
+import me.jaackson.etched.client.sound.JukeboxMinecartSoundInstance;
 import me.jaackson.etched.client.sound.OnlineRecordSoundInstance;
 import me.jaackson.etched.client.sound.StopListeningSound;
 import me.jaackson.etched.client.sound.download.DownloadProgressListener;
 import me.jaackson.etched.common.block.AlbumJukeboxBlock;
 import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import me.jaackson.etched.common.entity.MinecartJukebox;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
+import me.jaackson.etched.common.network.ClientboundAddMinecartJukeboxPacket;
+import me.jaackson.etched.common.network.ClientboundPlayMinecartJukeboxMusicPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import me.jaackson.etched.mixin.client.GuiAccessor;
 import me.jaackson.etched.mixin.client.LevelRendererAccessor;
@@ -15,18 +20,21 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.resources.sounds.MinecartSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.Blocks;
@@ -42,6 +50,7 @@ import java.util.Optional;
 public class EtchedClientPlayHandler {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
 
     public static void handlePlayMusicPacket(ClientboundPlayMusicPacket pkt) {
         ClientLevel level = Minecraft.getInstance().level;
@@ -70,62 +79,94 @@ public class EtchedClientPlayHandler {
         })));
     }
 
+    public static void handleAddMinecartJukeboxPacket(ClientboundAddMinecartJukeboxPacket pkt) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null)
+            return;
+
+        MinecartJukebox entity = new MinecartJukebox(level, pkt.getX(), pkt.getY(), pkt.getZ());
+        int i = pkt.getId();
+        entity.setPacketCoordinates(pkt.getX(), pkt.getY(), pkt.getZ());
+        entity.moveTo(pkt.getX(), pkt.getY(), pkt.getZ());
+        entity.xRot = (float) (pkt.getxRot() * 360) / 256.0F;
+        entity.yRot = (float) (pkt.getyRot() * 360) / 256.0F;
+        entity.setId(i);
+        entity.setUUID(pkt.getUUID());
+        level.putNonPlayerEntity(i, entity);
+        Minecraft.getInstance().getSoundManager().play(new MinecartSoundInstance(entity));
+    }
+
+    public static void handlePlayMinecartJukeboxPacket(ClientboundPlayMinecartJukeboxMusicPacket pkt) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null)
+            return;
+
+        int entityId = pkt.getEntityId();
+        SoundManager soundManager = Minecraft.getInstance().getSoundManager();
+        SoundInstance soundInstance = ENTITY_PLAYING_SOUNDS.get(entityId);
+        if (soundInstance != null) {
+            if (soundInstance instanceof StopListeningSound)
+                ((StopListeningSound) soundInstance).stopListening();
+            soundManager.stop(soundInstance);
+            ENTITY_PLAYING_SOUNDS.remove(entityId);
+        }
+
+        if (pkt.isStop())
+            return;
+
+        Entity entity = level.getEntity(pkt.getEntityId());
+        if (!(entity instanceof MinecartJukebox))
+            return;
+
+        if (pkt.getUrl() != null) {
+            if (!EtchedMusicDiscItem.isValidURL(pkt.getUrl())) {
+                LOGGER.error("Server sent invalid music URL: " + pkt.getUrl());
+                return;
+            }
+
+            SoundInstance sound = getEtchedRecord(pkt.getUrl(), pkt.getTitle(), (MinecartJukebox) entity);
+            ENTITY_PLAYING_SOUNDS.put(entityId, sound);
+            soundManager.play(sound);
+        } else {
+            Item record = Registry.ITEM.byId(pkt.getRecordId());
+            if (!(record instanceof RecordItem)) {
+                LOGGER.error("Server sent invalid music disc: " + record);
+                return;
+            }
+
+            Minecraft.getInstance().gui.setNowPlaying(((RecordItem) record).getDisplayName());
+            SoundInstance sound = new JukeboxMinecartSoundInstance(((RecordItem) record).getSound(), (MinecartJukebox) entity);
+            ENTITY_PLAYING_SOUNDS.put(entityId, sound);
+            soundManager.play(sound);
+        }
+    }
+
+    private static SoundInstance getEtchedRecord(String url, Component title, MinecartJukebox jukebox) {
+        return new OnlineRecordSoundInstance(url, jukebox, new MusicDownloadListener(title) {
+            @Override
+            public void onSuccess() {
+                if (!jukebox.isAlive() || !ENTITY_PLAYING_SOUNDS.containsKey(jukebox.getId())) {
+                    this.clearComponent();
+                } else {
+                    Minecraft.getInstance().gui.setNowPlaying(title);
+                }
+            }
+        });
+    }
+
     private static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundSource.RECORDS, new DownloadProgressListener() {
-            private float size;
-            private Component requesting;
-            private DownloadTextComponent component;
-
-            private void setComponent(Component text) {
-                if (this.component == null) {
-                    this.component = new DownloadTextComponent();
-                    Minecraft.getInstance().gui.setOverlayMessage(this.component, true);
-                    ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(Short.MAX_VALUE);
-                }
-                this.component.setText(text.getString());
-            }
-
-            @Override
-            public void progressStartRequest(Component component) {
-                this.requesting = component;
-                this.setComponent(component);
-            }
-
-            @Override
-            public void progressStartDownload(float size) {
-                this.size = size;
-                this.requesting = null;
-                this.progressStagePercentage(0);
-            }
-
-            @Override
-            public void progressStagePercentage(int percentage) {
-                if (this.requesting != null) {
-                    this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
-                } else if (this.size != 0) {
-                    this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), title));
-                }
-            }
-
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new MusicDownloadListener(title) {
             @Override
             public void onSuccess() {
                 if (!playingRecords.containsKey(pos)) {
-                    if (((GuiAccessor) Minecraft.getInstance().gui).getOverlayMessageString() == this.component) {
-                        ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(60);
-                        this.component = null;
-                    }
+                    this.clearComponent();
                 } else {
                     Minecraft.getInstance().gui.setNowPlaying(title);
                     if (level.getBlockState(pos).is(Blocks.JUKEBOX))
                         for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
                             livingEntity.setRecordPlayingNearby(pos, true);
                 }
-            }
-
-            @Override
-            public void onFail() {
-                Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title), true);
             }
         });
     }
@@ -241,6 +282,61 @@ public class EtchedClientPlayHandler {
         public void setText(String text) {
             this.text = text;
             this.decomposedWith = null;
+        }
+    }
+
+    private static abstract class MusicDownloadListener implements DownloadProgressListener {
+
+        private final Component title;
+        private float size;
+        private Component requesting;
+        private DownloadTextComponent component;
+
+        protected MusicDownloadListener(Component title) {
+            this.title = title;
+        }
+
+        private void setComponent(Component text) {
+            if (this.component == null) {
+                this.component = new DownloadTextComponent();
+                Minecraft.getInstance().gui.setOverlayMessage(this.component, true);
+                ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(Short.MAX_VALUE);
+            }
+            this.component.setText(text.getString());
+        }
+
+        protected void clearComponent() {
+            if (((GuiAccessor) Minecraft.getInstance().gui).getOverlayMessageString() == this.component) {
+                ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(60);
+                this.component = null;
+            }
+        }
+
+        @Override
+        public void progressStartRequest(Component component) {
+            this.requesting = component;
+            this.setComponent(component);
+        }
+
+        @Override
+        public void progressStartDownload(float size) {
+            this.size = size;
+            this.requesting = null;
+            this.progressStagePercentage(0);
+        }
+
+        @Override
+        public void progressStagePercentage(int percentage) {
+            if (this.requesting != null) {
+                this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
+            } else if (this.size != 0) {
+                this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), title));
+            }
+        }
+
+        @Override
+        public void onFail() {
+            Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
         }
     }
 }

@@ -7,10 +7,14 @@ import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Inventory;
@@ -52,6 +56,11 @@ public final class RegistryBridge {
     }
 
     @ExpectPlatform
+    public static <E extends Entity, T extends EntityType.Builder<E>> Supplier<EntityType<E>> registerEntity(String name, Supplier<T> object) {
+        return Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
     public static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, RegistryBridge.MenuFactory<T> object) {
         return Platform.safeAssertionError();
     }
@@ -82,6 +91,12 @@ public final class RegistryBridge {
     @ExpectPlatform
     @Environment(EnvType.CLIENT)
     public static void registerBlockRenderType(Block block, RenderType type) {
+        Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    @Environment(EnvType.CLIENT)
+    public static <T extends Entity> void registerEntityRenderer(EntityType<T> entityType, Function<EntityRenderDispatcher, EntityRenderer<T>> factory) {
         Platform.safeAssertionError();
     }
 

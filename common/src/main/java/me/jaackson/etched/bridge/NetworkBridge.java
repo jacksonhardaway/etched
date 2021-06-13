@@ -1,8 +1,10 @@
 package me.jaackson.etched.bridge;
 
+import me.jaackson.etched.common.entity.MinecartJukebox;
 import me.jaackson.etched.common.network.EtchedPacket;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -47,5 +49,10 @@ public final class NetworkBridge {
     @ExpectPlatform
     public static void sendToServer(EtchedPacket packet) {
         Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    public static Packet<?> toVanillaPacket(EtchedPacket packet, boolean clientbound) {
+        throw new AssertionError();
     }
 }

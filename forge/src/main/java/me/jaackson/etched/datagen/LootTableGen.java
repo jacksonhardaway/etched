@@ -38,18 +38,21 @@ public class LootTableGen extends ForgeLootTableProvider {
     }
 
     private static class FishingProvider extends FishingLoot {
+
         @Override
         public void accept(BiConsumer<ResourceLocation, LootTable.Builder> registry) {
         }
     }
 
     private static class ChestProvider extends ChestLoot {
+
         @Override
         public void accept(BiConsumer<ResourceLocation, LootTable.Builder> registry) {
         }
     }
 
     private static class EntityProvider extends EntityLoot {
+
         @Override
         protected void addTables() {
         }
@@ -61,6 +64,7 @@ public class LootTableGen extends ForgeLootTableProvider {
     }
 
     private static class BlockProvider extends BlockLoot {
+
         @Override
         protected void addTables() {
             this.dropSelf(EtchedRegistry.ETCHING_TABLE.get());

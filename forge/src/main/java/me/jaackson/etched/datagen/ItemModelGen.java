@@ -53,6 +53,7 @@ public class ItemModelGen implements DataProvider {
     private void register() {
         this.generateFlatItem(EtchedRegistry.BLANK_MUSIC_DISC.get(), ModelTemplates.FLAT_ITEM);
         this.generateFlatItem(EtchedRegistry.MUSIC_LABEL.get(), ModelTemplates.FLAT_ITEM);
+        this.generateFlatItem(EtchedRegistry.JUKEBOX_MINECART.get(), ModelTemplates.FLAT_ITEM);
     }
 
     private void generateFlatItem(Item item, ModelTemplate p_240076_2_) {

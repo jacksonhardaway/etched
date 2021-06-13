@@ -1,8 +1,10 @@
 package me.jaackson.etched.bridge.forge;
 
 import me.jaackson.etched.Etched;
+import me.jaackson.etched.common.network.ClientboundAddMinecartJukeboxPacket;
 import me.jaackson.etched.common.network.EtchedPacket;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -72,5 +74,9 @@ public class NetworkBridgeImpl {
 
     public static void sendToServer(EtchedPacket packet) {
         PLAY.sendToServer(packet);
+    }
+
+    public static Packet<?> toVanillaPacket(EtchedPacket packet, boolean clientbound) {
+        return PLAY.toVanillaPacket(packet, clientbound ? NetworkDirection.PLAY_TO_CLIENT : NetworkDirection.PLAY_TO_SERVER);
     }
 }

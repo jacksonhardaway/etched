@@ -9,9 +9,6 @@ import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.SmeltingRecipe;
-import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.Tags;
 
 import java.util.function.Consumer;
@@ -50,6 +47,13 @@ public class RecipeGen extends RecipeProvider {
                 .pattern(" P ")
                 .define('P', Items.PAPER)
                 .unlockedBy("has_blank_music_disc", has(EtchedRegistry.BLANK_MUSIC_DISC.get()))
+                .save(consumer);
+        ShapedRecipeBuilder.shaped(EtchedRegistry.JUKEBOX_MINECART.get())
+                .pattern("A")
+                .pattern("B")
+                .define('A', Items.JUKEBOX)
+                .define('B', Items.MINECART)
+                .unlockedBy("has_minecart", has(Items.MINECART))
                 .save(consumer);
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(ItemTags.MUSIC_DISCS), EtchedRegistry.BLANK_MUSIC_DISC.get(), 0.0F, 200).unlockedBy("has_music_disc", has(ItemTags.MUSIC_DISCS)).save(consumer);

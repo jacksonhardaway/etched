@@ -5,7 +5,10 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.impl.networking.client.ClientNetworkingImpl;
+import net.fabricmc.fabric.impl.networking.server.ServerNetworkingImpl;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,5 +58,11 @@ public class NetworkBridgeImpl {
         FriendlyByteBuf buf = PacketByteBufs.create();
         packet.write(buf);
         ClientPlayNetworking.send(packet.getChannel(), buf);
+    }
+
+    public static Packet<?> toVanillaPacket(EtchedPacket packet, boolean clientbound) {
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        packet.write(buf);
+        return clientbound ? ServerNetworkingImpl.createPlayC2SPacket(packet.getChannel(), buf) : ClientNetworkingImpl.createPlayC2SPacket(packet.getChannel(), buf);
     }
 }

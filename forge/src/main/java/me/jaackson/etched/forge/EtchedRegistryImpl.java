@@ -12,6 +12,7 @@ public class EtchedRegistryImpl {
         RegistryBridgeImpl.ITEMS.register(bus);
         RegistryBridgeImpl.BLOCKS.register(bus);
         RegistryBridgeImpl.BLOCK_ENTITIES.register(bus);
+        RegistryBridgeImpl.ENTITIES.register(bus);
         RegistryBridgeImpl.MENU_TYPES.register(bus);
         RegistryBridgeImpl.VILLAGER_PROFESSIONS.register(bus);
         RegistryBridgeImpl.POINT_OF_INTEREST_TYPES.register(bus);

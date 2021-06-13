@@ -254,7 +254,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                     info.setAuthor(author != null ? author : this.author);
                     if (title != null)
                         info.setTitle(title);
-                    info.setUrl(this.url);
+                    info.setUrl(EtchedMusicDiscItem.isLocalSound(this.url) ? new ResourceLocation(this.url).toString() : this.url);
 
                     EtchedMusicDiscItem.setMusic(resultStack, info);
                     EtchedMusicDiscItem.setColor(resultStack, discColor, labelColor);

@@ -77,11 +77,11 @@ public class EtchedRegistry {
         SnowyVillagePools.bootstrap();
         TaigaVillagePools.bootstrap();
 
-        createVillagePiece("plains", "bard_house", 1, 4);
-        createVillagePiece("desert", "bard_house", 1, 5);
-        createVillagePiece("savanna", "bard_house", 1, 10);
-        createVillagePiece("snowy", "bard_house", 1, 8);
-        createVillagePiece("taiga", "bard_house", 1, 6);
+        createVillagePiece("plains", "bard_house", 1, 2);
+        createVillagePiece("desert", "bard_house", 1, 4);
+        createVillagePiece("savanna", "bard_house", 1, 6);
+        createVillagePiece("snowy", "bard_house", 1, 10);
+        createVillagePiece("taiga", "bard_house", 1, 8);
     }
 
     private static void createVillagePiece(String village, String name, int houseId, int weight) {

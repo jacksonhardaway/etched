@@ -27,5 +27,6 @@ public class LanguageGen extends LanguageProvider {
         this.add("subtitles." + Etched.MOD_ID + ".ui.etching_table.take_result", "Etching Table used");
         this.add("sound_cloud.requesting", "Requesting from SoundCloud...");
         this.add("entity.minecraft.villager." + Etched.MOD_ID + ".bard", "Bard");
+        this.add("entity.minecraft.villager.bard", "Bard");
     }
 }

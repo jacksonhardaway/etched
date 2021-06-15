@@ -30,6 +30,7 @@
       "me.jaackson.etched.fabric.EtchedFabricClient"
     ]
   },
+  "accessWidener": "etched.accesswidener",
   "mixins": [
     "etched-common.mixins.json",
     "etched.mixins.json"

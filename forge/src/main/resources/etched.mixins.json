@@ -4,7 +4,8 @@
   "package": "me.jaackson.etched.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
-    "client.ForgeIngameGuiMixin"
+    "client.ForgeIngameGuiMixin",
+    "client.LevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

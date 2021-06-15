@@ -1,7 +1,6 @@
 package me.jaackson.etched.common.menu;
 
 import me.jaackson.etched.EtchedRegistry;
-import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -14,15 +13,14 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 /**
  * @author Ocelot
  */
 public class AlbumJukeboxMenu extends AbstractContainerMenu {
 
-    private final Container container;
     public final int[] pos;
+    private final Container container;
     private boolean initialized;
 
     public AlbumJukeboxMenu(int i, Inventory inventory) {
@@ -107,7 +105,7 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
     @Override
     public void setData(int index, int value) {
         super.setData(index, value);
-        if(index >= 0 && index < 3)
+        if (index >= 0 && index < 3)
             this.initialized = true;
     }
 

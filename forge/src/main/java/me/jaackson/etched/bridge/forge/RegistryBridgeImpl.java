@@ -1,6 +1,7 @@
 package me.jaackson.etched.bridge.forge;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.minecraft.client.color.item.ItemColor;
@@ -20,6 +21,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
@@ -30,12 +32,15 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -78,11 +83,18 @@ public class RegistryBridgeImpl {
     }
 
     public static Supplier<VillagerProfession> registerProfession(String name, Supplier<PoiType> poiType, @Nullable Supplier<SoundEvent> workSound) {
-        return VILLAGER_PROFESSIONS.register(name, () -> new VillagerProfession(Etched.MOD_ID + ":" + name, poiType.get(), ImmutableSet.of(), ImmutableSet.of(), workSound.get()));
+        return VILLAGER_PROFESSIONS.register(name, () -> new VillagerProfession(Etched.MOD_ID + ":" + name, poiType.get(), ImmutableSet.of(), ImmutableSet.of(), workSound != null ? workSound.get() : null));
     }
 
     public static Supplier<PoiType> registerPOI(String name, Supplier<Block> block, int maxTickets, int validRange) {
         return POINT_OF_INTEREST_TYPES.register(name, () -> new PoiType(Etched.MOD_ID + ":" + name, PoiType.getBlockStates(block.get()), maxTickets, validRange));
+    }
+
+    public static void registerVillagerTrades(Supplier<VillagerProfession> prof, Supplier<Int2ObjectMap<VillagerTrades.ItemListing[]>> listings) {
+        MinecraftForge.EVENT_BUS.<VillagerTradesEvent>addListener(e -> {
+            if (e.getType() == prof.get())
+                listings.get().forEach((tier, listing) -> e.getTrades().put(tier.intValue(), Arrays.asList(listing)));
+        });
     }
 
     @SafeVarargs

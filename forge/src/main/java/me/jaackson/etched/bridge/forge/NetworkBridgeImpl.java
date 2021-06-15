@@ -1,7 +1,6 @@
 package me.jaackson.etched.bridge.forge;
 
 import me.jaackson.etched.Etched;
-import me.jaackson.etched.common.network.ClientboundAddMinecartJukeboxPacket;
 import me.jaackson.etched.common.network.EtchedPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;

@@ -1,5 +1,6 @@
 package me.jaackson.etched.bridge;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -73,6 +75,11 @@ public final class RegistryBridge {
     @ExpectPlatform
     public static Supplier<PoiType> registerPOI(String name, Supplier<Block> block, int maxTickets, int validRange) {
         return Platform.safeAssertionError();
+    }
+
+    @ExpectPlatform
+    public static void registerVillagerTrades(Supplier<VillagerProfession> prof, Supplier<Int2ObjectMap<VillagerTrades.ItemListing[]>> listings) {
+        Platform.safeAssertionError();
     }
 
     @SafeVarargs

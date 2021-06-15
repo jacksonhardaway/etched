@@ -1,6 +1,7 @@
 package me.jaackson.etched.bridge.fabric;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
 import net.fabricmc.api.EnvType;
@@ -10,6 +11,7 @@ import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.villager.VillagerProfessionBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper;
@@ -28,6 +30,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
@@ -87,6 +90,10 @@ public class RegistryBridgeImpl {
     public static Supplier<PoiType> registerPOI(String name, Supplier<Block> block, int maxTickets, int validRange) {
         PoiType register = PointOfInterestHelper.register(new ResourceLocation(Etched.MOD_ID, name), maxTickets, validRange, ImmutableSet.copyOf(block.get().getStateDefinition().getPossibleStates()));
         return () -> register;
+    }
+
+    public static void registerVillagerTrades(Supplier<VillagerProfession> prof, Supplier<Int2ObjectMap<VillagerTrades.ItemListing[]>> listings) {
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> VillagerTrades.TRADES.put(prof.get(), listings.get()));
     }
 
     @SafeVarargs

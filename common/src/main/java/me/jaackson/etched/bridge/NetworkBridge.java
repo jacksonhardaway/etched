@@ -1,6 +1,5 @@
 package me.jaackson.etched.bridge;
 
-import me.jaackson.etched.common.entity.MinecartJukebox;
 import me.jaackson.etched.common.network.EtchedPacket;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.network.FriendlyByteBuf;

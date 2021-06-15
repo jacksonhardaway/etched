@@ -8,7 +8,7 @@ import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundAddMinecartJukeboxPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMinecartJukeboxMusicPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
-import me.jaackson.etched.common.network.ServerboundSetEtcherUrlPacket;
+import me.jaackson.etched.common.network.ServerboundSetEtchingUrlPacket;
 import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
 import me.jaackson.etched.common.network.handler.EtchedServerPlayHandler;
 import net.minecraft.client.renderer.RenderType;
@@ -30,7 +30,7 @@ public class Etched {
         NetworkBridge.registerPlayToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMusicPacket);
         NetworkBridge.registerPlayToClient(ClientboundAddMinecartJukeboxPacket.CHANNEL, ClientboundAddMinecartJukeboxPacket.class, ClientboundAddMinecartJukeboxPacket::new, () -> EtchedClientPlayHandler::handleAddMinecartJukeboxPacket);
         NetworkBridge.registerPlayToClient(ClientboundPlayMinecartJukeboxMusicPacket.CHANNEL, ClientboundPlayMinecartJukeboxMusicPacket.class, ClientboundPlayMinecartJukeboxMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMinecartJukeboxPacket);
-        NetworkBridge.registerPlayToServer(ServerboundSetEtcherUrlPacket.CHANNEL, ServerboundSetEtcherUrlPacket.class, ServerboundSetEtcherUrlPacket::new, EtchedServerPlayHandler::handleSetEtcherUrl);
+        NetworkBridge.registerPlayToServer(ServerboundSetEtchingUrlPacket.CHANNEL, ServerboundSetEtchingUrlPacket.class, ServerboundSetEtchingUrlPacket::new, EtchedServerPlayHandler::handleSetEtcherUrl);
     }
 
     public static void clientInit() {
@@ -41,6 +41,7 @@ public class Etched {
     }
 
     public static void commonPostInit() {
+        EtchedRegistry.registerVillages();
     }
 
     public static void clientPostInit() {

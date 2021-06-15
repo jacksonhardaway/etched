@@ -7,17 +7,17 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * @author Jackson
  */
-public class ServerboundSetEtcherUrlPacket implements EtchedPacket {
+public class ServerboundSetEtchingUrlPacket implements EtchedPacket {
 
     public static final ResourceLocation CHANNEL = new ResourceLocation(Etched.MOD_ID, "set_url");
 
     private final String url;
 
-    public ServerboundSetEtcherUrlPacket(String url) {
+    public ServerboundSetEtchingUrlPacket(String url) {
         this.url = url;
     }
 
-    public ServerboundSetEtcherUrlPacket(FriendlyByteBuf buf) {
+    public ServerboundSetEtchingUrlPacket(FriendlyByteBuf buf) {
         this.url = buf.readUtf(32767);
     }
 
@@ -32,7 +32,7 @@ public class ServerboundSetEtcherUrlPacket implements EtchedPacket {
     }
 
     /**
-     * @return The URL to set in the etcher
+     * @return The URL to set in the etching table
      */
     public String getUrl() {
         return url;

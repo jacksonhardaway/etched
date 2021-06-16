@@ -1,5 +1,6 @@
 package me.jaackson.etched.common.menu;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
@@ -9,6 +10,7 @@ import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.HttpUtil;
@@ -18,9 +20,17 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
+import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * @author Jackson
@@ -29,6 +39,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
+    private static final Set<String> VALID_FORMATS;
 
     private final ContainerLevelAccess access;
     private final DataSlot labelIndex;
@@ -44,6 +55,12 @@ public class EtchingMenu extends AbstractContainerMenu {
     private String cachedTitle;
     private int urlId;
     private long lastSoundTime;
+
+    static {
+        ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
+        builder.add("audio/wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
+        VALID_FORMATS = builder.build();
+    }
 
     public EtchingMenu(int id, Inventory inventory) {
         this(id, inventory, ContainerLevelAccess.NULL);
@@ -236,14 +253,19 @@ public class EtchingMenu extends AbstractContainerMenu {
                                 this.cachedAuthor = track.getFirst();
                                 this.cachedTitle = track.getSecond();
                             } catch (Exception e) {
-                                e.printStackTrace();
                                 this.cachedAuthor = null;
                                 this.cachedTitle = null;
-                                return null;
+                                throw new CompletionException("Failed to connect to SoundCloud API", e);
                             }
                         }
                         author = this.cachedAuthor;
                         title = this.cachedTitle;
+                    } else if (!EtchedMusicDiscItem.isLocalSound(this.url)) {
+                        try {
+                            checkStatus(this.url);
+                        } catch (Exception e) {
+                            throw new CompletionException("Invalid URL", e);
+                        }
                     }
                     if (discStack.getItem() instanceof BlankMusicDiscItem)
                         discColor = ((BlankMusicDiscItem) discStack.getItem()).getColor(discStack);
@@ -262,9 +284,12 @@ public class EtchingMenu extends AbstractContainerMenu {
 
                     return resultStack;
                 }, HttpUtil.DOWNLOAD_EXECUTOR).thenAcceptAsync(resultStack -> {
-                    if (this.urlId == currentId && resultStack != null && !ItemStack.matches(resultStack, this.resultSlot.getItem()) && !ItemStack.matches(resultStack, this.discSlot.getItem())) {
+                    if (this.urlId == currentId && !ItemStack.matches(resultStack, this.resultSlot.getItem()) && !ItemStack.matches(resultStack, this.discSlot.getItem())) {
                         this.resultSlot.set(resultStack);
                     }
+                }).exceptionally(e -> {
+                    e.printStackTrace();
+                    return null;
                 });
             }
         }
@@ -287,6 +312,21 @@ public class EtchingMenu extends AbstractContainerMenu {
             this.cachedAuthor = null;
             this.cachedTitle = null;
             this.setupResultSlot();
+        }
+    }
+
+    private static void checkStatus(String url) throws IOException {
+        HttpGet get = new HttpGet(url);
+        try (CloseableHttpClient client = HttpClients.custom().setUserAgent("Minecraft Java/" + SharedConstants.getCurrentVersion().getName()).build()) {
+            try (CloseableHttpResponse response = client.execute(get)) {
+                StatusLine statusLine = response.getStatusLine();
+                if (statusLine.getStatusCode() != 200)
+                    throw new IOException(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+
+                String contentType = response.getEntity().getContentType().getValue();
+                if (!VALID_FORMATS.contains(contentType))
+                    throw new IOException("Unsupported Content-Type: " + contentType);
+            }
         }
     }
 }

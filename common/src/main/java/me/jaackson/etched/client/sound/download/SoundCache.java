@@ -103,7 +103,7 @@ public final class SoundCache {
                 try {
                     return SoundCloud.resolveUrl(url, progressListener);
                 } catch (Exception e) {
-                    throw new CompletionException(e);
+                    throw new CompletionException("Failed to connect to SoundCloud API", e);
                 }
             }, HttpUtil.DOWNLOAD_EXECUTOR) : CompletableFuture.completedFuture(url);
 

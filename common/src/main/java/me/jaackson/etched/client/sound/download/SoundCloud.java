@@ -5,8 +5,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.GsonHelper;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -36,13 +38,12 @@ public class SoundCloud {
         if (progressListener != null)
             progressListener.progressStartRequest(new TranslatableComponent("sound_cloud.requesting"));
         HttpGet get = new HttpGet(url);
-        CloseableHttpClient client = HttpClients.custom().setUserAgent(USER_AGENT).build();
+        CloseableHttpClient client = HttpClients.custom().setUserAgent("Minecraft Java/" + SharedConstants.getCurrentVersion().getName()).build();
         CloseableHttpResponse response = client.execute(get);
         StatusLine statusLine = response.getStatusLine();
         if (statusLine.getStatusCode() != 200) {
-            client.close();
-            response.close();
-            throw new IOException("Failed to connect to SoundCloud API. " + statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+            IOUtils.closeQuietly(client, response);
+            throw new IOException(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
         }
         float size = (float) response.getEntity().getContentLength() / 1000.0F / 1000.0F;
         if (progressListener != null && size > 0)

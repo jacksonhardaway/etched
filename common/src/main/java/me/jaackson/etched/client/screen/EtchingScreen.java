@@ -8,7 +8,7 @@ import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
 import me.jaackson.etched.common.menu.EtchingMenu;
-import me.jaackson.etched.common.network.ServerboundSetEtcherUrlPacket;
+import me.jaackson.etched.common.network.ServerboundSetEtchingUrlPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.EditBox;
@@ -35,6 +35,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     private ItemStack discStack;
     private ItemStack labelStack;
     private EditBox url;
+    private int urlTicks;
     private String oldUrl;
     private boolean displayLabels;
 
@@ -56,7 +57,11 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         this.url.setTextColorUneditable(-1);
         this.url.setBordered(false);
         this.url.setMaxLength(32500);
-        this.url.setResponder(this::onUrlChanged);
+        this.url.setResponder(s -> {
+            if (!Objects.equals(this.oldUrl, s) && this.urlTicks <= 0)
+                NetworkBridge.sendToServer(new ServerboundSetEtchingUrlPacket(""));
+            this.urlTicks = 8;
+        });
         this.url.setCanLoseFocus(true);
         this.children.add(this.url);
         this.menu.addSlotListener(this);
@@ -79,6 +84,13 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     public void tick() {
         super.tick();
         this.url.tick();
+        if (this.urlTicks > 0) {
+            this.urlTicks--;
+            if (this.urlTicks <= 0 && !Objects.equals(this.oldUrl, this.url.getValue())) {
+                this.oldUrl = this.url.getValue();
+                NetworkBridge.sendToServer(new ServerboundSetEtchingUrlPacket(this.url.getValue()));
+            }
+        }
     }
 
     @Override
@@ -179,12 +191,5 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     @Override
     public boolean keyPressed(int i, int j, int k) {
         return this.url.keyPressed(i, j, k) || (this.url.isFocused() && this.url.isVisible() && i != 256) || super.keyPressed(i, j, k);
-    }
-
-    private void onUrlChanged(String url) {
-        if (!Objects.equals(this.oldUrl, url)) {
-            this.oldUrl = url;
-            NetworkBridge.sendToServer(new ServerboundSetEtcherUrlPacket(url));
-        }
     }
 }

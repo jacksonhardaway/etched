@@ -9,7 +9,6 @@ import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundAddMinecartJukeboxPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMinecartJukeboxMusicPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
-import me.jaackson.etched.common.network.ClientboundSetInvalidEtchPacket;
 import me.jaackson.etched.common.network.ServerboundSetEtchingUrlPacket;
 import me.jaackson.etched.common.network.handler.EtchedClientPlayHandler;
 import me.jaackson.etched.common.network.handler.EtchedServerPlayHandler;

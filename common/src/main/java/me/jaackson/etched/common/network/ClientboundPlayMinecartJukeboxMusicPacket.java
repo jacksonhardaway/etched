@@ -17,22 +17,22 @@ public class ClientboundPlayMinecartJukeboxMusicPacket implements EtchedPacket {
 
     public static final ResourceLocation CHANNEL = new ResourceLocation(Etched.MOD_ID, "play_minecart_jukebox_music");
 
-    private final boolean stop;
+    private final Action action;
     private final int recordId;
     private final Component title;
     private final String url;
     private final int entityId;
 
-    public ClientboundPlayMinecartJukeboxMusicPacket(Component title, String url, MinecartJukebox entity) {
-        this.stop = false;
+    public ClientboundPlayMinecartJukeboxMusicPacket(Component title, String url, MinecartJukebox entity, boolean restart) {
+        this.action = restart ? Action.RESTART : Action.START;
         this.recordId = 0;
         this.title = title;
         this.url = url;
         this.entityId = entity.getId();
     }
 
-    public ClientboundPlayMinecartJukeboxMusicPacket(RecordItem recordItem, MinecartJukebox entity) {
-        this.stop = false;
+    public ClientboundPlayMinecartJukeboxMusicPacket(RecordItem recordItem, MinecartJukebox entity, boolean restart) {
+        this.action = restart ? Action.RESTART : Action.START;
         this.recordId = Registry.ITEM.getId(recordItem);
         this.title = null;
         this.url = null;
@@ -40,7 +40,7 @@ public class ClientboundPlayMinecartJukeboxMusicPacket implements EtchedPacket {
     }
 
     public ClientboundPlayMinecartJukeboxMusicPacket(MinecartJukebox entity) {
-        this.stop = true;
+        this.action = Action.STOP;
         this.recordId = 0;
         this.title = null;
         this.url = null;
@@ -48,17 +48,17 @@ public class ClientboundPlayMinecartJukeboxMusicPacket implements EtchedPacket {
     }
 
     public ClientboundPlayMinecartJukeboxMusicPacket(FriendlyByteBuf buf) {
-        this.stop = buf.readBoolean();
-        this.recordId = this.stop ? 0 : buf.readVarInt();
-        this.title = this.stop || this.recordId != 0 ? null : buf.readComponent();
-        this.url = this.stop || this.recordId != 0 ? null : buf.readUtf();
+        this.action = buf.readEnum(Action.class);
+        this.recordId = this.action == Action.STOP ? 0 : buf.readVarInt();
+        this.title = this.action == Action.STOP || this.recordId != 0 ? null : buf.readComponent();
+        this.url = this.action == Action.STOP || this.recordId != 0 ? null : buf.readUtf();
         this.entityId = buf.readVarInt();
     }
 
     @Override
     public void write(FriendlyByteBuf buf) {
-        buf.writeBoolean(this.stop);
-        if (!this.stop) {
+        buf.writeEnum(this.action);
+        if (this.action != Action.STOP) {
             buf.writeVarInt(this.recordId);
             if (this.recordId == 0) {
                 buf.writeComponent(this.title);
@@ -74,11 +74,11 @@ public class ClientboundPlayMinecartJukeboxMusicPacket implements EtchedPacket {
     }
 
     /**
-     * @return Whether or not to stop playing music
+     * @return The action to be performed on the client
      */
     @Environment(EnvType.CLIENT)
-    public boolean isStop() {
-        return stop;
+    public Action getAction() {
+        return action;
     }
 
     /**
@@ -111,5 +111,12 @@ public class ClientboundPlayMinecartJukeboxMusicPacket implements EtchedPacket {
     @Environment(EnvType.CLIENT)
     public int getEntityId() {
         return entityId;
+    }
+
+    /**
+     * @author Ocelot
+     */
+    public enum Action {
+        START, STOP, RESTART
     }
 }

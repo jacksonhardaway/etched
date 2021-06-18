@@ -109,11 +109,13 @@ public class EtchedClientPlayHandler {
         if (soundInstance != null) {
             if (soundInstance instanceof StopListeningSound)
                 ((StopListeningSound) soundInstance).stopListening();
+            if (pkt.getAction() == ClientboundPlayMinecartJukeboxMusicPacket.Action.RESTART && soundManager.isActive(soundInstance))
+                return;
             soundManager.stop(soundInstance);
             ENTITY_PLAYING_SOUNDS.remove(entityId);
         }
 
-        if (pkt.isStop())
+        if (pkt.getAction() == ClientboundPlayMinecartJukeboxMusicPacket.Action.STOP)
             return;
 
         Entity entity = level.getEntity(pkt.getEntityId());

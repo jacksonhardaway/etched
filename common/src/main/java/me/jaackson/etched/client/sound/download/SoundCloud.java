@@ -21,6 +21,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -131,7 +133,12 @@ public class SoundCloud {
      * @return Whether or not that URL is valid
      */
     public static boolean isValidUrl(String url) {
-        return url.contains("soundcloud.com");
+        try {
+            String host = new URI(url).getHost();
+            return "soundcloud.com".equals(host);
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 
     @FunctionalInterface

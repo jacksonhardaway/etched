@@ -48,41 +48,6 @@ public class EtchedMusicDiscItem extends Item {
         super(properties);
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
-        getMusic(stack).ifPresent(music -> {
-            list.add(music.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-            if (SoundCloud.isValidUrl(music.getUrl()))
-                list.add(new TranslatableComponent(this.getDescriptionId(stack) + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500))));
-        });
-    }
-
-    @Override
-    public InteractionResult useOn(UseOnContext ctx) {
-        Level level = ctx.getLevel();
-        BlockPos pos = ctx.getClickedPos();
-        BlockState state = level.getBlockState(pos);
-        if (!state.is(Blocks.JUKEBOX) || state.getValue(JukeboxBlock.HAS_RECORD))
-            return InteractionResult.PASS;
-
-        ItemStack stack = ctx.getItemInHand();
-        Optional<MusicInfo> optional = getMusic(stack);
-        if (!optional.isPresent())
-            return InteractionResult.PASS;
-
-        if (!level.isClientSide()) {
-            MusicInfo music = optional.get();
-            ((JukeboxBlock) Blocks.JUKEBOX).setRecord(level, pos, state, stack);
-            NetworkBridge.sendToNear((ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64, new ClientboundPlayMusicPacket(music.getDisplayName(), music.getUrl(), pos));
-            stack.shrink(1);
-            Player player = ctx.getPlayer();
-            if (player != null)
-                player.awardStat(Stats.PLAY_RECORD);
-        }
-
-        return InteractionResult.sidedSuccess(level.isClientSide());
-    }
-
     /**
      * Retrieves the music URL from the specified stack.
      *
@@ -182,122 +147,7 @@ public class EtchedMusicDiscItem extends Item {
     }
 
     /**
-     * <p>Music information stored on an etched music disc.</p>
-     *
-     * @author Ocelot
-     */
-    public static class MusicInfo {
-
-        private String url;
-        private String title;
-        private String author;
-
-        public MusicInfo() {
-            this.url = null;
-            this.title = "Custom Music";
-            this.author = "Unknown";
-        }
-
-        private CompoundTag save(CompoundTag nbt) {
-            if (this.url != null)
-                nbt.putString("Url", this.url);
-            if (this.title != null)
-                nbt.putString("Title", this.title);
-            if (this.author != null)
-                nbt.putString("Author", this.author);
-            return nbt;
-        }
-
-        private void load(CompoundTag nbt) {
-            this.url = nbt.contains("Url", 8) ? nbt.getString("Url") : null;
-            this.title = nbt.contains("Title", 8) ? nbt.getString("Title") : "Custom Music";
-            this.author = nbt.contains("Author", 8) ? nbt.getString("Author") : "Unknown";
-        }
-
-        /**
-         * @return The URL of the music
-         */
-        public String getUrl() {
-            return url;
-        }
-
-        /**
-         * @return The title of the music
-         */
-        public String getTitle() {
-            return title;
-        }
-
-        /**
-         * @return The player who created the music disk
-         */
-        public String getAuthor() {
-            return author;
-        }
-
-        /**
-         * Sets the URL to the music file.
-         *
-         * @param url The url to use
-         */
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        /**
-         * @param title The title of the music
-         */
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        /**
-         * @param author The player who authored the disc
-         */
-        public void setAuthor(String author) {
-            this.author = author;
-        }
-
-        /**
-         * @return The name to show as the record title
-         */
-        public Component getDisplayName() {
-            return new TextComponent(this.author + " - " + this.title);
-        }
-    }
-
-    /**
-     * @author Jackson
-     */
-    public enum LabelPattern {
-
-        FLAT, CROSS, EYE, PARALLEL, STAR, GOLD;
-
-        private final ResourceLocation texture;
-
-        LabelPattern() {
-            this.texture = new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_etched_music_disc_label.png");
-        }
-
-        /**
-         * @return The location of the label texture
-         */
-        @Environment(EnvType.CLIENT)
-        public ResourceLocation getTexture() {
-            return texture;
-        }
-
-        /**
-         * @return Whether or not this label can be colored
-         */
-        @Environment(EnvType.CLIENT)
-        public boolean isColorable() {
-            return this != GOLD;
-        }
-    }
-
-    /**
-     * Checks to see if the speciied string is a valid music URL.
+     * Checks to see if the specified string is a valid music URL.
      *
      * @param url The text to check
      * @return Whether or not the data is valid
@@ -341,5 +191,155 @@ public class EtchedMusicDiscItem extends Item {
         if (stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get())
             return getMusic(stack).isPresent();
         return false;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
+        getMusic(stack).ifPresent(music -> {
+            list.add(music.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
+            if (SoundCloud.isValidUrl(music.getUrl()))
+                list.add(new TranslatableComponent(this.getDescriptionId(stack) + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500))));
+        });
+    }
+
+    @Override
+    public InteractionResult useOn(UseOnContext ctx) {
+        Level level = ctx.getLevel();
+        BlockPos pos = ctx.getClickedPos();
+        BlockState state = level.getBlockState(pos);
+        if (!state.is(Blocks.JUKEBOX) || state.getValue(JukeboxBlock.HAS_RECORD))
+            return InteractionResult.PASS;
+
+        ItemStack stack = ctx.getItemInHand();
+        Optional<MusicInfo> optional = getMusic(stack);
+        if (!optional.isPresent())
+            return InteractionResult.PASS;
+
+        if (!level.isClientSide()) {
+            MusicInfo music = optional.get();
+            ((JukeboxBlock) Blocks.JUKEBOX).setRecord(level, pos, state, stack);
+            NetworkBridge.sendToNear((ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64, new ClientboundPlayMusicPacket(music.getDisplayName(), music.getUrl(), pos));
+            stack.shrink(1);
+            Player player = ctx.getPlayer();
+            if (player != null)
+                player.awardStat(Stats.PLAY_RECORD);
+        }
+
+        return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    /**
+     * @author Jackson
+     */
+    public enum LabelPattern {
+
+        FLAT, CROSS, EYE, PARALLEL, STAR, GOLD;
+
+        private final ResourceLocation texture;
+
+        LabelPattern() {
+            this.texture = new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_etched_music_disc_label.png");
+        }
+
+        /**
+         * @return The location of the label texture
+         */
+        @Environment(EnvType.CLIENT)
+        public ResourceLocation getTexture() {
+            return texture;
+        }
+
+        /**
+         * @return Whether or not this label can be colored
+         */
+        @Environment(EnvType.CLIENT)
+        public boolean isColorable() {
+            return this != GOLD;
+        }
+    }
+
+    /**
+     * <p>Music information stored on an etched music disc.</p>
+     *
+     * @author Ocelot
+     */
+    public static class MusicInfo {
+
+        private String url;
+        private String title;
+        private String author;
+
+        public MusicInfo() {
+            this.url = null;
+            this.title = "Custom Music";
+            this.author = "Unknown";
+        }
+
+        private CompoundTag save(CompoundTag nbt) {
+            if (this.url != null)
+                nbt.putString("Url", this.url);
+            if (this.title != null)
+                nbt.putString("Title", this.title);
+            if (this.author != null)
+                nbt.putString("Author", this.author);
+            return nbt;
+        }
+
+        private void load(CompoundTag nbt) {
+            this.url = nbt.contains("Url", 8) ? nbt.getString("Url") : null;
+            this.title = nbt.contains("Title", 8) ? nbt.getString("Title") : "Custom Music";
+            this.author = nbt.contains("Author", 8) ? nbt.getString("Author") : "Unknown";
+        }
+
+        /**
+         * @return The URL of the music
+         */
+        public String getUrl() {
+            return url;
+        }
+
+        /**
+         * Sets the URL to the music file.
+         *
+         * @param url The url to use
+         */
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        /**
+         * @return The title of the music
+         */
+        public String getTitle() {
+            return title;
+        }
+
+        /**
+         * @param title The title of the music
+         */
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        /**
+         * @return The player who created the music disk
+         */
+        public String getAuthor() {
+            return author;
+        }
+
+        /**
+         * @param author The player who authored the disc
+         */
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+
+        /**
+         * @return The name to show as the record title
+         */
+        public Component getDisplayName() {
+            return new TextComponent(this.author + " - " + this.title);
+        }
     }
 }

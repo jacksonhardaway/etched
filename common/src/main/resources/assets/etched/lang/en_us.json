@@ -12,6 +12,9 @@
   "item.etched.music_label": "Music Label",
   "record.etched.downloadFail": "Failed to download %s",
   "record.etched.downloadProgress": "Downloading (%s MB / %s MB): %s",
+  "screen.etched.etching_table.error.invalid_url": "Cannot etch invalid url",
+  "screen.etched.etching_table.error.missing_disc": "Blank disc is required to etch",
+  "screen.etched.etching_table.error.missing_label": "Music label is required to etch",
   "sound_cloud.requesting": "Requesting from SoundCloud...",
   "subtitles.etched.ui.etching_table.take_result": "Etching Table used"
 }

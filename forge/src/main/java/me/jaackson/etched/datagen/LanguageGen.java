@@ -28,5 +28,8 @@ public class LanguageGen extends LanguageProvider {
         this.add("sound_cloud.requesting", "Requesting from SoundCloud...");
         this.add("entity.minecraft.villager." + Etched.MOD_ID + ".bard", "Bard");
         this.add("entity.minecraft.villager.bard", "Bard");
+        this.add("screen." + Etched.MOD_ID + ".etching_table.error.missing_label", "Music label is required to etch");
+        this.add("screen." + Etched.MOD_ID + ".etching_table.error.missing_disc", "Blank disc is required to etch");
+        this.add("screen." + Etched.MOD_ID + ".etching_table.error.invalid_url", "Cannot etch invalid url");
     }
 }

@@ -9,6 +9,7 @@ import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
 import me.jaackson.etched.common.menu.EtchingMenu;
 import me.jaackson.etched.common.network.ServerboundSetEtchingUrlPacket;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.EditBox;
@@ -16,14 +17,18 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11C.GL_EQUAL;
@@ -37,6 +42,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     private EditBox url;
     private int urlTicks;
     private String oldUrl;
+    private String invalidReason;
     private boolean displayLabels;
 
     public EtchingScreen(EtchingMenu menu, Inventory inventory, Component component) {
@@ -46,6 +52,8 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
 
         this.discStack = ItemStack.EMPTY;
         this.labelStack = ItemStack.EMPTY;
+
+        this.invalidReason = "";
     }
 
     @Override
@@ -133,11 +141,35 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     }
 
     @Override
+    protected void renderTooltip(PoseStack poseStack, int mouseX, int mouseY) {
+        super.renderTooltip(poseStack, mouseX, mouseY);
+
+        boolean isEtched = this.discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get();
+        List<FormattedCharSequence> reasonLines = new ArrayList<>();
+        if (!isEtched && !this.discStack.isEmpty() && this.labelStack.isEmpty()) {
+            reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.missing_label").getVisualOrderText());
+        } else if (!isEtched && this.discStack.isEmpty() && !this.labelStack.isEmpty()) {
+            reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.missing_disc").getVisualOrderText());
+        } else if ((!this.url.getValue().isEmpty() && !EtchedMusicDiscItem.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty()) {
+            reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.invalid_url").getVisualOrderText());
+            if (!this.invalidReason.isEmpty())
+                reasonLines.addAll(this.font.split(new TextComponent(this.invalidReason).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC), 200));
+        }
+
+        if (mouseX >= this.leftPos + 83 && mouseX < this.leftPos + 110 && mouseY >= this.topPos + 44 && mouseY < this.topPos + 61) {
+            this.renderTooltip(poseStack, reasonLines, mouseX, mouseY);
+        }
+    }
+
+    @Override
     protected void renderBg(PoseStack poseStack, float f, int mouseX, int mouseY) {
         this.renderBackground(poseStack);
 
         this.minecraft.getTextureManager().bind(TEXTURE);
         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        if ((!this.url.getValue().isEmpty() && !EtchedMusicDiscItem.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty() || (this.discStack.getItem() != EtchedRegistry.ETCHED_MUSIC_DISC.get() && ((!this.discStack.isEmpty() && this.labelStack.isEmpty()) || (this.discStack.isEmpty() && !this.labelStack.isEmpty()))))
+            this.blit(poseStack, this.leftPos + 83, this.topPos + 44, 0, 226, 27, 17);
+
         this.blit(poseStack, this.leftPos + 9, this.topPos + 21, 0, (this.discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get() || (!this.discStack.isEmpty() && !this.labelStack.isEmpty()) ? 180 : 196), 158, 16);
 
         if (this.displayLabels) {
@@ -191,5 +223,9 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     @Override
     public boolean keyPressed(int i, int j, int k) {
         return this.url.keyPressed(i, j, k) || (this.url.isFocused() && this.url.isVisible() && i != 256) || super.keyPressed(i, j, k);
+    }
+
+    public void setReason(String exception) {
+        this.invalidReason = exception;
     }
 }

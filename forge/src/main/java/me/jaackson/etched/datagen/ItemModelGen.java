@@ -35,6 +35,10 @@ public class ItemModelGen implements DataProvider {
         this.dataGenerator = dataGenerator;
     }
 
+    private static Path createModelPath(Path dataFolder, ResourceLocation name) {
+        return dataFolder.resolve("assets/" + name.getNamespace() + "/models/" + name.getPath() + ".json");
+    }
+
     @Override
     public void run(HashCache cache) {
         Path path = this.dataGenerator.getOutputFolder();
@@ -79,10 +83,6 @@ public class ItemModelGen implements DataProvider {
                 LOGGER.error("Couldn't save {}", path, exception);
             }
         });
-    }
-
-    private static Path createModelPath(Path dataFolder, ResourceLocation name) {
-        return dataFolder.resolve("assets/" + name.getNamespace() + "/models/" + name.getPath() + ".json");
     }
 
     @Override

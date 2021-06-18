@@ -56,6 +56,6 @@ public class RecipeGen extends RecipeProvider {
                 .unlockedBy("has_minecart", has(Items.MINECART))
                 .save(consumer);
 
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ItemTags.MUSIC_DISCS), EtchedRegistry.BLANK_MUSIC_DISC.get(), 0.0F, 200).unlockedBy("has_music_disc", has(ItemTags.MUSIC_DISCS)).save(consumer);
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ItemTags.MUSIC_DISCS), EtchedRegistry.BLANK_MUSIC_DISC.get(), 0.2F, 200).unlockedBy("has_music_disc", has(ItemTags.MUSIC_DISCS)).save(consumer);
     }
 }

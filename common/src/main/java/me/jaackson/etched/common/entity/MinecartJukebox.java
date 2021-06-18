@@ -55,17 +55,17 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
         this.dropEquipment = true;
     }
 
-    private void startPlaying(ItemStack stack) {
+    private void startPlaying(ItemStack stack, boolean restart) {
         if (this.level == null)
             return;
 
         if (!stack.isEmpty()) {
             if (stack.getItem() instanceof RecordItem) {
                 RecordItem recordItem = (RecordItem) stack.getItem();
-                NetworkBridge.sendToTracking(this, new ClientboundPlayMinecartJukeboxMusicPacket(recordItem, this));
+                NetworkBridge.sendToTracking(this, new ClientboundPlayMinecartJukeboxMusicPacket(recordItem, this, restart));
                 this.entityData.set(DATA_ID_HAS_RECORD, true);
             } else if (stack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
-                EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> NetworkBridge.sendToTracking(this, new ClientboundPlayMinecartJukeboxMusicPacket(musicInfo.getDisplayName(), musicInfo.getUrl(), this)));
+                EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> NetworkBridge.sendToTracking(this, new ClientboundPlayMinecartJukeboxMusicPacket(musicInfo.getDisplayName(), musicInfo.getUrl(), this, restart)));
                 this.entityData.set(DATA_ID_HAS_RECORD, true);
             }
         }
@@ -110,6 +110,12 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
             return InteractionResult.sidedSuccess(this.level.isClientSide());
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public void activateMinecart(int x, int y, int z, boolean powered) {
+        if (!this.record.isEmpty())
+            this.startPlaying(this.record.copy(), true);
     }
 
     @Override
@@ -222,7 +228,7 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
         if (index == 0) {
             if (!this.record.isEmpty())
                 this.stopPlaying();
-            this.startPlaying(stack.copy());
+            this.startPlaying(stack.copy(), false);
             this.record = stack;
         }
     }

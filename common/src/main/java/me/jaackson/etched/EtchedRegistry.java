@@ -75,9 +75,9 @@ public class EtchedRegistry {
         SnowyVillagePools.bootstrap();
         TaigaVillagePools.bootstrap();
 
-        createVillagePiece("plains", "bard_house", 1, 2);
-        createVillagePiece("desert", "bard_house", 1, 4);
-        createVillagePiece("savanna", "bard_house", 1, 6);
+        createVillagePiece("plains", "bard_house", 1, 3);
+        createVillagePiece("desert", "bard_house", 1, 5);
+        createVillagePiece("savanna", "bard_house", 1, 7);
         createVillagePiece("snowy", "bard_house", 1, 10);
         createVillagePiece("taiga", "bard_house", 1, 8);
     }

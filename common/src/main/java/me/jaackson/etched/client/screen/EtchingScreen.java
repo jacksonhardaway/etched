@@ -146,8 +146,8 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
                 int y = this.topPos + 65;
                 this.minecraft.getTextureManager().bind(TEXTURE);
 
-                int v = 212 + (index == this.menu.getLabelIndex() ? 14 : mouseX >= x && mouseY >= y && mouseX < x + 14 && mouseY < y + 14 ? 28 : 0);
-                this.blit(poseStack, x, y, 0, v, 14, 14);
+                int u = index == this.menu.getLabelIndex() ? 14 : mouseX >= x && mouseY >= y && mouseX < x + 14 && mouseY < y + 14 ? 28 : 0;
+                this.blit(poseStack, x, y, u, 212, 14, 14);
                 this.renderLabel(poseStack, x, y, index);
             }
         }

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.bridge.RegistryBridge;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
@@ -118,8 +119,9 @@ public class RegistryBridgeImpl {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static <T extends Entity> void registerEntityRenderer(EntityType<T> entityType, Function<EntityRenderDispatcher, EntityRenderer<T>> factory) {
-        RenderingRegistry.registerEntityRenderingHandler(entityType, factory::apply);
+    public static synchronized <T extends Entity> void registerEntityRenderer(EntityType<T> entityType, Function<EntityRenderDispatcher, EntityRenderer<T>> factory) {
+        EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+        dispatcher.register(entityType, factory.apply(dispatcher));
     }
 
     @OnlyIn(Dist.CLIENT)

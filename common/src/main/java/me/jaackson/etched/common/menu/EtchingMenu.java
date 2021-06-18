@@ -4,21 +4,28 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
+import me.jaackson.etched.bridge.NetworkBridge;
 import me.jaackson.etched.client.sound.download.SoundCloud;
 import me.jaackson.etched.common.item.BlankMusicDiscItem;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.item.MusicLabelItem;
+import me.jaackson.etched.common.network.ClientboundInvalidEtchUrlPacket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.HttpUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -27,6 +34,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +49,12 @@ public class EtchingMenu extends AbstractContainerMenu {
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
     private static final Set<String> VALID_FORMATS;
 
+    static {
+        ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
+        builder.add("audio/wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
+        VALID_FORMATS = builder.build();
+    }
+
     private final ContainerLevelAccess access;
     private final DataSlot labelIndex;
     private final Slot discSlot;
@@ -48,19 +62,12 @@ public class EtchingMenu extends AbstractContainerMenu {
     private final Slot resultSlot;
     private final Container input;
     private final Container result;
-    private final String author;
-
+    private final Player player;
     private String url;
     private String cachedAuthor;
     private String cachedTitle;
     private int urlId;
     private long lastSoundTime;
-
-    static {
-        ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
-        builder.add("audio/wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
-        VALID_FORMATS = builder.build();
-    }
 
     public EtchingMenu(int id, Inventory inventory) {
         this(id, inventory, ContainerLevelAccess.NULL);
@@ -68,7 +75,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     public EtchingMenu(int id, Inventory inventory, ContainerLevelAccess containerLevelAccess) {
         super(EtchedRegistry.ETCHING_MENU.get(), id);
-        this.author = inventory.player.getDisplayName().getString();
+        this.player = inventory.player;
         this.labelIndex = DataSlot.standalone();
         this.input = new SimpleContainer(2) {
             @Override
@@ -124,6 +131,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                 if (!EtchingMenu.this.discSlot.hasItem() || !EtchingMenu.this.labelSlot.hasItem()) {
                     EtchingMenu.this.labelIndex.set(0);
                 }
+
                 EtchingMenu.this.setupResultSlot();
                 EtchingMenu.this.broadcastChanges();
 
@@ -149,6 +157,21 @@ public class EtchingMenu extends AbstractContainerMenu {
         }
 
         this.addDataSlot(this.labelIndex);
+    }
+
+    private static void checkStatus(String url) throws IOException {
+        HttpGet get = new HttpGet(url);
+        try (CloseableHttpClient client = HttpClients.custom().setUserAgent("Minecraft Java/" + SharedConstants.getCurrentVersion().getName()).build()) {
+            try (CloseableHttpResponse response = client.execute(get)) {
+                StatusLine statusLine = response.getStatusLine();
+                if (statusLine.getStatusCode() != 200)
+                    throw new IOException(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+
+                String contentType = response.getEntity().getContentType().getValue();
+                if (!VALID_FORMATS.contains(contentType))
+                    throw new IOException("Unsupported Content-Type: " + contentType);
+            }
+        }
     }
 
     @Override
@@ -223,6 +246,8 @@ public class EtchingMenu extends AbstractContainerMenu {
     }
 
     private void setupResultSlot() {
+        if (!this.player.level.isClientSide())
+            NetworkBridge.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(""));
         this.resultSlot.set(ItemStack.EMPTY);
         if (this.labelIndex.get() >= 0 && this.labelIndex.get() < EtchedMusicDiscItem.LabelPattern.values().length && this.url != null && EtchedMusicDiscItem.isValidURL(this.url)) {
             ItemStack discStack = this.discSlot.getItem();
@@ -236,7 +261,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
                     int discColor = 0x515151;
                     int labelColor = 0xFFFFFF;
-                    String author = this.author;
+                    String author = this.player.getDisplayName().getString();
                     String title = null;
                     if (discStack.getItem() == EtchedRegistry.ETCHED_MUSIC_DISC.get()) {
                         discColor = EtchedMusicDiscItem.getPrimaryColor(discStack);
@@ -255,6 +280,9 @@ public class EtchingMenu extends AbstractContainerMenu {
                             } catch (Exception e) {
                                 this.cachedAuthor = null;
                                 this.cachedTitle = null;
+
+                                if (!this.player.level.isClientSide())
+                                    NetworkBridge.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e.getMessage()));
                                 throw new CompletionException("Failed to connect to SoundCloud API", e);
                             }
                         }
@@ -263,7 +291,13 @@ public class EtchingMenu extends AbstractContainerMenu {
                     } else if (!EtchedMusicDiscItem.isLocalSound(this.url)) {
                         try {
                             checkStatus(this.url);
+                        } catch (UnknownHostException e) {
+                            if (!this.player.level.isClientSide())
+                                NetworkBridge.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket("Unknown host: " + this.url));
+                            throw new CompletionException("Invalid URL", e);
                         } catch (Exception e) {
+                            if (!this.player.level.isClientSide())
+                                NetworkBridge.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e.getLocalizedMessage()));
                             throw new CompletionException("Invalid URL", e);
                         }
                     }
@@ -273,7 +307,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                         labelColor = ((MusicLabelItem) labelStack.getItem()).getColor(labelStack);
 
                     EtchedMusicDiscItem.MusicInfo info = new EtchedMusicDiscItem.MusicInfo();
-                    info.setAuthor(author != null ? author : this.author);
+                    info.setAuthor(author != null ? author : this.player.getDisplayName().getString());
                     if (title != null)
                         info.setTitle(title);
                     info.setUrl(EtchedMusicDiscItem.isLocalSound(this.url) ? new ResourceLocation(this.url).toString() : this.url);
@@ -312,21 +346,6 @@ public class EtchingMenu extends AbstractContainerMenu {
             this.cachedAuthor = null;
             this.cachedTitle = null;
             this.setupResultSlot();
-        }
-    }
-
-    private static void checkStatus(String url) throws IOException {
-        HttpGet get = new HttpGet(url);
-        try (CloseableHttpClient client = HttpClients.custom().setUserAgent("Minecraft Java/" + SharedConstants.getCurrentVersion().getName()).build()) {
-            try (CloseableHttpResponse response = client.execute(get)) {
-                StatusLine statusLine = response.getStatusLine();
-                if (statusLine.getStatusCode() != 200)
-                    throw new IOException(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
-
-                String contentType = response.getEntity().getContentType().getValue();
-                if (!VALID_FORMATS.contains(contentType))
-                    throw new IOException("Unsupported Content-Type: " + contentType);
-            }
         }
     }
 }

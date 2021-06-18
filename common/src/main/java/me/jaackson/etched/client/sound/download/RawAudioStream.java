@@ -22,6 +22,24 @@ public class RawAudioStream implements AudioStream {
         this.input = input;
     }
 
+    private static ByteBuffer convertAudioBytes(byte[] audio_bytes, boolean two_bytes_data, ByteOrder order) {
+        ByteBuffer dest = ByteBuffer.allocateDirect(audio_bytes.length);
+        dest.order(ByteOrder.nativeOrder());
+        ByteBuffer src = ByteBuffer.wrap(audio_bytes);
+        src.order(order);
+        if (two_bytes_data) {
+            ShortBuffer dest_short = dest.asShortBuffer();
+            ShortBuffer src_short = src.asShortBuffer();
+            while (src_short.hasRemaining())
+                dest_short.put(src_short.get());
+        } else {
+            while (src.hasRemaining())
+                dest.put(src.get());
+        }
+        dest.rewind();
+        return dest;
+    }
+
     @Override
     public AudioFormat getFormat() {
         return format;
@@ -45,23 +63,5 @@ public class RawAudioStream implements AudioStream {
     @Override
     public void close() throws IOException {
         this.input.close();
-    }
-
-    private static ByteBuffer convertAudioBytes(byte[] audio_bytes, boolean two_bytes_data, ByteOrder order) {
-        ByteBuffer dest = ByteBuffer.allocateDirect(audio_bytes.length);
-        dest.order(ByteOrder.nativeOrder());
-        ByteBuffer src = ByteBuffer.wrap(audio_bytes);
-        src.order(order);
-        if (two_bytes_data) {
-            ShortBuffer dest_short = dest.asShortBuffer();
-            ShortBuffer src_short = src.asShortBuffer();
-            while (src_short.hasRemaining())
-                dest_short.put(src_short.get());
-        } else {
-            while (src.hasRemaining())
-                dest.put(src.get());
-        }
-        dest.rewind();
-        return dest;
     }
 }

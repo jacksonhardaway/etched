@@ -3,6 +3,7 @@ package me.jaackson.etched.common.network.handler;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import me.jaackson.etched.Etched;
 import me.jaackson.etched.EtchedRegistry;
+import me.jaackson.etched.client.screen.EtchingScreen;
 import me.jaackson.etched.client.sound.JukeboxMinecartSoundInstance;
 import me.jaackson.etched.client.sound.OnlineRecordSoundInstance;
 import me.jaackson.etched.client.sound.StopListeningSound;
@@ -12,6 +13,7 @@ import me.jaackson.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import me.jaackson.etched.common.entity.MinecartJukebox;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundAddMinecartJukeboxPacket;
+import me.jaackson.etched.common.network.ClientboundInvalidEtchUrlPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMinecartJukeboxMusicPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import me.jaackson.etched.mixin.client.GuiAccessor;
@@ -138,6 +140,13 @@ public class EtchedClientPlayHandler {
             SoundInstance sound = new JukeboxMinecartSoundInstance(((RecordItem) record).getSound(), (MinecartJukebox) entity);
             ENTITY_PLAYING_SOUNDS.put(entityId, sound);
             soundManager.play(sound);
+        }
+    }
+
+    public static void handleSetInvalidEtch(ClientboundInvalidEtchUrlPacket pkt) {
+        if (Minecraft.getInstance().screen instanceof EtchingScreen) {
+            EtchingScreen screen = (EtchingScreen) Minecraft.getInstance().screen;
+            screen.setReason(pkt.getException());
         }
     }
 

@@ -1,7 +1,11 @@
 package me.jaackson.etched.forge;
 
 import me.jaackson.etched.Etched;
-import me.jaackson.etched.datagen.*;
+import me.jaackson.etched.datagen.ItemModelGen;
+import me.jaackson.etched.datagen.ItemTagGen;
+import me.jaackson.etched.datagen.LanguageGen;
+import me.jaackson.etched.datagen.LootTableGen;
+import me.jaackson.etched.datagen.RecipeGen;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraftforge.api.distmarker.Dist;

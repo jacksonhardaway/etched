@@ -7,6 +7,7 @@ import me.jaackson.etched.client.screen.AlbumJukeboxScreen;
 import me.jaackson.etched.client.screen.EtchingScreen;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import me.jaackson.etched.common.network.ClientboundAddMinecartJukeboxPacket;
+import me.jaackson.etched.common.network.ClientboundInvalidEtchUrlPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMinecartJukeboxMusicPacket;
 import me.jaackson.etched.common.network.ClientboundPlayMusicPacket;
 import me.jaackson.etched.common.network.ServerboundSetEtchingUrlPacket;
@@ -44,6 +45,7 @@ public class Etched {
         NetworkBridge.registerPlayToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMusicPacket);
         NetworkBridge.registerPlayToClient(ClientboundAddMinecartJukeboxPacket.CHANNEL, ClientboundAddMinecartJukeboxPacket.class, ClientboundAddMinecartJukeboxPacket::new, () -> EtchedClientPlayHandler::handleAddMinecartJukeboxPacket);
         NetworkBridge.registerPlayToClient(ClientboundPlayMinecartJukeboxMusicPacket.CHANNEL, ClientboundPlayMinecartJukeboxMusicPacket.class, ClientboundPlayMinecartJukeboxMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMinecartJukeboxPacket);
+        NetworkBridge.registerPlayToClient(ClientboundInvalidEtchUrlPacket.CHANNEL, ClientboundInvalidEtchUrlPacket.class, ClientboundInvalidEtchUrlPacket::new, () -> EtchedClientPlayHandler::handleSetInvalidEtch);
         NetworkBridge.registerPlayToServer(ServerboundSetEtchingUrlPacket.CHANNEL, ServerboundSetEtchingUrlPacket.class, ServerboundSetEtchingUrlPacket::new, EtchedServerPlayHandler::handleSetEtcherUrl);
 
         RegistryBridge.registerVillagerTrades(EtchedRegistry.BARD, () -> Util.make(new Int2ObjectOpenHashMap<>(), map -> {

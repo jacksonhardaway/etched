@@ -268,7 +268,8 @@ public class EtchingMenu extends AbstractContainerMenu {
                         labelColor = EtchedMusicDiscItem.getSecondaryColor(discStack);
                         author = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
                         title = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getTitle).orElse(null);
-                    }
+                    } else if (discStack.hasCustomHoverName())
+                        author = discStack.getHoverName().getString();
                     if (!labelStack.isEmpty() && labelStack.hasCustomHoverName())
                         title = labelStack.getHoverName().getString();
                     if (SoundCloud.isValidUrl(this.url)) {

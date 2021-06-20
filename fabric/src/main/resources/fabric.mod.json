@@ -3,7 +3,7 @@
   "id": "etched",
   "version": "${version}",
   "name": "Etched",
-  "description": "Create custom music discs!",
+  "description": "A new way to play music",
   "authors": [
     {
       "name": "Jackson",
@@ -12,13 +12,30 @@
       }
     },
     {
-      "name": "Ocelot"
+      "name": "Ocelot",
+      "contact": {
+        "homepage": "https://twitter.com/ozelot5836"
+      }
+    },
+	{
+      "name": "Farcr",
+      "contact": {
+        "homepage": "https://twitter.com/Farcr__"
+      }
     }
   ],
+  "contributors": [
+	{
+      "name": "Astrazoey",
+      "contact": {
+        "homepage": "https://twitter.com/astrazoey"
+      }
+    }
+  ]
   "contact": {
     "homepage": "https://curseforge.com/minecraft/mc-mods/etched",
-    "sources": "https://github.com/JacksonPlayz/etched",
-    "issues": "https://github.com/JacksonPlayz/etched/issues"
+    "sources": "https://github.com/jaacksondev/etched",
+    "issues": "https://github.com/jaacksondev/etched/issues"
   },
   "license": "GPLv3",
   "environment": "*",

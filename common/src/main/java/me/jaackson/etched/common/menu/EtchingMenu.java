@@ -34,6 +34,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
+import java.net.Proxy;
 import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.Set;
@@ -274,7 +275,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                     if (SoundCloud.isValidUrl(this.url)) {
                         if (this.cachedAuthor == null || this.cachedTitle == null) {
                             try {
-                                Pair<String, String> track = SoundCloud.resolveTrack(this.url, null);
+                                Pair<String, String> track = SoundCloud.resolveTrack(this.url, null, Proxy.NO_PROXY);
                                 this.cachedAuthor = track.getFirst();
                                 this.cachedTitle = track.getSecond();
                             } catch (Exception e) {

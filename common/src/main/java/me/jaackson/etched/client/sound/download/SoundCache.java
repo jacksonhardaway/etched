@@ -1,6 +1,8 @@
 package me.jaackson.etched.client.sound.download;
 
 import me.jaackson.etched.Etched;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -70,28 +72,13 @@ public final class SoundCache {
     private SoundCache() {
     }
 
-    private static synchronized void deleteOnExit(Path file) {
-        if (files == null)
-            throw new IllegalStateException("Shutdown in progress");
-        files.add(file);
-    }
-
-    private static Map<String, String> getDownloadHeaders() {
-        Map<String, String> map = new HashMap<>();
-        map.put("X-Minecraft-Username", Minecraft.getInstance().getUser().getName());
-        map.put("X-Minecraft-UUID", Minecraft.getInstance().getUser().getUuid());
-        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
-        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
-        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
-        return map;
-    }
-
     /**
      * Downloads an audio stream from the specified URL and stores it in a local cache.
      *
      * @param url The url to download the sound from
      * @return An input stream to the locally downloaded file
      */
+    @Environment(EnvType.CLIENT)
     public static CompletableFuture<Path> getAudioStream(String url, @Nullable DownloadProgressListener progressListener) {
         if (DOWNLOADING.containsKey(url)) {
             CompletableFuture<Path> future = DOWNLOADING.get(url);
@@ -112,7 +99,7 @@ public final class SoundCache {
 
             CompletableFuture<String> urlFuture = soundCloud ? CompletableFuture.supplyAsync(() -> {
                 try {
-                    return SoundCloud.resolveUrl(url, progressListener);
+                    return SoundCloud.resolveUrl(url, progressListener, Minecraft.getInstance().getProxy());
                 } catch (Exception e) {
                     throw new CompletionException("Failed to connect to SoundCloud API", e);
                 }
@@ -148,6 +135,22 @@ public final class SoundCache {
         } finally {
             LOCK.unlock();
         }
+    }
+
+    private static synchronized void deleteOnExit(Path file) {
+        if (files == null)
+            throw new IllegalStateException("Shutdown in progress");
+        files.add(file);
+    }
+
+    private static Map<String, String> getDownloadHeaders() {
+        Map<String, String> map = new HashMap<>();
+        map.put("X-Minecraft-Username", Minecraft.getInstance().getUser().getName());
+        map.put("X-Minecraft-UUID", Minecraft.getInstance().getUser().getUuid());
+        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
+        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
+        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
+        return map;
     }
 
     private static CompletableFuture<?> downloadTo(File file, CompletableFuture<String> urlFuture, Map<String, String> map, int i, @Nullable DownloadProgressListener progressListener, Proxy proxy, boolean isTempFile) {

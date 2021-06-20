@@ -18,6 +18,7 @@ public class EtchedFabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         Etched.clientInit();
         Etched.clientPostInit();
+        Etched.clientNetworkingInit();
 
         ClientPickBlockGatherCallback.EVENT.register((player, result) -> {
             if (result.getType() == HitResult.Type.ENTITY && player.abilities.instabuild) {

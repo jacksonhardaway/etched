@@ -32,6 +32,9 @@ public class EtchedForge {
 
         Etched.commonInit();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> Etched::clientInit);
+
+        Etched.commonNetworkingInit();
+        Etched.clientNetworkingInit();
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

@@ -42,12 +42,6 @@ public class Etched {
 
     public static void commonInit() {
         EtchedRegistry.register();
-        NetworkBridge.registerPlayToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMusicPacket);
-        NetworkBridge.registerPlayToClient(ClientboundAddMinecartJukeboxPacket.CHANNEL, ClientboundAddMinecartJukeboxPacket.class, ClientboundAddMinecartJukeboxPacket::new, () -> EtchedClientPlayHandler::handleAddMinecartJukeboxPacket);
-        NetworkBridge.registerPlayToClient(ClientboundPlayMinecartJukeboxMusicPacket.CHANNEL, ClientboundPlayMinecartJukeboxMusicPacket.class, ClientboundPlayMinecartJukeboxMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMinecartJukeboxPacket);
-        NetworkBridge.registerPlayToClient(ClientboundInvalidEtchUrlPacket.CHANNEL, ClientboundInvalidEtchUrlPacket.class, ClientboundInvalidEtchUrlPacket::new, () -> EtchedClientPlayHandler::handleSetInvalidEtch);
-        NetworkBridge.registerPlayToServer(ServerboundSetEtchingUrlPacket.CHANNEL, ServerboundSetEtchingUrlPacket.class, ServerboundSetEtchingUrlPacket::new, EtchedServerPlayHandler::handleSetEtcherUrl);
-
         RegistryBridge.registerVillagerTrades(EtchedRegistry.BARD, () -> Util.make(new Int2ObjectOpenHashMap<>(), map -> {
             map.put(1, new VillagerTrades.ItemListing[]{
                     new ItemTrade(() -> Items.MUSIC_DISC_13, 8, 1, 16, 2, true),
@@ -99,6 +93,17 @@ public class Etched {
         RegistryBridge.registerBlockRenderType(EtchedRegistry.ETCHING_TABLE.get(), RenderType.cutout());
         RegistryBridge.registerItemOverride(EtchedRegistry.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
         RegistryBridge.registerEntityRenderer(EtchedRegistry.JUKEBOX_MINECART_ENTITY.get(), MinecartRenderer::new);
+    }
+
+    public static void commonNetworkingInit() {
+        NetworkBridge.registerPlayToServer(ServerboundSetEtchingUrlPacket.CHANNEL, ServerboundSetEtchingUrlPacket.class, ServerboundSetEtchingUrlPacket::new, EtchedServerPlayHandler::handleSetEtcherUrl);
+    }
+
+    public static void clientNetworkingInit() {
+        NetworkBridge.registerPlayToClient(ClientboundPlayMusicPacket.CHANNEL, ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMusicPacket);
+        NetworkBridge.registerPlayToClient(ClientboundAddMinecartJukeboxPacket.CHANNEL, ClientboundAddMinecartJukeboxPacket.class, ClientboundAddMinecartJukeboxPacket::new, () -> EtchedClientPlayHandler::handleAddMinecartJukeboxPacket);
+        NetworkBridge.registerPlayToClient(ClientboundPlayMinecartJukeboxMusicPacket.CHANNEL, ClientboundPlayMinecartJukeboxMusicPacket.class, ClientboundPlayMinecartJukeboxMusicPacket::new, () -> EtchedClientPlayHandler::handlePlayMinecartJukeboxPacket);
+        NetworkBridge.registerPlayToClient(ClientboundInvalidEtchUrlPacket.CHANNEL, ClientboundInvalidEtchUrlPacket.class, ClientboundInvalidEtchUrlPacket::new, () -> EtchedClientPlayHandler::handleSetInvalidEtch);
     }
 
     static class ItemTrade implements VillagerTrades.ItemListing {

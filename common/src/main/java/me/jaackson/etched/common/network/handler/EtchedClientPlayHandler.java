@@ -22,6 +22,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.MinecartSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -48,6 +49,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.DoubleSupplier;
 
 public class EtchedClientPlayHandler {
 
@@ -138,7 +140,8 @@ public class EtchedClientPlayHandler {
                 return;
             }
 
-            Minecraft.getInstance().gui.setNowPlaying(((RecordItem) record).getDisplayName());
+            if (canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
+                Minecraft.getInstance().gui.setNowPlaying(((RecordItem) record).getDisplayName());
             SoundInstance sound = new JukeboxMinecartSoundInstance(((RecordItem) record).getSound(), (MinecartJukebox) entity);
             ENTITY_PLAYING_SOUNDS.put(entityId, sound);
             soundManager.play(sound);
@@ -152,14 +155,20 @@ public class EtchedClientPlayHandler {
         }
     }
 
+    private static boolean canShowMessage(double x, double y, double z) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player == null || player.distanceToSqr(x, y, z) <= 4096.0;
+    }
+
     private static SoundInstance getEtchedRecord(String url, Component title, MinecartJukebox jukebox) {
-        return new OnlineRecordSoundInstance(url, jukebox, new MusicDownloadListener(title) {
+        return new OnlineRecordSoundInstance(url, jukebox, new MusicDownloadListener(title, jukebox::getX, jukebox::getY, jukebox::getZ) {
             @Override
             public void onSuccess() {
                 if (!jukebox.isAlive() || !ENTITY_PLAYING_SOUNDS.containsKey(jukebox.getId())) {
                     this.clearComponent();
                 } else {
-                    Minecraft.getInstance().gui.setNowPlaying(title);
+                    if (canShowMessage(jukebox.getX(), jukebox.getY(), jukebox.getZ()))
+                        Minecraft.getInstance().gui.setNowPlaying(title);
                 }
             }
         });
@@ -167,13 +176,14 @@ public class EtchedClientPlayHandler {
 
     private static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new MusicDownloadListener(title) {
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
             @Override
             public void onSuccess() {
                 if (!playingRecords.containsKey(pos)) {
                     this.clearComponent();
                 } else {
-                    Minecraft.getInstance().gui.setNowPlaying(title);
+                    if (canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                        Minecraft.getInstance().gui.setNowPlaying(title);
                     if (level.getBlockState(pos).is(Blocks.JUKEBOX))
                         for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
                             livingEntity.setRecordPlayingNearby(pos, true);
@@ -240,7 +250,8 @@ public class EtchedClientPlayHandler {
             }
         }
         if (disc.getItem() instanceof RecordItem) {
-            Minecraft.getInstance().gui.setNowPlaying(((RecordItem) disc.getItem()).getDisplayName());
+            if (canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                Minecraft.getInstance().gui.setNowPlaying(((RecordItem) disc.getItem()).getDisplayName());
             sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
         }
 
@@ -299,15 +310,24 @@ public class EtchedClientPlayHandler {
     private static abstract class MusicDownloadListener implements DownloadProgressListener {
 
         private final Component title;
+        private final DoubleSupplier x;
+        private final DoubleSupplier y;
+        private final DoubleSupplier z;
         private float size;
         private Component requesting;
         private DownloadTextComponent component;
 
-        protected MusicDownloadListener(Component title) {
+        protected MusicDownloadListener(Component title, DoubleSupplier x, DoubleSupplier y, DoubleSupplier z) {
             this.title = title;
+            this.x = x;
+            this.y = y;
+            this.z = z;
         }
 
         private void setComponent(Component text) {
+            if (!canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
+                return;
+
             if (this.component == null) {
                 this.component = new DownloadTextComponent();
                 Minecraft.getInstance().gui.setOverlayMessage(this.component, true);
@@ -347,7 +367,8 @@ public class EtchedClientPlayHandler {
 
         @Override
         public void onFail() {
-            Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
+            if (canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
+                Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
         }
     }
 }

@@ -1,6 +1,5 @@
 {
   "schemaVersion": 1,
   "id": "etched-common",
-  "version": "0",
-  "accessWidener": "etched.accesswidener"
+  "version": "0"
 }

@@ -74,46 +74,8 @@ public class SoundCloud {
             }
 
             throw new IOException(e);
-        } finally {
-            if (httpURLConnection != null)
-                IOUtils.closeQuietly(httpURLConnection.getErrorStream());
         }
     }
-
-//    private static InputStream get(String url, @Nullable DownloadProgressListener progressListener) throws IOException {
-//        if (progressListener != null)
-//            progressListener.progressStartRequest(new TranslatableComponent("sound_cloud.requesting"));
-//        HttpGet get = new HttpGet(url);
-//        CloseableHttpClient client = HttpClients.custom().setUserAgent("Minecraft Java/" + SharedConstants.getCurrentVersion().getName()).build();
-//        CloseableHttpResponse response = client.execute(get);
-//        StatusLine statusLine = response.getStatusLine();
-//        if (statusLine.getStatusCode() != 200) {
-//            IOUtils.closeQuietly(client, response);
-//            throw new IOException(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
-//        }
-//        float size = (float) response.getEntity().getContentLength() / 1000.0F / 1000.0F;
-//        if (progressListener != null && size > 0)
-//            progressListener.progressStartDownload(size);
-//
-//        return new EofSensorInputStream(response.getEntity().getContent(), new EofSensorWatcher() {
-//            @Override
-//            public boolean eofDetected(InputStream wrapped) {
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean streamClosed(InputStream wrapped) throws IOException {
-//                response.close();
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean streamAbort(InputStream wrapped) throws IOException {
-//                response.close();
-//                return true;
-//            }
-//        });
-//    }
 
     private static <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, Request<T> function) throws IOException, JsonParseException {
         try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=" + CLIENT_ID, progressListener, proxy))) {

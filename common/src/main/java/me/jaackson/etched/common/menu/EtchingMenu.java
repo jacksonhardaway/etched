@@ -21,21 +21,20 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.Proxy;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -48,6 +47,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final Set<String> VALID_FORMATS;
 
     static {
@@ -160,18 +160,59 @@ public class EtchingMenu extends AbstractContainerMenu {
         this.addDataSlot(this.labelIndex);
     }
 
-    private static void checkStatus(String url) throws IOException {
-        HttpGet get = new HttpGet(url);
-        try (CloseableHttpClient client = HttpClients.custom().setUserAgent("Minecraft Java/" + SharedConstants.getCurrentVersion().getName()).build()) {
-            try (CloseableHttpResponse response = client.execute(get)) {
-                StatusLine statusLine = response.getStatusLine();
-                if (statusLine.getStatusCode() != 200)
-                    throw new IOException(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+//    private static void checkStatus(String url) throws IOException {
+//        HttpGet get = new HttpGet(url);
+//        try (CloseableHttpClient client = HttpClients.custom().setUserAgent("Minecraft Java/" + SharedConstants.getCurrentVersion().getName()).build()) {
+//            try (CloseableHttpResponse response = client.execute(get)) {
+//                StatusLine statusLine = response.getStatusLine();
+//                if (statusLine.getStatusCode() != 200)
+//                    throw new IOException(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+//
+//                String contentType = response.getEntity().getContentType().getValue();
+//                if (!VALID_FORMATS.contains(contentType))
+//                    throw new IOException("Unsupported Content-Type: " + contentType);
+//            }
+//        }
+//    }
 
-                String contentType = response.getEntity().getContentType().getValue();
-                if (!VALID_FORMATS.contains(contentType))
-                    throw new IOException("Unsupported Content-Type: " + contentType);
+    private static Map<String, String> getDownloadHeaders() {
+        Map<String, String> map = new HashMap<>();
+        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
+        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
+        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
+        return map;
+    }
+
+    private static void checkStatus(String url) throws IOException {
+        HttpURLConnection httpURLConnection = null;
+
+        try {
+            URL uRL = new URL(url);
+            httpURLConnection = (HttpURLConnection) uRL.openConnection(Proxy.NO_PROXY);
+            httpURLConnection.setInstanceFollowRedirects(true);
+            Map<String, String> map = getDownloadHeaders();
+
+            for (Map.Entry<String, String> entry : map.entrySet())
+                httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
+
+            if (httpURLConnection.getResponseCode() != 200) {
+                IOUtils.closeQuietly(httpURLConnection.getInputStream());
+                throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
             }
+
+            String contentType = httpURLConnection.getContentType();
+            if (!VALID_FORMATS.contains(contentType))
+                throw new IOException("Unsupported Content-Type: " + contentType);
+        } catch (Throwable e) {
+            if (httpURLConnection != null) {
+                try {
+                    LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            throw new IOException(e);
         }
     }
 

@@ -15,27 +15,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -47,18 +37,19 @@ public final class SoundCache {
     private static final Path SOUND_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
     private static final ReentrantLock LOCK = new ReentrantLock();
     private static final Map<String, CompletableFuture<Path>> DOWNLOADING = new HashMap<>();
-    private static LinkedHashSet<Path> files = new LinkedHashSet<>();
+    private static Map<String, Path> files = new ConcurrentHashMap<>();
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LinkedHashSet<Path> theFiles;
+            Map<String, Path> theFiles;
 
             synchronized (SoundCache.class) {
                 theFiles = files;
                 files = null;
             }
 
-            List<Path> toBeDeleted = new ArrayList<>(theFiles);
+            List<Path> toBeDeleted = new ArrayList<>(theFiles.values());
+            theFiles.clear();
             Collections.reverse(toBeDeleted);
             for (Path filename : toBeDeleted) {
                 try {
@@ -93,10 +84,8 @@ public final class SoundCache {
 
             if (!soundCloud && !Files.exists(SOUND_FOLDER))
                 Files.createDirectories(SOUND_FOLDER);
-            Path file = soundCloud ? Files.createTempFile(DigestUtils.md5Hex(url), null) : SOUND_FOLDER.resolve(DigestUtils.md5Hex(url));
-            if (soundCloud)
-                deleteOnExit(file);
-
+            Path file = soundCloud ? getTemporaryFile(DigestUtils.md5Hex(url)) : SOUND_FOLDER.resolve(DigestUtils.md5Hex(url));
+            
             CompletableFuture<String> urlFuture = soundCloud ? CompletableFuture.supplyAsync(() -> {
                 try {
                     return SoundCloud.resolveUrl(url, progressListener, Minecraft.getInstance().getProxy());
@@ -137,10 +126,12 @@ public final class SoundCache {
         }
     }
 
-    private static synchronized void deleteOnExit(Path file) {
+    private static synchronized Path getTemporaryFile(String hash) throws IOException {
         if (files == null)
             throw new IllegalStateException("Shutdown in progress");
-        files.add(file);
+        if (!files.containsKey(hash))
+            files.put(hash, Files.createTempFile(hash, null));
+        return files.get(hash);
     }
 
     private static Map<String, String> getDownloadHeaders() {
@@ -158,7 +149,7 @@ public final class SoundCache {
             HttpURLConnection httpURLConnection = null;
             InputStream inputStream = null;
             OutputStream outputStream = null;
-            if (progressListener != null && (isTempFile || !file.exists())) {
+            if (progressListener != null && !file.exists()) {
                 progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
             }
 
@@ -182,18 +173,18 @@ public final class SoundCache {
                 if (progressListener != null)
                     progressListener.progressStartDownload(g / 1000.0F / 1000.0F);
 
-                // Temp file is assumed to be created with parent directories
-                if (!isTempFile) {
-                    if (file.exists()) {
-                        long l = file.length();
-                        if (l == (long) j)
-                            return null;
+                if (file.exists()) {
+                    long l = file.length();
+                    if (l == (long) j)
+                        return null;
 
+                    if (!isTempFile) {
                         LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", file, j, l);
                         FileUtils.deleteQuietly(file);
-                    } else if (file.getParentFile() != null) {
-                        file.getParentFile().mkdirs();
                     }
+                } else if (!isTempFile && file.getParentFile() != null) {
+                    // Temp file is assumed to be created with parent directories
+                    file.getParentFile().mkdirs();
                 }
 
                 outputStream = new DataOutputStream(new FileOutputStream(file));

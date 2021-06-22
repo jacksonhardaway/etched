@@ -28,10 +28,9 @@ import java.util.Map;
  */
 public class SoundCloud {
 
-    private static final Logger LOGGER = LogManager.getLogger();
-    private static final String CLIENT_ID = "Gef7Kyef9qUHLjDFrmLfJTGqXRS9QT3l";
+    static final Logger LOGGER = LogManager.getLogger();
 
-    private static Map<String, String> getDownloadHeaders() {
+    static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = new HashMap<>();
         map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
         map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
@@ -39,13 +38,14 @@ public class SoundCloud {
         return map;
     }
 
-    private static InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
+    private static InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt) throws IOException {
         HttpURLConnection httpURLConnection = null;
         if (progressListener != null)
             progressListener.progressStartRequest(new TranslatableComponent("sound_cloud.requesting"));
 
         try {
-            URL uRL = new URL(url);
+            String clientId = SoundCloudIdTracker.fetch(proxy);
+            URL uRL = new URL(url + clientId);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
             float f = 0.0F;
@@ -58,10 +58,15 @@ public class SoundCloud {
                     progressListener.progressStagePercentage((int) (++f / g * 100.0F));
             }
 
-            if (httpURLConnection.getResponseCode() != 200) {
-                IOUtils.closeQuietly(httpURLConnection.getInputStream());
-                throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
+            int response = httpURLConnection.getResponseCode();
+            if (attempt == 0 && (response == 401 || response == 403)) {
+                LOGGER.info("Attempting to authenticate");
+                SoundCloudIdTracker.invalidate();
+                return get(url, progressListener, proxy, 1);
             }
+
+            if (response != 200)
+                throw new IOException(response + " " + httpURLConnection.getResponseMessage());
 
             return httpURLConnection.getInputStream();
         } catch (Throwable e) {
@@ -78,7 +83,7 @@ public class SoundCloud {
     }
 
     private static <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, Request<T> function) throws IOException, JsonParseException {
-        try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=" + CLIENT_ID, progressListener, proxy))) {
+        try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", progressListener, proxy, 0))) {
             JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
 
             if (!"track".equals(GsonHelper.getAsString(json, "kind")))
@@ -108,7 +113,7 @@ public class SoundCloud {
 
                 JsonObject format = transcodingJson.getAsJsonObject("format");
                 if ("progressive".equals(format.get("protocol").getAsString())) {
-                    try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=" + CLIENT_ID, progressListener, proxy))) {
+                    try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", progressListener, proxy, 0))) {
                         return GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url");
                     }
                 }

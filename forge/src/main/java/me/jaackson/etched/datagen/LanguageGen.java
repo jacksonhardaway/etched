@@ -23,6 +23,7 @@ public class LanguageGen extends LanguageProvider {
         this.add("container." + Etched.MOD_ID + ".etching_table", "Etching Table");
         this.add("container." + Etched.MOD_ID + ".album_jukebox", "Album Jukebox");
         this.add("record." + Etched.MOD_ID + ".downloadProgress", "Downloading (%s MB / %s MB): %s");
+        this.add("record." + Etched.MOD_ID + ".loading", "Loading %s");
         this.add("record." + Etched.MOD_ID + ".downloadFail", "Failed to download %s");
         this.add("subtitles." + Etched.MOD_ID + ".ui.etching_table.take_result", "Etching Table used");
         this.add("sound_cloud.requesting", "Requesting from SoundCloud...");

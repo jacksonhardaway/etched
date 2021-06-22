@@ -21,11 +21,11 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
     private final int attenuationDistance;
     private final DownloadProgressListener progressListener;
 
-    public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, SoundSource source, @Nullable DownloadProgressListener progressListener) {
+    public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, SoundSource source, DownloadProgressListener progressListener) {
         this(url, subtitle, 16, source, progressListener);
     }
 
-    public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, int attenuationDistance, SoundSource source, @Nullable DownloadProgressListener progressListener) {
+    public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, int attenuationDistance, SoundSource source, DownloadProgressListener progressListener) {
         super(new ResourceLocation(Etched.MOD_ID, DigestUtils.md5Hex(url)), source);
         this.url = url;
         this.subtitle = subtitle;

@@ -14,13 +14,13 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
     private final MinecartJukebox jukebox;
     private boolean stopped;
 
-    public OnlineRecordSoundInstance(String url, MinecartJukebox jukebox, @Nullable DownloadProgressListener progressListener) {
+    public OnlineRecordSoundInstance(String url, MinecartJukebox jukebox, DownloadProgressListener progressListener) {
         super(url, null, SoundSource.RECORDS, progressListener);
         this.volume = 4.0F;
         this.jukebox = jukebox;
     }
 
-    public OnlineRecordSoundInstance(String url, double x, double y, double z, @Nullable DownloadProgressListener progressListener) {
+    public OnlineRecordSoundInstance(String url, double x, double y, double z, DownloadProgressListener progressListener) {
         this(url, null, progressListener);
         this.x = x;
         this.y = y;

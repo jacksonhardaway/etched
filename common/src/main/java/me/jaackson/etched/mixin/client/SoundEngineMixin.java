@@ -1,24 +1,17 @@
 package me.jaackson.etched.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
+import me.jaackson.etched.Etched;
 import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
 import me.jaackson.etched.client.sound.SoundStopListener;
-import me.jaackson.etched.client.sound.download.EmptyAudioStream;
-import me.jaackson.etched.client.sound.download.MonoWrapper;
-import me.jaackson.etched.client.sound.download.RawAudioStream;
-import me.jaackson.etched.client.sound.download.SoundCache;
-import me.jaackson.etched.client.sound.download.WaveDataReader;
+import me.jaackson.etched.client.sound.download.*;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.client.sounds.AudioStream;
-import net.minecraft.client.sounds.ChannelAccess;
-import net.minecraft.client.sounds.LoopingAudioStream;
-import net.minecraft.client.sounds.SoundBufferLibrary;
-import net.minecraft.client.sounds.SoundEngine;
-import net.minecraft.client.sounds.WeighedSoundEvents;
+import net.minecraft.client.sounds.*;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
@@ -35,9 +28,12 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
+import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -78,6 +74,7 @@ public abstract class SoundEngineMixin {
             return soundBufferLibrary.getStream(weighedSoundEvents.getSound().getPath(), loop).thenApplyAsync(MonoWrapper::new, Util.backgroundExecutor()).handleAsync((stream, e) -> {
                 if (e != null) {
                     e.printStackTrace();
+                    onlineSound.getProgressListener().onFail();
                     return EmptyAudioStream.INSTANCE;
                 }
                 onlineSound.getProgressListener().onSuccess();
@@ -86,43 +83,46 @@ public abstract class SoundEngineMixin {
         }
 
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).<AudioStream>thenApplyAsync(path -> {
-            FileInputStream is = null;
-
-            // Try loading as OGG
+            onlineSound.getProgressListener().progressStartLoading();
             try {
-                is = new FileInputStream(path.toFile());
-                return new MonoWrapper(loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is));
-            } catch (Exception e) {
-                IOUtils.closeQuietly(is);
-                LOGGER.debug("Failed to load as OGG", e);
+                FileChannel channel = FileChannel.open(path, StandardOpenOption.READ);
+                final InputStream is = new FileChannelInputStream(channel);
 
-                // Try loading as WAV
+                // Try loading as OGG
                 try {
-                    is = new FileInputStream(path.toFile());
-                    AudioInputStream ais = WaveDataReader.getAudioInputStream(is);
-                    AudioFormat format = ais.getFormat();
-                    return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
-                } catch (Exception e1) {
-                    IOUtils.closeQuietly(is);
-                    LOGGER.debug("Failed to load as WAV", e1);
+                    return new MonoWrapper(loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is));
+                } catch (Exception e) {
+                    LOGGER.debug("Failed to load as OGG", e);
+                    channel.position(0L);
 
-                    // Try loading as MP3
+                    // Try loading as WAV
                     try {
-                        is = new FileInputStream(path.toFile());
-                        fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(new ByteArrayInputStream(IOUtils.toByteArray(is)));
-                        AudioFormat format = sound.getAudioFormat();
-                        return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
-                    } catch (Exception e2) {
-                        LOGGER.debug("Failed to load as MP3", e2);
-                        throw new CompletionException(new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3"));
-                    } finally {
-                        IOUtils.closeQuietly(is);
+                        AudioInputStream ais = WaveDataReader.getAudioInputStream(is);
+                        AudioFormat format = ais.getFormat();
+                        return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
+                    } catch (Exception e1) {
+                        LOGGER.debug("Failed to load as WAV", e1);
+                        channel.position(0L);
+
+                        // Try loading as MP3
+                        try {
+                            fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(new BufferedInputStream(is));
+                            AudioFormat format = sound.getAudioFormat();
+                            return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
+                        } catch (Exception e2) {
+                            LOGGER.debug("Failed to load as MP3", e2);
+                            IOUtils.closeQuietly(is);
+                            throw new CompletionException(new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3"));
+                        }
                     }
                 }
+            } catch (IOException e) {
+                throw new CompletionException(e);
             }
         }, Util.backgroundExecutor()).handleAsync((stream, e) -> {
             if (e != null) {
                 e.printStackTrace();
+                onlineSound.getProgressListener().onFail();
                 return EmptyAudioStream.INSTANCE;
             }
             onlineSound.getProgressListener().onSuccess();

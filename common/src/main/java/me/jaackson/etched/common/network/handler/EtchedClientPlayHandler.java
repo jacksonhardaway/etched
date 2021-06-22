@@ -361,8 +361,14 @@ public class EtchedClientPlayHandler {
             if (this.requesting != null) {
                 this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
             } else if (this.size != 0) {
-                this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), title));
+                this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), this.title));
             }
+        }
+
+        @Override
+        public void progressStartLoading() {
+            this.requesting = null;
+            this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".loading", this.title));
         }
 
         @Override

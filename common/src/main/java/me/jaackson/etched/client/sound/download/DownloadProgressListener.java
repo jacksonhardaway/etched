@@ -29,12 +29,17 @@ public interface DownloadProgressListener {
     void progressStagePercentage(int percentage);
 
     /**
-     * Called when the file successfully downloads.
+     * Called when the file starts loading.
+     */
+    void progressStartLoading();
+
+    /**
+     * Called when the file successfully loads.
      */
     void onSuccess();
 
     /**
-     * Called when there is an error and the file fails to download.
+     * Called when there is an error and the file fails to load.
      */
     void onFail();
 }

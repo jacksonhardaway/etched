@@ -112,6 +112,9 @@ public abstract class SoundEngineMixin {
                         } catch (Exception e2) {
                             LOGGER.debug("Failed to load as MP3", e2);
                             IOUtils.closeQuietly(is);
+                            e.printStackTrace();
+                            e1.printStackTrace();
+                            e2.printStackTrace();
                             throw new CompletionException(new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3"));
                         }
                     }

@@ -85,7 +85,7 @@ public final class SoundCache {
             if (!soundCloud && !Files.exists(SOUND_FOLDER))
                 Files.createDirectories(SOUND_FOLDER);
             Path file = soundCloud ? getTemporaryFile(DigestUtils.md5Hex(url)) : SOUND_FOLDER.resolve(DigestUtils.md5Hex(url));
-            
+
             CompletableFuture<String> urlFuture = soundCloud ? CompletableFuture.supplyAsync(() -> {
                 try {
                     return SoundCloud.resolveUrl(url, progressListener, Minecraft.getInstance().getProxy());
@@ -106,7 +106,7 @@ public final class SoundCache {
                 if (e != null) {
                     if (progressListener != null)
                         progressListener.onFail();
-                    return null;
+                    throw new CompletionException(e);
                 }
                 return path;
             }).thenApplyAsync(path -> {

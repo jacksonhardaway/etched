@@ -26,7 +26,7 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
     }
 
     public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, int attenuationDistance, SoundSource source, DownloadProgressListener progressListener) {
-        super(new ResourceLocation(Etched.MOD_ID, DigestUtils.md5Hex(url)), source);
+        super(new ResourceLocation(Etched.MOD_ID, DigestUtils.sha1Hex(url)), source);
         this.url = url;
         this.subtitle = subtitle;
         this.attenuationDistance = attenuationDistance;

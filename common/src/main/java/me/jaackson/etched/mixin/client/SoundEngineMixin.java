@@ -1,17 +1,21 @@
 package me.jaackson.etched.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
-import me.jaackson.etched.Etched;
 import me.jaackson.etched.client.sound.AbstractOnlineSoundInstance;
 import me.jaackson.etched.client.sound.SoundStopListener;
-import me.jaackson.etched.client.sound.download.*;
+import me.jaackson.etched.client.sound.download.EmptyAudioStream;
+import me.jaackson.etched.client.sound.download.RawAudioStream;
+import me.jaackson.etched.client.sound.download.SoundCache;
+import me.jaackson.etched.client.sound.format.MonoWrapper;
+import me.jaackson.etched.client.sound.format.SeekingStream;
+import me.jaackson.etched.client.sound.format.WaveDataReader;
+import me.jaackson.etched.client.sound.source.AudioSource;
 import me.jaackson.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.*;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
@@ -31,9 +35,6 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.channels.FileChannel;
-import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -82,18 +83,15 @@ public abstract class SoundEngineMixin {
             }, Util.backgroundExecutor());
         }
 
-        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).<AudioStream>thenApplyAsync(path -> {
+        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).thenComposeAsync(AudioSource::openStream).<AudioStream>thenApplyAsync(is -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
-                FileChannel channel = FileChannel.open(path, StandardOpenOption.READ);
-                final InputStream is = new FileChannelInputStream(channel);
-
                 // Try loading as OGG
                 try {
                     return new MonoWrapper(loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is));
                 } catch (Exception e) {
                     LOGGER.debug("Failed to load as OGG", e);
-                    channel.position(0L);
+                    ((SeekingStream) is).beginning();
 
                     // Try loading as WAV
                     try {
@@ -102,7 +100,7 @@ public abstract class SoundEngineMixin {
                         return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
                     } catch (Exception e1) {
                         LOGGER.debug("Failed to load as WAV", e1);
-                        channel.position(0L);
+                        ((SeekingStream) is).beginning();
 
                         // Try loading as MP3
                         try {

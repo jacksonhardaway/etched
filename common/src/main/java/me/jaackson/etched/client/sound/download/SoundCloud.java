@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
+import net.bjoernpetersen.m3u.M3uParser;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.GsonHelper;
@@ -18,8 +19,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>Manages requests made to the SoundCloud API for tracks.</p>
@@ -38,14 +42,13 @@ public class SoundCloud {
         return map;
     }
 
-    private static InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt) throws IOException {
+    private static InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
         HttpURLConnection httpURLConnection = null;
         if (progressListener != null)
             progressListener.progressStartRequest(new TranslatableComponent("sound_cloud.requesting"));
 
         try {
-            String clientId = SoundCloudIdTracker.fetch(proxy);
-            URL uRL = new URL(url + clientId);
+            URL uRL = requiresId ? new URL(url + SoundCloudIdTracker.fetch(proxy)) : new URL(url);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
             float f = 0.0F;
@@ -62,7 +65,7 @@ public class SoundCloud {
             if (attempt == 0 && (response == 401 || response == 403)) {
                 LOGGER.info("Attempting to authenticate");
                 SoundCloudIdTracker.invalidate();
-                return get(url, progressListener, proxy, 1);
+                return get(url, progressListener, proxy, 1, requiresId);
             }
 
             if (response != 200)
@@ -83,7 +86,7 @@ public class SoundCloud {
     }
 
     private static <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, Request<T> function) throws IOException, JsonParseException {
-        try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", progressListener, proxy, 0))) {
+        try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", progressListener, proxy, 0, true))) {
             JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
 
             if (!"track".equals(GsonHelper.getAsString(json, "kind")))
@@ -105,20 +108,31 @@ public class SoundCloud {
      * @throws IOException        If any error occurs with requests
      * @throws JsonParseException If any error occurs when parsing
      */
-    public static String resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
+    public static List<URL> resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
         return resolve(trackUrl, progressListener, proxy, json -> {
             JsonArray media = GsonHelper.getAsJsonArray(GsonHelper.getAsJsonObject(json, "media"), "transcodings");
+
+            int progressiveIndex = -1;
             for (int i = 0; i < media.size(); i++) {
                 JsonObject transcodingJson = GsonHelper.convertToJsonObject(media.get(i), "transcodings[" + i + "]");
 
                 JsonObject format = transcodingJson.getAsJsonObject("format");
-                if ("progressive".equals(format.get("protocol").getAsString())) {
-                    try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", progressListener, proxy, 0))) {
-                        return GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url");
+                String protocol = format.get("protocol").getAsString();
+                if ("progressive".equals(protocol))
+                    progressiveIndex = i;
+                if ("hls".equals(protocol)) {
+                    try (InputStreamReader r = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", progressListener, proxy, 0, true))) {
+                        try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), progressListener, proxy, 0, false))) {
+                            return M3uParser.resolveNestedPlaylists(M3uParser.parse(reader)).stream().map(entry -> entry.getLocation().getUrl()).collect(Collectors.toList());
+                        }
                     }
                 }
             }
-            throw new IOException("Could not find an audio source");
+            if (progressiveIndex == -1)
+                throw new IOException("Could not find an audio source");
+            try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url") + "?client_id=", progressListener, proxy, 0, true))) {
+                return Collections.singletonList(new URL(GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url")));
+            }
         });
     }
 

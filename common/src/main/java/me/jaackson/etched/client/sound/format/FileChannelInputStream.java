@@ -1,4 +1,4 @@
-package me.jaackson.etched.client.sound.download;
+package me.jaackson.etched.client.sound.format;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +10,7 @@ import java.nio.channels.FileChannel;
  *
  * @author Ocelot
  */
-public class FileChannelInputStream extends InputStream {
+public class FileChannelInputStream extends InputStream implements SeekingStream {
 
     private final FileChannel channel;
     private long mark;
@@ -18,6 +18,11 @@ public class FileChannelInputStream extends InputStream {
     public FileChannelInputStream(FileChannel channel) {
         this.channel = channel;
         this.mark = 0;
+    }
+
+    @Override
+    public void beginning() throws IOException {
+        this.channel.position(0L);
     }
 
     @Override

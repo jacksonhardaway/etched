@@ -30,6 +30,8 @@ subprojects {
 
         implementation "com.github.kevinstadler:JavaMP3:v1.0.4"
         shade "com.github.kevinstadler:JavaMP3:v1.0.4"
+        implementation "com.github.bjoernpetersen:m3u-parser:1.1.0"
+        shade "com.github.bjoernpetersen:m3u-parser:1.1.0"
     }
 }
 

@@ -1,4 +1,4 @@
-package me.jaackson.etched.client.sound.download;
+package me.jaackson.etched.client.sound.format;
 
 import net.minecraft.client.sounds.AudioStream;
 import org.lwjgl.BufferUtils;

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
-import net.bjoernpetersen.m3u.M3uParser;
+import me.jaackson.etched.client.sound.format.M3uParser;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.GsonHelper;
@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>Manages requests made to the SoundCloud API for tracks.</p>
@@ -123,7 +122,7 @@ public class SoundCloud {
                 if ("hls".equals(protocol)) {
                     try (InputStreamReader r = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", progressListener, proxy, 0, true))) {
                         try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), progressListener, proxy, 0, false))) {
-                            return M3uParser.resolveNestedPlaylists(M3uParser.parse(reader)).stream().map(entry -> entry.getLocation().getUrl()).collect(Collectors.toList());
+                            return M3uParser.parse(reader);
                         }
                     }
                 }

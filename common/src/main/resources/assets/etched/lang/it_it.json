@@ -1,0 +1,21 @@
+{
+  "block.etched.album_jukebox": "Album giradischi",
+  "block.etched.etching_table": "Tavolo per incisioni",
+  "container.etched.album_jukebox": "Album giradischi",
+  "container.etched.etching_table": "Tavolo per incisioni",
+  "entity.minecraft.villager.bard": "Bardo",
+  "entity.minecraft.villager.etched.bard": "Bardo",
+  "item.etched.blank_music_disc": "Disco musicale vuoto",
+  "item.etched.etched_music_disc": "Disco musicale inciso",
+  "item.etched.etched_music_disc.sound_cloud": "Fornito da SoundCloud",
+  "item.etched.jukebox_minecart": "Carrello da miniera con giradischi",
+  "item.etched.music_label": "Etichetta discografica",
+  "record.etched.downloadFail": "Impossibile scaricare %s",
+  "record.etched.downloadProgress": "Scaricando (%s MB / %s MB): %s",
+  "record.etched.loading": "Caricamento in corso %s",
+  "screen.etched.etching_table.error.invalid_url": "Impossibile incidere URL invalido",
+  "screen.etched.etching_table.error.missing_disc": "Un disco vuoto è necessario per incidere",
+  "screen.etched.etching_table.error.missing_label": "Una etichetta discografica è necessaria per incidere",
+  "sound_cloud.requesting": "Richiedendo da SoundCloud...",
+  "subtitles.etched.ui.etching_table.take_result": "Tavolo per incisioni usato"
+}

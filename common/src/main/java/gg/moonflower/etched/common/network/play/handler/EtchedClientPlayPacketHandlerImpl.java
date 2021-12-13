@@ -95,8 +95,8 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         int i = pkt.getId();
         entity.setPacketCoordinates(pkt.getX(), pkt.getY(), pkt.getZ());
         entity.moveTo(pkt.getX(), pkt.getY(), pkt.getZ());
-        entity.xRot = (float) (pkt.getxRot() * 360) / 256.0F;
-        entity.yRot = (float) (pkt.getyRot() * 360) / 256.0F;
+        entity.setXRot((float) (pkt.getxRot() * 360) / 256.0F);
+        entity.setYRot((float) (pkt.getyRot() * 360) / 256.0F);
         entity.setId(i);
         entity.setUUID(pkt.getUUID());
         level.putNonPlayerEntity(i, entity);

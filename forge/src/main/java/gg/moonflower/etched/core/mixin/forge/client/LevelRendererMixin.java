@@ -28,12 +28,12 @@ public abstract class LevelRendererMixin {
     @Shadow
     protected abstract void notifyNearbyEntities(Level level, BlockPos blockPos, boolean bl);
 
-    @Inject(method = "playRecord", at = @At("HEAD"))
+    @Inject(method = "playStreamingMusic(Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/item/RecordItem;)V", at = @At("HEAD"), remap = false)
     public void playRecord(SoundEvent soundEvent, BlockPos pos, RecordItem musicDiscItem, CallbackInfo ci) {
         this.pos = pos;
     }
 
-    @ModifyVariable(method = "playRecord", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), index = 4)
+    @ModifyVariable(method = "playStreamingMusic(Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/item/RecordItem;)V", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), index = 4, remap = false)
     public SoundInstance modifySoundInstance(SoundInstance soundInstance) {
         return new StopListeningSound(soundInstance, () -> this.notifyNearbyEntities(this.level, this.pos, false));
     }

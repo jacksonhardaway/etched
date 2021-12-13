@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class EtchedMessages {
 
-    public static final PollinatedPlayNetworkChannel PLAY = NetworkRegistry.createPlay(new ResourceLocation(Etched.MOD_ID, "play"), "1", () -> EtchedClientPlayPacketHandlerImpl::new, () -> EtchedServerPlayPacketHandlerImpl::new);
+    public static final PollinatedPlayNetworkChannel PLAY = NetworkRegistry.createPlay(new ResourceLocation(Etched.MOD_ID, "play"), "1", EtchedClientPlayPacketHandlerImpl::new, EtchedServerPlayPacketHandlerImpl::new);
 
     public static void init() {
         PLAY.register(ClientboundAddMinecartJukeboxPacket.class, ClientboundAddMinecartJukeboxPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);

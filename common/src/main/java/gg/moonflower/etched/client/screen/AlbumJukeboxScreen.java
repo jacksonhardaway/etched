@@ -47,8 +47,8 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void renderBg(PoseStack poseStack, float f, int i, int j) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bind(CONTAINER_LOCATION);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, CONTAINER_LOCATION);
         int guiLeft = (this.width - this.imageWidth) / 2;
         int guiTop = (this.height - this.imageHeight) / 2;
         this.blit(poseStack, guiLeft, guiTop, 0, 0, this.imageWidth, this.imageHeight);
@@ -80,7 +80,7 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void renderTooltip(PoseStack poseStack, int i, int j) {
-        if (this.minecraft.player.inventory.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
+        if (this.minecraft.player.getInventory().getSelected().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
             List<Component> tooltip = this.getTooltipFromItem(this.hoveredSlot.getItem());
             if (this.hoveredSlot.index == this.playingIndex)
                 tooltip.add(new TextComponent("Now Playing").withStyle(ChatFormatting.YELLOW));

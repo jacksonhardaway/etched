@@ -43,18 +43,15 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
     private static final int[] SLOTS = {0};
 
     private ItemStack record;
-    private boolean dropEquipment;
 
     public MinecartJukebox(EntityType<?> entityType, Level level) {
         super(entityType, level);
         this.record = ItemStack.EMPTY;
-        this.dropEquipment = true;
     }
 
     public MinecartJukebox(Level level, double d, double e, double f) {
         super(EtchedEntities.JUKEBOX_MINECART.get(), level, d, e, f);
         this.record = ItemStack.EMPTY;
-        this.dropEquipment = true;
     }
 
     private void startPlaying(ItemStack stack, boolean restart) {
@@ -129,18 +126,11 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
         }
     }
 
-    @Nullable
     @Override
-    public Entity changeDimension(ServerLevel level) {
-        this.dropEquipment = false;
-        return super.changeDimension(level);
-    }
-
-    @Override
-    public void remove() {
-        if (!this.level.isClientSide() && this.dropEquipment)
+    public void remove(RemovalReason reason) {
+        if (!this.level.isClientSide() && reason.shouldDestroy())
             Containers.dropContents(this.level, this, this);
-        super.remove();
+        super.remove(reason);
     }
 
     @Override

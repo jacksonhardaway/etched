@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Ocelot
@@ -91,13 +92,15 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
+    @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockGetter level) {
-        return new AlbumJukeboxBlockEntity();
+    public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new AlbumJukeboxBlockEntity(blockPos, blockState);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(POWERED);
     }
+
 }

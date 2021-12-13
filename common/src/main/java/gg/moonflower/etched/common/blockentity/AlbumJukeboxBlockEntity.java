@@ -9,6 +9,7 @@ import gg.moonflower.etched.core.registry.EtchedBlocks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -36,8 +37,8 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     private int playingIndex;
     private ItemStack playingStack;
 
-    public AlbumJukeboxBlockEntity() {
-        super(EtchedBlocks.ALBUM_JUKEBOX_BE.get());
+    public AlbumJukeboxBlockEntity(BlockPos pos, BlockState state) {
+        super(EtchedBlocks.ALBUM_JUKEBOX_BE.get(), pos, state);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         this.playingIndex = -1;
         this.playingStack = ItemStack.EMPTY;
@@ -50,39 +51,38 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     @Override
-    public void load(BlockState state, CompoundTag hbt) {
-        super.load(state, hbt);
+    public void load(CompoundTag nbt) {
+        super.load(nbt);
 
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(hbt))
-            ContainerHelper.loadAllItems(hbt, this.items);
+        if (!this.tryLoadLootTable(nbt))
+            ContainerHelper.loadAllItems(nbt, this.items);
         if (this.level != null && this.level.isClientSide())
             EtchedClientPlayPacketHandlerImpl.playAlbum(this, (ClientLevel) this.level, this.getBlockPos(), false);
     }
 
     @Override
-    public CompoundTag save(CompoundTag hbt) {
-        super.save(hbt);
+    public void saveAdditional(CompoundTag nbt) {
+        super.saveAdditional(nbt);
 
-        if (!this.trySaveLootTable(hbt))
-            ContainerHelper.saveAllItems(hbt, this.items);
-        return hbt;
+        if (!this.trySaveLootTable(nbt))
+            ContainerHelper.saveAllItems(nbt, this.items);
     }
 
     @PlatformOnly(PlatformOnly.FORGE)
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        this.load(this.getBlockState(), pkt.getTag());
+        this.load(pkt.getTag());
     }
 
     @Override
     public CompoundTag getUpdateTag() {
-        return this.save(new CompoundTag());
+        return this.saveWithoutMetadata();
     }
 
     @Nullable
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return new ClientboundBlockEntityDataPacket(this.getBlockPos(), 0, this.getUpdateTag());
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override

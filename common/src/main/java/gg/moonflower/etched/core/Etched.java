@@ -8,6 +8,7 @@ import gg.moonflower.etched.core.registry.*;
 import gg.moonflower.pollen.api.event.events.registry.RegisterAtlasSpriteEvent;
 import gg.moonflower.pollen.api.platform.Platform;
 import gg.moonflower.pollen.api.registry.ClientRegistries;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.MinecartRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -91,8 +92,8 @@ public class Etched {
         ClientRegistries.registerScreenFactory(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
         ClientRegistries.registerScreenFactory(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
         ClientRegistries.setBlockRenderType(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
-        ClientRegistries.registerItemOverride(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
-        ClientRegistries.registerEntityRenderer(EtchedEntities.JUKEBOX_MINECART.get(), context -> new MinecartRenderer<>(context.getEntityRenderDispatcher()));
+        ClientRegistries.registerItemOverride(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity, i) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
+        ClientRegistries.registerEntityRenderer(EtchedEntities.JUKEBOX_MINECART.get(), context -> new MinecartRenderer<>(context, ModelLayers.MINECART)); // TODO: custom model layer
     }
 
 

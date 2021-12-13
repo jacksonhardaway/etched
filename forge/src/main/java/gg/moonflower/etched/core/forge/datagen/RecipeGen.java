@@ -21,7 +21,7 @@ public class RecipeGen extends RecipeProvider {
     }
 
     @Override
-    protected void buildShapelessRecipes(Consumer<FinishedRecipe> consumer) {
+    protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer) {
         ShapedRecipeBuilder.shaped(EtchedBlocks.ETCHING_TABLE.get())
                 .pattern(" DI")
                 .pattern("PPP")

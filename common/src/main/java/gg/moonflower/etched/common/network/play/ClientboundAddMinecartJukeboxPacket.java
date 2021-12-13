@@ -31,8 +31,8 @@ public class ClientboundAddMinecartJukeboxPacket implements PollinatedPacket<Etc
         this.x = entity.getX();
         this.y = entity.getY();
         this.z = entity.getZ();
-        this.xRot = Mth.floor(entity.xRot * 256.0F / 360.0F);
-        this.yRot = Mth.floor(entity.yRot * 256.0F / 360.0F);
+        this.xRot = Mth.floor(entity.getXRot() * 256.0F / 360.0F);
+        this.yRot = Mth.floor(entity.getYRot() * 256.0F / 360.0F);
         this.xa = (int) (Mth.clamp(entity.getDeltaMovement().x, -3.9D, 3.9D) * 8000.0D);
         this.ya = (int) (Mth.clamp(entity.getDeltaMovement().y, -3.9D, 3.9D) * 8000.0D);
         this.za = (int) (Mth.clamp(entity.getDeltaMovement().z, -3.9D, 3.9D) * 8000.0D);

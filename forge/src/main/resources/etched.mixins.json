@@ -1,11 +1,13 @@
 {
   "required": true,
-  "minVersion": "0.8",
-  "package": "me.jaackson.etched.mixin",
+  "package": "gg.moonflower.etched.core.mixin.forge",
   "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8",
   "client": [
     "client.ForgeIngameGuiMixin",
     "client.LevelRendererMixin"
+  ],
+  "mixins": [
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,21 +1,21 @@
 {
   "required": true,
-  "minVersion": "0.8",
-  "package": "me.jaackson.etched.mixin",
+  "package": "gg.moonflower.etched.core.mixin",
   "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8",
   "client": [
-    "client.ChannelMixin",
-    "client.GuiAccessor",
-    "client.GuiMixin",
-    "client.LevelRendererAccessor",
-    "client.SoundEngineMixin"
+    "fabric.client.ChannelMixin",
+    "fabric.client.GuiAccessor",
+    "fabric.client.GuiMixin",
+    "fabric.client.LevelRendererAccessor",
+    "fabric.client.SoundEngineMixin"
   ],
-  "injectors": {
-    "defaultRequire": 1
-  },
   "mixins": [
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
     "StructureTemplatePoolAccessor"
-  ]
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

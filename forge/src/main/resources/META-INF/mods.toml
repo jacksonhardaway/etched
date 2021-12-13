@@ -1,30 +1,35 @@
 modLoader = "javafml"
 loaderVersion = "[36,)"
-issueTrackerURL = "https://github.com/jaacksondev/etched/issues"
+issueTrackerURL = "https://github.com/MoonflowerTeam/${repo}/issues"
 license = "GPLv3"
 
 [[mods]]
-modId = "etched"
+modId = "${id}"
 version = "${version}"
-displayName = "Etched"
-updateJSONURL = "https://raw.githubusercontent.com/jaacksondev/etched/main/update.json"
-authors = "Jackson, Ocelot, Farcr"
-credits = "Astrazoey (for creating the etching sound)"
-description = "A new way to play music"
+displayName = "${name}"
+authors = "Moonflower"
+credits = "Jackson, Ocelot, Farcr (Art), AstraZoey (Sound Design)"
+description = "A new way to play music."
+updateJSONURL = "https://github.com/MoonflowerTeam/${repo}/update.json"
+#logoFile = ""
 
-[modproperties.etched]
-catalogueItemIcon="etched:album_jukebox"
-
-[[dependencies.etched]]
+[[dependencies.${id}]]
 modId = "forge"
 mandatory = true
 versionRange = "[36,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.etched]]
+[[dependencies.${id}]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.16.5,)"
 ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "pollen"
+mandatory = true
+versionRange = "[1.0.0,)"
+ordering = "BEFORE"
 side = "BOTH"

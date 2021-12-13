@@ -1,58 +1,30 @@
 {
   "schemaVersion": 1,
-  "id": "etched",
+  "id": "${id}",
   "version": "${version}",
-  "name": "Etched",
-  "description": "A new way to play music",
-  "authors": [
-    {
-      "name": "Jackson",
-      "contact": {
-        "homepage": "https://twitter.com/NotJaackson"
-      }
-    },
-    {
-      "name": "Ocelot",
-      "contact": {
-        "homepage": "https://twitter.com/ozelot5836"
-      }
-    },
-	{
-      "name": "Farcr",
-      "contact": {
-        "homepage": "https://twitter.com/Farcr__"
-      }
-    }
-  ],
-  "contributors": [
-	{
-      "name": "Astrazoey",
-      "contact": {
-        "homepage": "https://twitter.com/astrazoey"
-      }
-    }
-  ],
+  "name": "${name}",
+  "description": "A new way to play music.",
+  "authors": [ "Moonflower" ],
+  "contributors": [ "Jackson", "Ocelot", "Farcr (Art)", "AstraZoey (Sound Design)" ],
   "contact": {
-    "homepage": "https://curseforge.com/minecraft/mc-mods/etched",
-    "sources": "https://github.com/jaacksondev/etched",
-    "issues": "https://github.com/jaacksondev/etched/issues"
+    "homepage": "https://moonflower.gg",
+	"issues": "https://github.com/MoonflowerTeam/${repo}/issues",
+    "sources": "https://github.com/MoonflowerTeam/${repo}/"
   },
   "license": "GPLv3",
   "environment": "*",
+  "mixins": [
+    "${id}-common.mixins.json",
+    "${id}.mixins.json"
+  ],
   "entrypoints": {
     "main": [
-      "me.jaackson.etched.fabric.EtchedFabric"
-    ],
-    "client": [
-      "me.jaackson.etched.fabric.EtchedFabricClient"
+      "gg.moonflower.etched.core.fabric.EtchedFabric"
     ]
   },
-  "mixins": [
-    "etched-common.mixins.json",
-    "etched.mixins.json"
-  ],
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.16.5"
+    "minecraft": "1.16.5",
+    "pollen": "1.0.0"
   }
 }

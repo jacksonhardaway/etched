@@ -86,7 +86,7 @@ public class SoundCloud {
 
     private static <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, Request<T> function) throws IOException, JsonParseException {
         try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", progressListener, proxy, 0, true))) {
-            JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 
             if (!"track".equals(GsonHelper.getAsString(json, "kind")))
                 throw new IOException("URL is not a track");
@@ -121,7 +121,7 @@ public class SoundCloud {
                     progressiveIndex = i;
                 if ("hls".equals(protocol)) {
                     try (InputStreamReader r = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", progressListener, proxy, 0, true))) {
-                        try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), progressListener, proxy, 0, false))) {
+                        try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(JsonParser.parseReader(r).getAsJsonObject(), "url"), progressListener, proxy, 0, false))) {
                             return M3uParser.parse(reader);
                         }
                     }
@@ -130,7 +130,7 @@ public class SoundCloud {
             if (progressiveIndex == -1)
                 throw new IOException("Could not find an audio source");
             try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url") + "?client_id=", progressListener, proxy, 0, true))) {
-                return Collections.singletonList(new URL(GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url")));
+                return Collections.singletonList(new URL(GsonHelper.getAsString(JsonParser.parseReader(reader).getAsJsonObject(), "url")));
             }
         });
     }

@@ -10,15 +10,22 @@ import gg.moonflower.pollen.api.event.events.entity.ModifyTradesEvents;
 import gg.moonflower.pollen.api.event.events.registry.client.RegisterAtlasSpriteEvent;
 import gg.moonflower.pollen.api.platform.Platform;
 import gg.moonflower.pollen.api.registry.client.*;
+import net.minecraft.client.model.MinecartModel;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.MinecartRenderer;
+import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +98,9 @@ public class Etched {
         ColorRegistry.register((stack, index) -> index > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack), EtchedItems.BLANK_MUSIC_DISC, EtchedItems.MUSIC_LABEL);
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getPrimaryColor(stack) : index == 1 && EtchedMusicDiscItem.getPattern(stack).isColorable() ? EtchedMusicDiscItem.getSecondaryColor(stack) : -1, EtchedItems.ETCHED_MUSIC_DISC);
 
-        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, context -> new MinecartRenderer<>(context.getEntityRenderDispatcher()));
+        ModelLayerLocation layerLocation = new ModelLayerLocation(new ResourceLocation(Etched.MOD_ID, "jukebox_minecart"), "main");
+        EntityRendererRegistry.registerLayerDefinition(layerLocation, MinecartModel::createBodyLayer);
+        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, context -> new MinecartRenderer<>(context, layerLocation));
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
@@ -103,7 +112,17 @@ public class Etched {
             ScreenRegistry.register(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
             RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
-            ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
+            ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), new ClampedItemPropertyFunction() {
+                @Override
+                public float call(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int i) {
+                    return EtchedMusicDiscItem.getPattern(stack).ordinal(); // :troll:
+                }
+
+                @Override
+                public float unclampedCall(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int i) {
+                    return EtchedMusicDiscItem.getPattern(stack).ordinal();
+                }
+            });
         });
     }
 }

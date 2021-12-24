@@ -1,4 +1,4 @@
-package gg.moonflower.etched.core.mixin.fabric.client;
+package gg.moonflower.etched.core.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
 import gg.moonflower.etched.client.sound.download.EmptyAudioStream;

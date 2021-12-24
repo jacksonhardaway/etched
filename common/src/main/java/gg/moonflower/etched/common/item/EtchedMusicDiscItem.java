@@ -1,13 +1,15 @@
 package gg.moonflower.etched.common.item;
 
+import gg.moonflower.etched.api.common.item.PlayableRecordItem;
 import gg.moonflower.etched.client.sound.download.SoundCloud;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
+import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
-import gg.moonflower.etched.core.registry.EtchedItems;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -18,10 +20,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -40,7 +42,7 @@ import java.util.regex.Pattern;
 /**
  * @author Ocelot
  */
-public class EtchedMusicDiscItem extends Item {
+public class EtchedMusicDiscItem extends Item implements PlayableRecordItem {
 
     private static final Pattern RESOURCE_LOCATION_PATTERN = Pattern.compile("[a-z0-9_.-]+");
 
@@ -150,7 +152,7 @@ public class EtchedMusicDiscItem extends Item {
      * Checks to see if the specified string is a valid music URL.
      *
      * @param url The text to check
-     * @return Whether or not the data is valid
+     * @return Whether the data is valid
      */
     public static boolean isValidURL(String url) {
         if (isLocalSound(url))
@@ -167,7 +169,7 @@ public class EtchedMusicDiscItem extends Item {
      * Checks to see if the specified URL is a resource location sound.
      *
      * @param url The url to check
-     * @return Whether or not that sound can be played as a local sound event
+     * @return Whether that sound can be played as a local sound event
      */
     public static boolean isLocalSound(String url) {
         String[] parts = url.split(":");
@@ -179,18 +181,14 @@ public class EtchedMusicDiscItem extends Item {
         return true;
     }
 
-    /**
-     * Checks to see if the specified stack can be played in a jukebox.
-     *
-     * @param stack The stack to check
-     * @return Whether or not that stack can play
-     */
-    public static boolean isPlayableRecord(ItemStack stack) {
-        if (stack.getItem() instanceof RecordItem)
-            return true;
-        if (stack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get())
-            return getMusic(stack).isPresent();
-        return false;
+    @Override
+    public boolean canPlay(ItemStack stack) {
+        return getMusic(stack).isPresent();
+    }
+
+    @Override
+    public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity) {
+        return getMusic(stack).map(musicInfo -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(musicInfo.getUrl(), musicInfo.getDisplayName(), entity));
     }
 
     @Override
@@ -227,6 +225,7 @@ public class EtchedMusicDiscItem extends Item {
 
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
+
 
     /**
      * @author Jackson

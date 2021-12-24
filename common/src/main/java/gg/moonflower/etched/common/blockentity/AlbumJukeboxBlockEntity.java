@@ -1,6 +1,7 @@
 package gg.moonflower.etched.common.blockentity;
 
 import dev.architectury.injectables.annotations.PlatformOnly;
+import gg.moonflower.etched.api.common.item.PlayableRecordItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
@@ -92,7 +93,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
-        return EtchedMusicDiscItem.isPlayableRecord(stack);
+        return PlayableRecordItem.isPlayableRecord(stack);
     }
 
     @Override
@@ -190,7 +191,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         boolean wrap = false;
         if (this.playingIndex < 0)
             this.playingIndex = 0;
-        while (!EtchedMusicDiscItem.isPlayableRecord(this.getItem(this.playingIndex))) {
+        while (!PlayableRecordItem.isPlayableRecord(this.getItem(this.playingIndex))) {
             this.playingIndex++;
             if (this.playingIndex >= this.getContainerSize()) {
                 this.playingIndex = 0;

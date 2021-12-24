@@ -1,5 +1,6 @@
 package gg.moonflower.etched.core.mixin;
 
+import gg.moonflower.etched.api.common.item.PlayableRecordItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.core.Direction;
 import net.minecraft.world.WorldlyContainer;
@@ -75,7 +76,7 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Wor
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
-        return EtchedMusicDiscItem.isPlayableRecord(stack);
+        return PlayableRecordItem.isPlayableRecord(stack);
     }
 
     @Override

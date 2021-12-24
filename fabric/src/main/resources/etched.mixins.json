@@ -3,9 +3,11 @@
   "minVersion": "0.8",
   "package": "gg.moonflower.etched.core.mixin.fabric",
   "compatibilityLevel": "JAVA_8",
+  "plugin": "gg.moonflower.etched.core.mixin.fabric.EtchedFabricMixinPlugin",
   "client": [
     "client.ClientPacketListenerMixin",
-    "client.LevelRendererMixin"
+    "client.LevelRendererMixin",
+    "client.OptifineLevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

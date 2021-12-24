@@ -1,8 +1,8 @@
 package gg.moonflower.etched.client.sound;
 
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
-import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.sound.source.AudioSource;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;

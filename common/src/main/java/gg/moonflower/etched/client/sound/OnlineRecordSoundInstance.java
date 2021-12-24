@@ -4,16 +4,17 @@ import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
 import gg.moonflower.etched.common.entity.MinecartJukebox;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 
 /**
  * @author Ocelot
  */
 public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance implements TickableSoundInstance {
 
-    private final MinecartJukebox jukebox;
+    private final Entity jukebox;
     private boolean stopped;
 
-    public OnlineRecordSoundInstance(String url, MinecartJukebox jukebox, DownloadProgressListener progressListener) {
+    public OnlineRecordSoundInstance(String url, Entity jukebox, DownloadProgressListener progressListener) {
         super(url, null, SoundSource.RECORDS, progressListener);
         this.volume = 4.0F;
         this.jukebox = jukebox;

@@ -4,15 +4,16 @@
   "compatibilityLevel": "JAVA_8",
   "minVersion": "0.8",
   "client": [
-    "fabric.client.ChannelMixin",
-    "fabric.client.GuiAccessor",
-    "fabric.client.GuiMixin",
-    "fabric.client.LevelRendererAccessor",
-    "fabric.client.SoundEngineMixin"
+    "client.ChannelMixin",
+    "client.GuiAccessor",
+    "client.GuiMixin",
+    "client.LevelRendererAccessor",
+    "client.SoundEngineMixin"
   ],
   "mixins": [
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
+    "RecordItemMixin",
     "StructureTemplatePoolAccessor"
   ],
   "injectors": {

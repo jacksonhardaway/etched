@@ -1,4 +1,4 @@
-package gg.moonflower.etched.core.mixin.fabric.client;
+package gg.moonflower.etched.core.mixin.client;
 
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.resources.sounds.SoundInstance;

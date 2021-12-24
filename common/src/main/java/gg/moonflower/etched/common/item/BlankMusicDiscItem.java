@@ -6,6 +6,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class BlankMusicDiscItem extends Item implements DyeableLeatherItem {
+
     public BlankMusicDiscItem(Properties properties) {
         super(properties);
     }
@@ -15,5 +16,4 @@ public class BlankMusicDiscItem extends Item implements DyeableLeatherItem {
         CompoundTag compoundTag = itemStack.getTagElement("display");
         return compoundTag != null && compoundTag.contains("color", 99) ? compoundTag.getInt("color") : 0x515151;
     }
-
 }

@@ -1,9 +1,8 @@
 package gg.moonflower.etched.common.entity;
 
-import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
+import gg.moonflower.etched.api.common.item.PlayableRecordItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
-import gg.moonflower.etched.common.network.play.ClientboundPlayMinecartJukeboxMusicPacket;
 import gg.moonflower.etched.core.registry.EtchedEntities;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.pollen.api.network.packet.PollinatedPacketDirection;
@@ -58,15 +57,9 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
         if (this.level == null)
             return;
 
-        if (!stack.isEmpty()) {
-            if (stack.getItem() instanceof RecordItem) {
-                RecordItem recordItem = (RecordItem) stack.getItem();
-                EtchedMessages.PLAY.sendToTracking(this, new ClientboundPlayMinecartJukeboxMusicPacket(recordItem, this, restart));
-                this.entityData.set(DATA_ID_HAS_RECORD, true);
-            } else if (stack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get()) {
-                EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> EtchedMessages.PLAY.sendToTracking(this, new ClientboundPlayMinecartJukeboxMusicPacket(musicInfo.getDisplayName(), musicInfo.getUrl(), this, restart)));
-                this.entityData.set(DATA_ID_HAS_RECORD, true);
-            }
+        if (PlayableRecordItem.isPlayableRecord(stack)) {
+            PlayableRecordItem.playEntityRecord(this, stack, restart);
+            this.entityData.set(DATA_ID_HAS_RECORD, true);
         }
     }
 
@@ -75,7 +68,7 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
             return;
 
         if (this.entityData.get(DATA_ID_HAS_RECORD)) {
-            EtchedMessages.PLAY.sendToTracking(this, new ClientboundPlayMinecartJukeboxMusicPacket(this));
+            PlayableRecordItem.stopEntityRecord(this);
             this.entityData.set(DATA_ID_HAS_RECORD, false);
         }
     }
@@ -176,7 +169,7 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
-        return EtchedMusicDiscItem.isPlayableRecord(stack);
+        return PlayableRecordItem.isPlayableRecord(stack);
     }
 
     @Override

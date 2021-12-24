@@ -1,35 +1,33 @@
 package gg.moonflower.etched.common.network.play.handler;
 
-import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
-import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
-import gg.moonflower.etched.common.entity.MinecartJukebox;
-import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
-import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import gg.moonflower.etched.core.Etched;
+import gg.moonflower.etched.api.common.item.PlayableRecordItem;
 import gg.moonflower.etched.client.screen.EtchingScreen;
-import gg.moonflower.etched.client.sound.JukeboxMinecartSoundInstance;
 import gg.moonflower.etched.client.sound.OnlineRecordSoundInstance;
 import gg.moonflower.etched.client.sound.StopListeningSound;
 import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
+import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
+import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.entity.MinecartJukebox;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
 import gg.moonflower.etched.common.network.play.ClientboundInvalidEtchUrlPacket;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMinecartJukeboxMusicPacket;
-import gg.moonflower.etched.core.mixin.fabric.client.GuiAccessor;
-import gg.moonflower.etched.core.mixin.fabric.client.LevelRendererAccessor;
+import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
+import gg.moonflower.etched.core.Etched;
+import gg.moonflower.etched.core.mixin.client.GuiAccessor;
+import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
+import gg.moonflower.etched.core.registry.EtchedItems;
+import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.MinecartSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
@@ -38,7 +36,6 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.Blocks;
@@ -128,28 +125,20 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         if (!(entity instanceof MinecartJukebox))
             return;
 
-        if (pkt.getUrl() != null) {
-            if (!EtchedMusicDiscItem.isValidURL(pkt.getUrl())) {
-                LOGGER.error("Server sent invalid music URL: " + pkt.getUrl());
-                return;
-            }
-
-            SoundInstance sound = getEtchedRecord(pkt.getUrl(), pkt.getTitle(), (MinecartJukebox) entity);
-            ENTITY_PLAYING_SOUNDS.put(entityId, sound);
-            soundManager.play(sound);
-        } else {
-            Item record = Registry.ITEM.byId(pkt.getRecordId());
-            if (!(record instanceof RecordItem)) {
-                LOGGER.error("Server sent invalid music disc: " + record);
-                return;
-            }
-
-            if (canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
-                Minecraft.getInstance().gui.setNowPlaying(((RecordItem) record).getDisplayName());
-            SoundInstance sound = new JukeboxMinecartSoundInstance(((RecordItem) record).getSound(), (MinecartJukebox) entity);
-            ENTITY_PLAYING_SOUNDS.put(entityId, sound);
-            soundManager.play(sound);
+        ItemStack record = pkt.getRecord();
+        if (!PlayableRecordItem.isPlayableRecord(record)) {
+            LOGGER.error("Server sent invalid music disc: " + record);
+            return;
         }
+
+        Optional<SoundInstance> sound = ((PlayableRecordItem) record.getItem()).createEntitySound(record, entity);
+        if (!sound.isPresent()) {
+            LOGGER.error("Server sent invalid music disc: " + record);
+            return;
+        }
+
+        ENTITY_PLAYING_SOUNDS.put(entityId, sound.get());
+        soundManager.play(sound.get());
     }
 
     @Override
@@ -160,19 +149,14 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         }
     }
 
-    private static boolean canShowMessage(double x, double y, double z) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        return player == null || player.distanceToSqr(x, y, z) <= 4096.0;
-    }
-
-    private static SoundInstance getEtchedRecord(String url, Component title, MinecartJukebox jukebox) {
+    public static SoundInstance getEtchedRecord(String url, Component title, Entity jukebox) {
         return new OnlineRecordSoundInstance(url, jukebox, new MusicDownloadListener(title, jukebox::getX, jukebox::getY, jukebox::getZ) {
             @Override
             public void onSuccess() {
                 if (!jukebox.isAlive() || !ENTITY_PLAYING_SOUNDS.containsKey(jukebox.getId())) {
                     this.clearComponent();
                 } else {
-                    if (canShowMessage(jukebox.getX(), jukebox.getY(), jukebox.getZ()))
+                    if (PlayableRecordItem.canShowMessage(jukebox.getX(), jukebox.getY(), jukebox.getZ()))
                         Minecraft.getInstance().gui.setNowPlaying(title);
                 }
             }
@@ -187,7 +171,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 if (!playingRecords.containsKey(pos)) {
                     this.clearComponent();
                 } else {
-                    if (canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                    if (PlayableRecordItem.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
                         Minecraft.getInstance().gui.setNowPlaying(title);
                     if (level.getBlockState(pos).is(Blocks.JUKEBOX))
                         for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
@@ -255,7 +239,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             }
         }
         if (disc.getItem() instanceof RecordItem) {
-            if (canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+            if (PlayableRecordItem.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
                 Minecraft.getInstance().gui.setNowPlaying(((RecordItem) disc.getItem()).getDisplayName());
             sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
         }
@@ -330,7 +314,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         }
 
         private void setComponent(Component text) {
-            if (!canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
+            if (!PlayableRecordItem.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
                 return;
 
             if (this.component == null) {
@@ -378,7 +362,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
 
         @Override
         public void onFail() {
-            if (canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
+            if (PlayableRecordItem.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
                 Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
         }
     }

@@ -1,5 +1,6 @@
 package gg.moonflower.etched.common.menu;
 
+import gg.moonflower.etched.api.common.item.PlayableRecordItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.core.registry.EtchedMenus;
 import net.fabricmc.api.EnvType;
@@ -43,7 +44,7 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
                 this.addSlot(new Slot(container, m + n * 3, 62 + m * 18, 17 + n * 18) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
-                        return EtchedMusicDiscItem.isPlayableRecord(stack);
+                        return PlayableRecordItem.isPlayableRecord(stack);
                     }
                 });
             }

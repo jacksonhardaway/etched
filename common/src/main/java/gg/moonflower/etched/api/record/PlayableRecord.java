@@ -1,7 +1,7 @@
-package gg.moonflower.etched.api.common.item;
+package gg.moonflower.etched.api.record;
 
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.common.network.play.ClientboundPlayMinecartJukeboxMusicPacket;
+import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -16,33 +16,16 @@ import java.util.Optional;
  * @author Ocelot
  * @since 2.0.0
  */
-public interface PlayableRecordItem {
+public interface PlayableRecord {
 
     /**
-     * Checks to see if this item can be played.
-     *
-     * @param stack The stack to check
-     * @return Whether it can play
-     */
-    boolean canPlay(ItemStack stack);
-
-    /**
-     * Creates the sound for an entity.
-     *
-     * @param stack  The stack to play
-     * @param entity The entity to play the sound for
-     * @return The sound to play or nothing to error
-     */
-    Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity);
-
-    /**
-     * Checks to see if the specified stack can be played in a jukebox.
+     * Checks to see if the specified stack can be played.
      *
      * @param stack The stack to check
      * @return Whether that stack can play
      */
     static boolean isPlayableRecord(ItemStack stack) {
-        return stack.getItem() instanceof PlayableRecordItem && ((PlayableRecordItem) stack.getItem()).canPlay(stack);
+        return stack.getItem() instanceof PlayableRecord && ((PlayableRecord) stack.getItem()).canPlay(stack);
     }
 
     /**
@@ -66,7 +49,7 @@ public interface PlayableRecordItem {
      * @param restart Whether to restart the track from the beginning or start a new playback
      */
     static void playEntityRecord(Entity entity, ItemStack record, boolean restart) {
-        EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayMinecartJukeboxMusicPacket(record, entity, restart));
+        EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayEntityMusicPacket(record, entity, restart));
     }
 
     /**
@@ -75,6 +58,23 @@ public interface PlayableRecordItem {
      * @param entity The entity to stop playing records
      */
     static void stopEntityRecord(Entity entity) {
-        EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayMinecartJukeboxMusicPacket(entity));
+        EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayEntityMusicPacket(entity));
     }
+
+    /**
+     * Checks to see if this item can be played.
+     *
+     * @param stack The stack to check
+     * @return Whether it can play
+     */
+    boolean canPlay(ItemStack stack);
+
+    /**
+     * Creates the sound for an entity.
+     *
+     * @param stack  The stack to play
+     * @param entity The entity to play the sound for
+     * @return The sound to play or nothing to error
+     */
+    Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity);
 }

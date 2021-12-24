@@ -8,24 +8,24 @@ import net.minecraft.world.entity.Entity;
 /**
  * @author Ocelot
  */
-public class JukeboxMinecartSoundInstance extends AbstractTickableSoundInstance {
+public class EntityMusicSoundInstance extends AbstractTickableSoundInstance {
 
-    private final Entity jukebox;
+    private final Entity entity;
 
-    public JukeboxMinecartSoundInstance(SoundEvent soundEvent, Entity jukebox) {
+    public EntityMusicSoundInstance(SoundEvent soundEvent, Entity entity) {
         super(soundEvent, SoundSource.RECORDS);
         this.volume = 4.0F;
-        this.jukebox = jukebox;
+        this.entity = entity;
     }
 
     @Override
     public void tick() {
-        if (!this.jukebox.isAlive()) {
+        if (!this.entity.isAlive()) {
             this.stop();
         } else {
-            this.x = this.jukebox.getX();
-            this.y = this.jukebox.getY();
-            this.z = this.jukebox.getZ();
+            this.x = this.entity.getX();
+            this.y = this.entity.getY();
+            this.z = this.entity.getZ();
         }
     }
 }

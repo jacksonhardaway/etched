@@ -1,22 +1,18 @@
 package gg.moonflower.etched.core.mixin;
 
-import gg.moonflower.etched.api.common.item.PlayableRecordItem;
-import gg.moonflower.etched.client.sound.JukeboxMinecartSoundInstance;
+import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.client.sound.EntityMusicSoundInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.util.Optional;
 
 @Mixin(RecordItem.class)
-public class RecordItemMixin implements PlayableRecordItem {
+public class RecordItemMixin implements PlayableRecord {
 
     @Override
     public boolean canPlay(ItemStack stack) {
@@ -28,8 +24,8 @@ public class RecordItemMixin implements PlayableRecordItem {
         if (!(stack.getItem() instanceof RecordItem))
             return Optional.empty();
 
-        if (PlayableRecordItem.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
+        if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
             Minecraft.getInstance().gui.setNowPlaying(((RecordItem) stack.getItem()).getDisplayName());
-        return Optional.of(new JukeboxMinecartSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
+        return Optional.of(new EntityMusicSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
     }
 }

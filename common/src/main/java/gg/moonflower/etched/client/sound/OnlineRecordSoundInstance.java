@@ -1,7 +1,6 @@
 package gg.moonflower.etched.client.sound;
 
 import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
-import gg.moonflower.etched.common.entity.MinecartJukebox;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -11,13 +10,13 @@ import net.minecraft.world.entity.Entity;
  */
 public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance implements TickableSoundInstance {
 
-    private final Entity jukebox;
+    private final Entity entity;
     private boolean stopped;
 
-    public OnlineRecordSoundInstance(String url, Entity jukebox, DownloadProgressListener progressListener) {
+    public OnlineRecordSoundInstance(String url, Entity entity, DownloadProgressListener progressListener) {
         super(url, null, SoundSource.RECORDS, progressListener);
         this.volume = 4.0F;
-        this.jukebox = jukebox;
+        this.entity = entity;
     }
 
     public OnlineRecordSoundInstance(String url, double x, double y, double z, DownloadProgressListener progressListener) {
@@ -29,15 +28,15 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
 
     @Override
     public void tick() {
-        if (this.jukebox == null)
+        if (this.entity == null)
             return;
 
-        if (!this.jukebox.isAlive()) {
+        if (!this.entity.isAlive()) {
             this.stopped = true;
         } else {
-            this.x = this.jukebox.getX();
-            this.y = this.jukebox.getY();
-            this.z = this.jukebox.getZ();
+            this.x = this.entity.getX();
+            this.y = this.entity.getY();
+            this.z = this.entity.getZ();
         }
     }
 

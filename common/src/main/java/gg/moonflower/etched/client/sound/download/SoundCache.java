@@ -1,18 +1,14 @@
 package gg.moonflower.etched.client.sound.download;
 
+import gg.moonflower.etched.api.source.SoundSourceManager;
 import gg.moonflower.etched.client.sound.source.AudioSource;
-import gg.moonflower.etched.client.sound.source.RawAudioSource;
-import gg.moonflower.etched.client.sound.source.StreamingAudioSource;
 import gg.moonflower.etched.core.Etched;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.HttpUtil;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -72,24 +68,7 @@ public final class SoundCache {
         try {
             LOCK.lock();
 
-            boolean soundCloud = SoundCloud.isValidUrl(url);
-            CompletableFuture<AudioSource> future = (soundCloud ? CompletableFuture.supplyAsync(() -> {
-                try {
-                    return SoundCloud.resolveUrl(url, listener, Minecraft.getInstance().getProxy()).toArray(new URL[0]);
-                } catch (Exception e) {
-                    throw new CompletionException("Failed to connect to SoundCloud API", e);
-                }
-            }, HttpUtil.DOWNLOAD_EXECUTOR) : CompletableFuture.completedFuture(new URL[]{new URL(url)})).thenApplyAsync(urls -> {
-                try {
-                    if (urls.length == 0)
-                        throw new IOException("No audio data was found at the source!");
-                    if (urls.length == 1)
-                        return new RawAudioSource(Minecraft.getInstance().getProxy(), DigestUtils.sha1Hex(url), urls[0], soundCloud);
-                    return new StreamingAudioSource(Minecraft.getInstance().getProxy(), DigestUtils.sha1Hex(url), urls, listener, soundCloud);
-                } catch (Exception e) {
-                    throw new CompletionException(e);
-                }
-            }, HttpUtil.DOWNLOAD_EXECUTOR).handle((source, e) -> {
+            CompletableFuture<AudioSource> future = SoundSourceManager.getAudioSource(url, listener, Minecraft.getInstance().getProxy()).handle((source, e) -> {
                 if (e != null) {
                     if (listener != null)
                         listener.onFail();

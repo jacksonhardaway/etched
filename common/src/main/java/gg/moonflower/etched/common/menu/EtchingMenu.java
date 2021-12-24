@@ -2,7 +2,8 @@ package gg.moonflower.etched.common.menu;
 
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
-import gg.moonflower.etched.client.sound.download.SoundCloud;
+import gg.moonflower.etched.api.source.SoundDownloadSource;
+import gg.moonflower.etched.api.source.SoundSourceManager;
 import gg.moonflower.etched.common.item.BlankMusicDiscItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;
@@ -15,7 +16,6 @@ import gg.moonflower.etched.core.registry.EtchedMenus;
 import gg.moonflower.etched.core.registry.EtchedSounds;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -36,7 +36,6 @@ import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -163,14 +162,6 @@ public class EtchingMenu extends AbstractContainerMenu {
         this.addDataSlot(this.labelIndex);
     }
 
-    private static Map<String, String> getDownloadHeaders() {
-        Map<String, String> map = new HashMap<>();
-        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
-        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
-        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
-        return map;
-    }
-
     private static void checkStatus(String url) throws IOException {
         HttpURLConnection httpURLConnection = null;
 
@@ -178,7 +169,7 @@ public class EtchingMenu extends AbstractContainerMenu {
             URL uRL = new URL(url);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(Proxy.NO_PROXY);
             httpURLConnection.setInstanceFollowRedirects(true);
-            Map<String, String> map = getDownloadHeaders();
+            Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
             for (Map.Entry<String, String> entry : map.entrySet())
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
@@ -301,12 +292,13 @@ public class EtchingMenu extends AbstractContainerMenu {
                     }
                     if (!labelStack.isEmpty() && labelStack.hasCustomHoverName())
                         title = labelStack.getHoverName().getString();
-                    if (SoundCloud.isValidUrl(this.url)) {
+                    if (SoundSourceManager.isValidUrl(this.url)) {
                         if (this.cachedAuthor == null || this.cachedTitle == null) {
                             try {
-                                Pair<String, String> track = SoundCloud.resolveTrack(this.url, null, Proxy.NO_PROXY);
-                                this.cachedAuthor = track.getFirst();
-                                this.cachedTitle = track.getSecond();
+                                SoundSourceManager.resolveTrack(this.url, null, Proxy.NO_PROXY).ifPresent(track -> {
+                                    this.cachedAuthor = track.getFirst();
+                                    this.cachedTitle = track.getSecond();
+                                });
                             } catch (Exception e) {
                                 this.cachedAuthor = null;
                                 this.cachedTitle = null;

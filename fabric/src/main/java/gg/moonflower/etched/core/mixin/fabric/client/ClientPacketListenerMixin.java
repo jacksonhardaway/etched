@@ -18,7 +18,9 @@ import java.util.Objects;
 @Mixin(ClientPacketListener.class)
 public class ClientPacketListenerMixin {
 
-    @Shadow @Final private Minecraft minecraft;
+    @Shadow
+    @Final
+    private Minecraft minecraft;
 
     @Inject(method = "handleBlockEntityData", at = @At("TAIL"))
     public void handleBlockEntityData(ClientboundBlockEntityDataPacket pkt, CallbackInfo ci) {

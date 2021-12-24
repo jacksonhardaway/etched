@@ -1,7 +1,7 @@
 package gg.moonflower.etched.core.mixin;
 
-import net.minecraft.core.BlockPos;
 import gg.moonflower.etched.api.record.PlayableRecord;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;

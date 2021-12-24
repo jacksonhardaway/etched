@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=east": {
+      "model": "etched:block/album_jukebox",
+      "y": 90
+    },
+    "facing=north": {
       "model": "etched:block/album_jukebox"
+    },
+    "facing=south": {
+      "model": "etched:block/album_jukebox",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "etched:block/album_jukebox",
+      "y": 270
     }
   }
 }

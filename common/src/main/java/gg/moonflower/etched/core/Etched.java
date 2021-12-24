@@ -27,6 +27,7 @@ import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -63,31 +64,35 @@ public class Etched {
 
             List<VillagerTrades.ItemListing> tier1 = trades.get(1);
             tier1.add(new ItemTrade(() -> Items.MUSIC_DISC_13, 8, 1, 16, 2, true));
-            tier1.add(new ItemTrade(() -> Items.NOTE_BLOCK, 12, 2, 16, 2, true));
-            tier1.add(new ItemTrade(() -> Items.NOTE_BLOCK, 8, 1, 12, 1));
+            tier1.add(new ItemTrade(() -> Items.NOTE_BLOCK, 1, 2, 16, 2, true));
             tier1.add(new ItemTrade(EtchedItems.MUSIC_LABEL, 4, 2, 12, 1));
 
             List<VillagerTrades.ItemListing> tier2 = trades.get(2);
             tier2.add(new ItemTrade(EtchedItems.BLANK_MUSIC_DISC, 28, 2, 12, 5));
-            tier2.add(new ItemTrade(() -> EtchedBlocks.ETCHING_TABLE.get().asItem(), 32, 1, 12, 5));
+            tier2.add(new ItemTrade(EtchedBlocks.ETCHING_TABLE, 32, 1, 8, 5));
 
             List<VillagerTrades.ItemListing> tier3 = trades.get(3);
             tier3.add(new ItemTrade(() -> Items.JUKEBOX, 26, 1, 12, 10));
             tier3.add(new ItemTrade(() -> Items.MUSIC_DISC_CAT, 24, 1, 16, 20, true));
-
+            tier3.add(new ItemTrade(() -> Blocks.CLAY, 6, 1, 16, 2));
+            tier3.add(new ItemTrade(() -> Blocks.HAY_BLOCK, 12, 1, 8, 2));
+            tier3.add(new ItemTrade(() -> Blocks.WHITE_WOOL, 8, 1, 32, 4));
+            tier3.add(new ItemTrade(() -> Blocks.BONE_BLOCK, 24, 1, 8, 4));
+            tier3.add(new ItemTrade(() -> Blocks.PACKED_ICE, 36, 1, 4, 8));
+            tier3.add(new ItemTrade(() -> Blocks.GOLD_BLOCK, 48, 1, 2, 10));
 
             List<VillagerTrades.ItemListing> tier4 = new ArrayList<>();
             for (Item item : ItemTags.MUSIC_DISCS.getValues())
                 tier4.add(new ItemTrade(() -> item, 48, 1, 8, 30, true));
             tier4.add(new ItemTrade(() -> Items.JUKEBOX, 20, 1, 16, 30, true));
             tier4.add(new ItemTrade(EtchedItems.JUKEBOX_MINECART, 24, 1, 16, 30, true));
-            tier4.add(new ItemTrade(() -> EtchedBlocks.ALBUM_JUKEBOX.get().asItem(), 30, 1, 12, 15));
+            tier4.add(new ItemTrade(EtchedBlocks.ALBUM_JUKEBOX, 30, 1, 12, 15));
             trades.get(4).addAll(tier4);
 
             List<VillagerTrades.ItemListing> tier5 = trades.get(5);
-            tier5.add(new ItemTrade(EtchedItems.BLANK_MUSIC_DISC, 14, 1, 16, 40, true));
+            tier5.add(new ItemTrade(EtchedItems.BLANK_MUSIC_DISC, 8, 1, 16, 40, true));
             tier5.add(new ItemTrade(EtchedItems.MUSIC_LABEL, 1, 1, 16, 40, true));
-            tier5.add(new ItemTrade(() -> EtchedBlocks.ETCHING_TABLE.get().asItem(), 22, 1, 16, 40, true));
+            tier5.add(new ItemTrade(EtchedBlocks.ETCHING_TABLE, 12, 1, 4, 40, true));
         });
     }
 

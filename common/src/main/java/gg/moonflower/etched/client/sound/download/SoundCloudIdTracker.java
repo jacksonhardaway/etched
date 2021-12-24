@@ -1,6 +1,6 @@
-package gg.moonflower.etched.client.sound.download.source;
+package gg.moonflower.etched.client.sound.download;
 
-import gg.moonflower.etched.api.source.SoundDownloadSource;
+import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import net.minecraft.Util;
 import net.minecraft.util.HttpUtil;
 import org.apache.commons.io.IOUtils;
@@ -18,8 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * <p>Validates and keeps track of the latest sound cloud public client id.</p>
- *
  * @author Ocelot
  */
 public final class SoundCloudIdTracker {

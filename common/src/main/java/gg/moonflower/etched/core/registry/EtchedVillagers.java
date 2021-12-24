@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class EtchedVillagers {
+
     public static final PollinatedRegistry<VillagerProfession> PROFESSIONS = PollinatedRegistry.create(Registry.VILLAGER_PROFESSION, Etched.MOD_ID);
     public static final PollinatedRegistry<PoiType> POI_TYPES = PollinatedRegistry.create(Registry.POINT_OF_INTEREST_TYPE, Etched.MOD_ID);
 

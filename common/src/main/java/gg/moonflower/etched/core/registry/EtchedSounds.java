@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundEvent;
 import java.util.function.Supplier;
 
 public class EtchedSounds {
+
     public static final PollinatedRegistry<SoundEvent> SOUNDS = PollinatedRegistry.create(Registry.SOUND_EVENT, Etched.MOD_ID);
 
     public static final Supplier<SoundEvent> UI_ETCHER_TAKE_RESULT = registerSound("ui.etching_table.take_result");

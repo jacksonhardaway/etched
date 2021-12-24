@@ -1,6 +1,6 @@
 package gg.moonflower.etched.core.mixin.forge.client;
 
-import gg.moonflower.etched.client.sound.StopListeningSound;
+import gg.moonflower.etched.api.sound.StopListeningSound;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.resources.sounds.SoundInstance;

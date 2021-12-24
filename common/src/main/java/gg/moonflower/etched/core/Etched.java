@@ -1,9 +1,9 @@
 package gg.moonflower.etched.core;
 
-import gg.moonflower.etched.api.source.SoundSourceManager;
+import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
-import gg.moonflower.etched.client.sound.download.source.SoundCloudSource;
+import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.core.registry.*;

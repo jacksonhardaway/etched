@@ -1,13 +1,13 @@
-package gg.moonflower.etched.client.sound.download.source;
+package gg.moonflower.etched.client.sound.download;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
-import gg.moonflower.etched.api.source.SoundDownloadSource;
-import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
-import gg.moonflower.etched.client.sound.format.M3uParser;
+import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.api.util.M3uParser;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -26,8 +26,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * <p>Manages requests made to the SoundCloud API for tracks.</p>
- *
  * @author Ocelot
  */
 public class SoundCloudSource implements SoundDownloadSource {

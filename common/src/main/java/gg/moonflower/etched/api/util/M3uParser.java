@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.format;
+package gg.moonflower.etched.api.util;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * <p>Parses m3u files.</p>
+ * Parses URLs from a M3u file.
  *
  * @author Ocelot
  */

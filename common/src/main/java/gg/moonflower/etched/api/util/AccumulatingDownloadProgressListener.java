@@ -1,5 +1,6 @@
-package gg.moonflower.etched.client.sound.download;
+package gg.moonflower.etched.api.util;
 
+import gg.moonflower.etched.api.util.DownloadProgressListener;
 import net.minecraft.network.chat.Component;
 
 /**

@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.format;
+package gg.moonflower.etched.api.util;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * <p>Based on Java's Wave File Reader.</p>
+ * Based on Java's Wave File Reader.
  *
  * @author Kara Kytle
  * @author Jan Borgersen

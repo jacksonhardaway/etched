@@ -1,7 +1,7 @@
 package gg.moonflower.etched.common.item;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
-import gg.moonflower.etched.api.source.SoundSourceManager;
+import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;

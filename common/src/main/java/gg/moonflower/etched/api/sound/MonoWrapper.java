@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.format;
+package gg.moonflower.etched.api.sound;
 
 import net.minecraft.client.sounds.AudioStream;
 import org.lwjgl.BufferUtils;
@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * <p>Skips the second track of a stereo track to read as mono.</p>
+ * Skips the second track of a stereo track to read as mono.
  *
  * @author Ocelot
  */

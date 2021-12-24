@@ -1,8 +1,8 @@
-package gg.moonflower.etched.api.source;
+package gg.moonflower.etched.api.sound.download;
 
 import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Pair;
-import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;

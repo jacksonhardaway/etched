@@ -2,9 +2,9 @@ package gg.moonflower.etched.common.network.play.handler;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.client.screen.EtchingScreen;
-import gg.moonflower.etched.client.sound.OnlineRecordSoundInstance;
-import gg.moonflower.etched.client.sound.StopListeningSound;
-import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
+import gg.moonflower.etched.api.sound.OnlineRecordSoundInstance;
+import gg.moonflower.etched.api.sound.StopListeningSound;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.entity.MinecartJukebox;

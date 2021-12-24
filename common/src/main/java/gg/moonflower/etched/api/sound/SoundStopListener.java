@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound;
+package gg.moonflower.etched.api.sound;
 
 /**
  * <p>Listener for when the sound engine discards a sound after it has stopped.</p>

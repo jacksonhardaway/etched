@@ -2,8 +2,8 @@ package gg.moonflower.etched.common.menu;
 
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
-import gg.moonflower.etched.api.source.SoundDownloadSource;
-import gg.moonflower.etched.api.source.SoundSourceManager;
+import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
+import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.item.BlankMusicDiscItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;

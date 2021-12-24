@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.download;
+package gg.moonflower.etched.client.sound;
 
 import net.minecraft.client.sounds.AudioStream;
 
@@ -6,7 +6,7 @@ import javax.sound.sampled.AudioFormat;
 import java.nio.ByteBuffer;
 
 /**
- * <p>Hack because Minecraft doesn't properly handle sound exceptions.</p>
+ * Hack because Minecraft doesn't properly handle sound exceptions.
  *
  * @author Ocelot
  */

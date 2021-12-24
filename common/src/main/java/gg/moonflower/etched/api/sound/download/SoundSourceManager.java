@@ -26,9 +26,11 @@ import java.util.concurrent.CompletionException;
  * @author Ocelot
  * @since 2.0.0
  */
-public class SoundSourceManager {
+public final class SoundSourceManager {
 
     private static final Set<SoundDownloadSource> SOURCES = new HashSet<>();
+
+    private SoundSourceManager() {}
 
     /**
      * Registers a new source for sound.

@@ -1,10 +1,10 @@
 package gg.moonflower.etched.api.sound.download;
 
 import com.mojang.datafixers.util.Pair;
-import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.source.RawAudioSource;
 import gg.moonflower.etched.api.sound.source.StreamingAudioSource;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.HttpUtil;
 import org.apache.commons.codec.digest.DigestUtils;

@@ -1,9 +1,7 @@
 package gg.moonflower.etched.api.sound.source;
 
+import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.io.FileUtils;
@@ -17,7 +15,6 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -31,18 +28,13 @@ public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
 
-    @Environment(EnvType.CLIENT)
     static Map<String, String> getDownloadHeaders() {
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
         map.put("X-Minecraft-Username", Minecraft.getInstance().getUser().getName());
         map.put("X-Minecraft-UUID", Minecraft.getInstance().getUser().getUuid());
-        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
-        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
-        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
         return map;
     }
 
-    @Environment(EnvType.CLIENT)
     static void downloadTo(File file, URL url, @Nullable DownloadProgressListener progressListener, Proxy proxy, boolean isTempFile) {
         HttpURLConnection httpURLConnection = null;
         InputStream inputStream = null;

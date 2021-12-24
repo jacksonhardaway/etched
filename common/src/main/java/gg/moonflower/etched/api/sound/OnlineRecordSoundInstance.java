@@ -1,6 +1,5 @@
 package gg.moonflower.etched.api.sound;
 
-import gg.moonflower.etched.api.sound.AbstractOnlineSoundInstance;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.sounds.SoundSource;

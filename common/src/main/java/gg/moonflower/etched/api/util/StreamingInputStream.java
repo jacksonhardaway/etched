@@ -1,7 +1,5 @@
 package gg.moonflower.etched.api.util;
 
-import gg.moonflower.etched.api.util.FileChannelInputStream;
-import gg.moonflower.etched.api.util.SeekingStream;
 import net.minecraft.Util;
 
 import java.io.IOException;

@@ -1,5 +1,7 @@
-package gg.moonflower.etched.client.sound.format;
+package gg.moonflower.etched.api.util;
 
+import gg.moonflower.etched.api.util.FileChannelInputStream;
+import gg.moonflower.etched.api.util.SeekingStream;
 import net.minecraft.Util;
 
 import java.io.IOException;
@@ -11,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 
 /**
- * <p>Utilizes multiple input stream futures to act as a single data stream.</p>
+ * Utilizes multiple input stream futures to act as a single data stream.
  *
  * @author Ocelot
  */

@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.download;
+package gg.moonflower.etched.api.util;
 
 import net.minecraft.network.chat.Component;
 

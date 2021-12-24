@@ -10,7 +10,9 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import java.util.Random;
 import java.util.function.Supplier;
 
+// TODO Make an API in Pollen to make this easier
 public class ItemTrade implements VillagerTrades.ItemListing {
+
     private final Supplier<Item> item;
     private final int emeralds;
     private final int itemCount;

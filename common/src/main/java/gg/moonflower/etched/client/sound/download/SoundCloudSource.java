@@ -5,8 +5,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
-import gg.moonflower.etched.client.sound.format.M3uParser;
-import net.minecraft.SharedConstants;
+import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.api.util.M3uParser;
+import gg.moonflower.etched.core.Etched;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.GsonHelper;
 import org.apache.commons.io.IOUtils;
@@ -19,39 +23,29 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * <p>Manages requests made to the SoundCloud API for tracks.</p>
- *
  * @author Ocelot
  */
-public class SoundCloud {
+public class SoundCloudSource implements SoundDownloadSource {
 
     static final Logger LOGGER = LogManager.getLogger();
+    private static final Component BRAND = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500)));
 
-    static Map<String, String> getDownloadHeaders() {
-        Map<String, String> map = new HashMap<>();
-        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
-        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
-        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
-        return map;
-    }
+    private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
-    private static InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
+    private InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
         HttpURLConnection httpURLConnection = null;
         if (progressListener != null)
-            progressListener.progressStartRequest(new TranslatableComponent("sound_cloud.requesting"));
+            progressListener.progressStartRequest(new TranslatableComponent("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
 
         try {
             URL uRL = requiresId ? new URL(url + SoundCloudIdTracker.fetch(proxy)) : new URL(url);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
             float f = 0.0F;
-            Map<String, String> map = getDownloadHeaders();
+            Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
             float g = (float) map.entrySet().size();
 
             for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -84,7 +78,7 @@ public class SoundCloud {
         }
     }
 
-    private static <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, Request<T> function) throws IOException, JsonParseException {
+    private <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, Request<T> function) throws IOException, JsonParseException {
         try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", progressListener, proxy, 0, true))) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 
@@ -97,17 +91,8 @@ public class SoundCloud {
         }
     }
 
-    /**
-     * Resolves the streaming URL for the specified track.
-     *
-     * @param trackUrl         The URL to the track
-     * @param progressListener The listener for net status
-     * @param proxy            The internet proxy
-     * @return The URL to the audio file
-     * @throws IOException        If any error occurs with requests
-     * @throws JsonParseException If any error occurs when parsing
-     */
-    public static List<URL> resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
+    @Override
+    public List<URL> resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
         return resolve(trackUrl, progressListener, proxy, json -> {
             JsonArray media = GsonHelper.getAsJsonArray(GsonHelper.getAsJsonObject(json, "media"), "transcodings");
 
@@ -135,38 +120,41 @@ public class SoundCloud {
         });
     }
 
-    /**
-     * Resolves the artist and title for the specified track.
-     *
-     * @param trackUrl         The URL to the track
-     * @param progressListener The listener for net status
-     * @param proxy            The internet proxy
-     * @return The artist and title in a pair
-     * @throws IOException        If any error occurs with requests
-     * @throws JsonParseException If any error occurs when parsing
-     */
-    public static Pair<String, String> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
-        return resolve(trackUrl, progressListener, proxy, json -> {
+    @Override
+    public Optional<Pair<String, String>> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
+        return Optional.of(resolve(trackUrl, progressListener, proxy, json -> {
             JsonObject user = GsonHelper.getAsJsonObject(json, "user");
             String artist = GsonHelper.getAsString(user, "username");
             String title = GsonHelper.getAsString(json, "title");
             return Pair.of(artist, title);
+        }));
+    }
+
+    @Override
+    public boolean isValidUrl(String url) {
+        return this.validCache.computeIfAbsent(url, key -> {
+            try {
+                String host = new URI(key).getHost();
+                return "soundcloud.com".equals(host);
+            } catch (URISyntaxException e) {
+                return false;
+            }
         });
     }
 
-    /**
-     * Checks to see if the specified URL is for sound cloud.
-     *
-     * @param url The URL to go to
-     * @return Whether or not that URL is valid
-     */
-    public static boolean isValidUrl(String url) {
-        try {
-            String host = new URI(url).getHost();
-            return "soundcloud.com".equals(host);
-        } catch (URISyntaxException e) {
-            return false;
-        }
+    @Override
+    public boolean isTemporary(String url) {
+        return true;
+    }
+
+    @Override
+    public String getApiName() {
+        return "SoundCloud";
+    }
+
+    @Override
+    public Optional<Component> getBrandText(String url) {
+        return Optional.of(BRAND);
     }
 
     @FunctionalInterface

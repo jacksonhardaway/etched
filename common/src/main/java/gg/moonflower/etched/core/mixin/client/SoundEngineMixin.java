@@ -1,15 +1,15 @@
 package gg.moonflower.etched.core.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
-import gg.moonflower.etched.client.sound.AbstractOnlineSoundInstance;
-import gg.moonflower.etched.client.sound.SoundStopListener;
-import gg.moonflower.etched.client.sound.download.EmptyAudioStream;
-import gg.moonflower.etched.client.sound.download.RawAudioStream;
-import gg.moonflower.etched.client.sound.download.SoundCache;
-import gg.moonflower.etched.client.sound.format.MonoWrapper;
-import gg.moonflower.etched.client.sound.format.SeekingStream;
-import gg.moonflower.etched.client.sound.format.WaveDataReader;
-import gg.moonflower.etched.client.sound.source.AudioSource;
+import gg.moonflower.etched.api.sound.AbstractOnlineSoundInstance;
+import gg.moonflower.etched.api.sound.SoundStopListener;
+import gg.moonflower.etched.client.sound.EmptyAudioStream;
+import gg.moonflower.etched.api.sound.RawAudioStream;
+import gg.moonflower.etched.client.sound.SoundCache;
+import gg.moonflower.etched.api.sound.MonoWrapper;
+import gg.moonflower.etched.api.util.SeekingStream;
+import gg.moonflower.etched.api.util.WaveDataReader;
+import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;

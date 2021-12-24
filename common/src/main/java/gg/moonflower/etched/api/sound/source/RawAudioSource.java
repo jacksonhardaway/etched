@@ -1,7 +1,7 @@
-package gg.moonflower.etched.client.sound.source;
+package gg.moonflower.etched.api.sound.source;
 
-import gg.moonflower.etched.client.sound.download.SoundCache;
-import gg.moonflower.etched.client.sound.format.FileChannelInputStream;
+import gg.moonflower.etched.client.sound.SoundCache;
+import gg.moonflower.etched.api.util.FileChannelInputStream;
 import net.minecraft.Util;
 import net.minecraft.util.HttpUtil;
 
@@ -26,7 +26,7 @@ public class RawAudioSource implements AudioSource {
 
     public RawAudioSource(Proxy proxy, String hash, URL url, boolean temporary) throws IOException {
         this.location = SoundCache.resolveFilePath(hash, temporary);
-        this.downloadFuture = CompletableFuture.runAsync(() -> AudioSource.downloadTo(this.location.toFile(), url, null, proxy, temporary), HttpUtil.DOWNLOAD_EXECUTOR);
+        this.downloadFuture = CompletableFuture.runAsync(() -> downloadTo(this.location.toFile(), url, null, proxy, temporary), HttpUtil.DOWNLOAD_EXECUTOR);
     }
 
     @Override

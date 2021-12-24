@@ -1,9 +1,9 @@
-package gg.moonflower.etched.client.sound.format;
+package gg.moonflower.etched.api.util;
 
 import java.io.IOException;
 
 /**
- * <p>An input stream capable of seeking through data.</p>
+ * An input stream capable of seeking through data.
  *
  * @author Ocelot
  */

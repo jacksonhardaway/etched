@@ -1,6 +1,6 @@
-package gg.moonflower.etched.client.sound.source;
+package gg.moonflower.etched.api.sound.source;
 
-import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.SharedConstants;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 /**
- * <p>Sources of raw audio data to be played.</p>
+ * Sources of raw audio data to be played.
  *
  * @author Ocelot
  */

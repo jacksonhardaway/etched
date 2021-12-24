@@ -1,5 +1,6 @@
 package gg.moonflower.etched.client.sound.download;
 
+import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import net.minecraft.Util;
 import net.minecraft.util.HttpUtil;
 import org.apache.commons.io.IOUtils;
@@ -17,8 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * <p>Validates and keeps track of the latest sound cloud public client id.</p>
- *
  * @author Ocelot
  */
 public final class SoundCloudIdTracker {
@@ -48,7 +47,7 @@ public final class SoundCloudIdTracker {
             URL uRL = new URL("https://soundcloud.com");
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
-            Map<String, String> map = SoundCloud.getDownloadHeaders();
+            Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
@@ -65,7 +64,7 @@ public final class SoundCloudIdTracker {
         } catch (Throwable e) {
             if (httpURLConnection != null) {
                 try {
-                    SoundCloud.LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
+                    SoundCloudSource.LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -83,7 +82,7 @@ public final class SoundCloudIdTracker {
             URL uRL = new URL(url);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
-            Map<String, String> map = SoundCloud.getDownloadHeaders();
+            Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
@@ -97,7 +96,7 @@ public final class SoundCloudIdTracker {
         } catch (Throwable e) {
             if (httpURLConnection != null) {
                 try {
-                    SoundCloud.LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
+                    SoundCloudSource.LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -107,7 +106,7 @@ public final class SoundCloudIdTracker {
     }
 
     private static void findIdFromSite(Proxy proxy) {
-        SoundCloud.LOGGER.info("Retrieving sound cloud id");
+        SoundCloudSource.LOGGER.info("Retrieving sound cloud id");
         if (currentRequest == null || currentRequest.isDone()) {
             currentRequest = CompletableFuture.supplyAsync(() -> {
 

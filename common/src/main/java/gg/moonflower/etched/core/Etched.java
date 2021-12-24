@@ -1,7 +1,9 @@
 package gg.moonflower.etched.core;
 
+import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
+import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.core.registry.*;
@@ -108,6 +110,8 @@ public class Etched {
     }
 
     public static void clientPostInit(Platform.ModSetupContext ctx) {
+        SoundSourceManager.registerSource(new SoundCloudSource());
+
         ctx.enqueueWork(() -> {
             ScreenRegistry.register(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);

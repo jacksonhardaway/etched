@@ -1,5 +1,6 @@
-package gg.moonflower.etched.client.sound;
+package gg.moonflower.etched.api.sound;
 
+import gg.moonflower.etched.api.sound.SoundStopListener;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -9,7 +10,7 @@ import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * <p>Wrapper for {@link SoundInstance} that respects {@link SoundStopListener}.</p>
+ * Wrapper for {@link SoundInstance} that respects {@link SoundStopListener}.
  *
  * @author Ocelot
  */

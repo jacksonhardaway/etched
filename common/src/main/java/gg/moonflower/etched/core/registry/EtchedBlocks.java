@@ -33,5 +33,4 @@ public class EtchedBlocks {
         EtchedItems.ITEMS.register(id, () -> new BlockItem(register.get(), properties));
         return register;
     }
-
 }

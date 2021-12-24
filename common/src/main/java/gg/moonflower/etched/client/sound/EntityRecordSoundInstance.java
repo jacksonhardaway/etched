@@ -8,11 +8,11 @@ import net.minecraft.world.entity.Entity;
 /**
  * @author Ocelot
  */
-public class EntityMusicSoundInstance extends AbstractTickableSoundInstance {
+public class EntityRecordSoundInstance extends AbstractTickableSoundInstance {
 
     private final Entity entity;
 
-    public EntityMusicSoundInstance(SoundEvent soundEvent, Entity entity) {
+    public EntityRecordSoundInstance(SoundEvent soundEvent, Entity entity) {
         super(soundEvent, SoundSource.RECORDS);
         this.volume = 4.0F;
         this.entity = entity;

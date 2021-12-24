@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.format;
+package gg.moonflower.etched.api.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**
- * <p>An input stream that utilizes {@link FileChannel} to allow for marking and rewinding.</p>
+ * An input stream that utilizes {@link FileChannel} to allow for marking and rewinding.
  *
  * @author Ocelot
  */

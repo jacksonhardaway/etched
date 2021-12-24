@@ -33,6 +33,9 @@ import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11C.GL_EQUAL;
 
+/**
+ * @author Jackson
+ */
 public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implements ContainerListener {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/container/etching_table.png");

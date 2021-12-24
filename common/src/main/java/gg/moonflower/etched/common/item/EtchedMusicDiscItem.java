@@ -1,7 +1,7 @@
 package gg.moonflower.etched.common.item;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
-import gg.moonflower.etched.client.sound.download.SoundCloud;
+import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
@@ -13,9 +13,7 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
@@ -195,8 +193,7 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
         getMusic(stack).ifPresent(music -> {
             list.add(music.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-            if (SoundCloud.isValidUrl(music.getUrl()))
-                list.add(new TranslatableComponent(this.getDescriptionId(stack) + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500))));
+            SoundSourceManager.getBrandText(music.getUrl()).ifPresent(list::add);
         });
     }
 

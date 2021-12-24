@@ -8,7 +8,6 @@
   "entity.minecraft.villager.etched.bard": "Bardo",
   "item.etched.blank_music_disc": "Disco musicale vuoto",
   "item.etched.etched_music_disc": "Disco musicale inciso",
-  "item.etched.etched_music_disc.sound_cloud": "Ottenuto da Soundcloud",
   "item.etched.jukebox_minecart": "Carrello da miniera con Giradischi",
   "item.etched.music_label": "Etichetta musicale",
   "record.etched.downloadFail": "Impossibile scaricare %s",
@@ -17,6 +16,7 @@
   "screen.etched.etching_table.error.invalid_url": "Impossibile incidere da URL invalido",
   "screen.etched.etching_table.error.missing_disc": "Un disco musicale vuoto è richiesto per incidere",
   "screen.etched.etching_table.error.missing_label": "Un'etichetta musicale è richiesta per incidere",
-  "sound_cloud.requesting": "Ricevendo da Soundcloud...",
+  "sound_source.etched.requesting": "Ricevendo da Soundcloud...",
+  "sound_source.etched.sound_cloud": "Ottenuto da Soundcloud",
   "subtitles.etched.ui.etching_table.take_result": "Tavolo da incisione utilizzato"
 }

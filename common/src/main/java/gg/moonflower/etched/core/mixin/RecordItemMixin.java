@@ -1,7 +1,7 @@
 package gg.moonflower.etched.core.mixin;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
-import gg.moonflower.etched.client.sound.EntityMusicSoundInstance;
+import gg.moonflower.etched.client.sound.EntityRecordSoundInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.world.entity.Entity;
@@ -26,6 +26,6 @@ public class RecordItemMixin implements PlayableRecord {
 
         if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
             Minecraft.getInstance().gui.setNowPlaying(((RecordItem) stack.getItem()).getDisplayName());
-        return Optional.of(new EntityMusicSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
+        return Optional.of(new EntityRecordSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
     }
 }

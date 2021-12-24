@@ -35,9 +35,8 @@ allprojects {
     group = rootProject.maven_group
 
     repositories {
-		mavenLocal()
         maven { url "https://jitpack.io" }
-        maven { url "https://maven.jaackson.me" }
+        maven { url "https://repo.moonflower.gg/releases" }
         maven { url "https://maven.parchmentmc.org" }
         maven {
             url "https://www.cursemaven.com"

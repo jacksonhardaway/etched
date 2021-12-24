@@ -2,8 +2,8 @@ package gg.moonflower.etched.client.sound.source;
 
 import gg.moonflower.etched.client.sound.download.AccumulatingDownloadProgressListener;
 import gg.moonflower.etched.client.sound.download.DownloadProgressListener;
-import gg.moonflower.etched.client.sound.format.FileChannelInputStream;
 import gg.moonflower.etched.client.sound.download.SoundCache;
+import gg.moonflower.etched.client.sound.format.FileChannelInputStream;
 import gg.moonflower.etched.client.sound.format.StreamingInputStream;
 import net.minecraft.Util;
 import net.minecraft.util.HttpUtil;

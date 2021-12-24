@@ -3,6 +3,7 @@
   "block.etched.etching_table": "Tavolo da incisione",
   "container.etched.album_jukebox": "Giradischi con album",
   "container.etched.etching_table": "Tavolo da incisione",
+  "entity.etched.jukebox_minecart": "Carrello da miniera con Giradischi",
   "entity.minecraft.villager.bard": "Bardo",
   "entity.minecraft.villager.etched.bard": "Bardo",
   "item.etched.blank_music_disc": "Disco musicale vuoto",

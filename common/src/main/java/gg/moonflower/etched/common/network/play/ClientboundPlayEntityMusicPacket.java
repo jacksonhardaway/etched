@@ -12,25 +12,25 @@ import org.jetbrains.annotations.ApiStatus;
  * @author Ocelot
  */
 @ApiStatus.Internal
-public class ClientboundPlayMinecartJukeboxMusicPacket implements PollinatedPacket<EtchedClientPlayPacketHandler> {
+public class ClientboundPlayEntityMusicPacket implements PollinatedPacket<EtchedClientPlayPacketHandler> {
 
     private final Action action;
     private final ItemStack record;
     private final int entityId;
 
-    public ClientboundPlayMinecartJukeboxMusicPacket(ItemStack record, Entity entity, boolean restart) {
+    public ClientboundPlayEntityMusicPacket(ItemStack record, Entity entity, boolean restart) {
         this.action = restart ? Action.RESTART : Action.START;
         this.record = record;
         this.entityId = entity.getId();
     }
 
-    public ClientboundPlayMinecartJukeboxMusicPacket(Entity entity) {
+    public ClientboundPlayEntityMusicPacket(Entity entity) {
         this.action = Action.STOP;
         this.record = ItemStack.EMPTY;
         this.entityId = entity.getId();
     }
 
-    public ClientboundPlayMinecartJukeboxMusicPacket(FriendlyByteBuf buf) {
+    public ClientboundPlayEntityMusicPacket(FriendlyByteBuf buf) {
         this.action = buf.readEnum(Action.class);
         this.record = this.action == Action.STOP ? ItemStack.EMPTY : buf.readItem();
         this.entityId = buf.readVarInt();
@@ -46,7 +46,7 @@ public class ClientboundPlayMinecartJukeboxMusicPacket implements PollinatedPack
 
     @Override
     public void processPacket(EtchedClientPlayPacketHandler handler, PollinatedPacketContext ctx) {
-        handler.handlePlayMinecartJukeboxPacket(this, ctx);
+        handler.handlePlayEntityMusicPacket(this, ctx);
     }
 
     /**

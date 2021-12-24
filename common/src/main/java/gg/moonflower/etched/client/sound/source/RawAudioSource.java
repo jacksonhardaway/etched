@@ -1,7 +1,7 @@
 package gg.moonflower.etched.client.sound.source;
 
-import gg.moonflower.etched.client.sound.format.FileChannelInputStream;
 import gg.moonflower.etched.client.sound.download.SoundCache;
+import gg.moonflower.etched.client.sound.format.FileChannelInputStream;
 import net.minecraft.Util;
 import net.minecraft.util.HttpUtil;
 

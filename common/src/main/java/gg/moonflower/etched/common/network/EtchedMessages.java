@@ -16,7 +16,7 @@ public class EtchedMessages {
     public static void init() {
         PLAY.register(ClientboundAddMinecartJukeboxPacket.class, ClientboundAddMinecartJukeboxPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
         PLAY.register(ClientboundInvalidEtchUrlPacket.class, ClientboundInvalidEtchUrlPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
-        PLAY.register(ClientboundPlayMinecartJukeboxMusicPacket.class, ClientboundPlayMinecartJukeboxMusicPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
+        PLAY.register(ClientboundPlayEntityMusicPacket.class, ClientboundPlayEntityMusicPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
         PLAY.register(ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
         PLAY.register(ServerboundSetEtchingUrlPacket.class, ServerboundSetEtchingUrlPacket::new, PollinatedPacketDirection.PLAY_SERVERBOUND);
     }

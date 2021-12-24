@@ -1,6 +1,6 @@
 package gg.moonflower.etched.common.item;
 
-import gg.moonflower.etched.api.common.item.PlayableRecordItem;
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.client.sound.download.SoundCloud;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 /**
  * @author Ocelot
  */
-public class EtchedMusicDiscItem extends Item implements PlayableRecordItem {
+public class EtchedMusicDiscItem extends Item implements PlayableRecord {
 
     private static final Pattern RESOURCE_LOCATION_PATTERN = Pattern.compile("[a-z0-9_.-]+");
 

@@ -1,6 +1,6 @@
 package gg.moonflower.etched.common.entity;
 
-import gg.moonflower.etched.api.common.item.PlayableRecordItem;
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
 import gg.moonflower.etched.core.registry.EtchedEntities;
@@ -57,8 +57,8 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
         if (this.level == null)
             return;
 
-        if (PlayableRecordItem.isPlayableRecord(stack)) {
-            PlayableRecordItem.playEntityRecord(this, stack, restart);
+        if (PlayableRecord.isPlayableRecord(stack)) {
+            PlayableRecord.playEntityRecord(this, stack, restart);
             this.entityData.set(DATA_ID_HAS_RECORD, true);
         }
     }
@@ -68,7 +68,7 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
             return;
 
         if (this.entityData.get(DATA_ID_HAS_RECORD)) {
-            PlayableRecordItem.stopEntityRecord(this);
+            PlayableRecord.stopEntityRecord(this);
             this.entityData.set(DATA_ID_HAS_RECORD, false);
         }
     }
@@ -169,7 +169,7 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
-        return PlayableRecordItem.isPlayableRecord(stack);
+        return PlayableRecord.isPlayableRecord(stack);
     }
 
     @Override

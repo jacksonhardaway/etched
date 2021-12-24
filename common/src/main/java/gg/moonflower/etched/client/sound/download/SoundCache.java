@@ -1,9 +1,9 @@
 package gg.moonflower.etched.client.sound.download;
 
+import gg.moonflower.etched.client.sound.source.AudioSource;
 import gg.moonflower.etched.client.sound.source.RawAudioSource;
 import gg.moonflower.etched.client.sound.source.StreamingAudioSource;
 import gg.moonflower.etched.core.Etched;
-import gg.moonflower.etched.client.sound.source.AudioSource;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;

@@ -24,6 +24,17 @@ import java.util.Optional;
 public interface SoundDownloadSource {
 
     /**
+     * @return The vanilla Minecraft download headers
+     */
+    static Map<String, String> getDownloadHeaders() {
+        Map<String, String> map = new HashMap<>();
+        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
+        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
+        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
+        return map;
+    }
+
+    /**
      * Resolves the streaming URL for the specified track.
      *
      * @param trackUrl         The URL to the track
@@ -76,16 +87,5 @@ public interface SoundDownloadSource {
      */
     default Optional<Component> getBrandText(String url) {
         return Optional.empty();
-    }
-
-    /**
-     * @return The vanilla Minecraft download headers
-     */
-    static Map<String, String> getDownloadHeaders() {
-        Map<String, String> map = new HashMap<>();
-        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
-        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
-        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
-        return map;
     }
 }

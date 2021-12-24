@@ -1,6 +1,10 @@
 package gg.moonflower.etched.common.network;
 
-import gg.moonflower.etched.common.network.play.*;
+import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
+import gg.moonflower.etched.common.network.play.ClientboundInvalidEtchUrlPacket;
+import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
+import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
+import gg.moonflower.etched.common.network.play.ServerboundSetEtchingUrlPacket;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.common.network.play.handler.EtchedServerPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;

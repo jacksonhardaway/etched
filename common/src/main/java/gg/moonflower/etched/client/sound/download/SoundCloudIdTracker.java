@@ -76,11 +76,8 @@ public final class SoundCloudIdTracker {
 
     @Nullable
     private static String findIdFromScript(String url, Proxy proxy) {
-        HttpURLConnection httpURLConnection = null;
-
         try {
-            URL uRL = new URL(url);
-            httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
@@ -94,13 +91,7 @@ public final class SoundCloudIdTracker {
             Matcher clientIdMatcher = APP_SCRIPT_CLIENT_ID_PATTERN.matcher(IOUtils.toString(httpURLConnection.getInputStream(), StandardCharsets.UTF_8));
             return clientIdMatcher.find() ? clientIdMatcher.group(1) : null;
         } catch (Throwable e) {
-            if (httpURLConnection != null) {
-                try {
-                    SoundCloudSource.LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
+            e.printStackTrace();
             return null;
         }
     }

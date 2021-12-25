@@ -24,13 +24,8 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,7 +34,6 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -53,7 +47,6 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
-    private static final Logger LOGGER = LogManager.getLogger();
     private static final Set<String> VALID_FORMATS;
 
     static {
@@ -167,36 +160,21 @@ public class EtchingMenu extends AbstractContainerMenu {
     }
 
     private static void checkStatus(String url) throws IOException {
-        HttpURLConnection httpURLConnection = null;
+        HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection(Proxy.NO_PROXY);
+        httpURLConnection.setRequestMethod("HEAD");
+        httpURLConnection.setInstanceFollowRedirects(true);
+        Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
-        try {
-            URL uRL = new URL(url);
-            httpURLConnection = (HttpURLConnection) uRL.openConnection(Proxy.NO_PROXY);
-            httpURLConnection.setInstanceFollowRedirects(true);
-            Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
+        for (Map.Entry<String, String> entry : map.entrySet())
+            httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
 
-            for (Map.Entry<String, String> entry : map.entrySet())
-                httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
-
-            if (httpURLConnection.getResponseCode() != 200) {
-                IOUtils.closeQuietly(httpURLConnection.getInputStream());
-                throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
-            }
-
-            String contentType = httpURLConnection.getContentType();
-            if (!VALID_FORMATS.contains(contentType))
-                throw new IOException("Unsupported Content-Type: " + contentType);
-        } catch (Throwable e) {
-            if (httpURLConnection != null) {
-                try {
-                    LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-
-            throw new IOException(e);
+        if (httpURLConnection.getResponseCode() != 200) {
+            throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
         }
+
+        String contentType = httpURLConnection.getContentType();
+        if (!VALID_FORMATS.contains(contentType))
+            throw new IOException("Unsupported Content-Type: " + contentType);
     }
 
     @Override
@@ -225,7 +203,7 @@ public class EtchingMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
-        if (slot != null && slot.hasItem()) {
+        if (slot.hasItem()) {
             ItemStack itemStack2 = slot.getItem();
             itemStack = itemStack2.copy();
             if (index < 3) {
@@ -309,7 +287,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
                                 if (!this.player.level.isClientSide())
                                     EtchedMessages.PLAY.sendTo((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e.getMessage()));
-                                throw new CompletionException("Failed to connect to SoundCloud API", e);
+                                throw new CompletionException(e);
                             }
                         }
                         author = this.cachedAuthor;

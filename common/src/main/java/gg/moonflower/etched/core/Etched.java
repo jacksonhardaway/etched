@@ -6,21 +6,11 @@ import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.core.registry.EtchedBlocks;
-import gg.moonflower.etched.core.registry.EtchedEntities;
-import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.etched.core.registry.EtchedMenus;
-import gg.moonflower.etched.core.registry.EtchedSounds;
-import gg.moonflower.etched.core.registry.EtchedVillagers;
-import gg.moonflower.etched.core.util.ItemTrade;
+import gg.moonflower.etched.core.registry.*;
 import gg.moonflower.pollen.api.event.events.entity.ModifyTradesEvents;
 import gg.moonflower.pollen.api.event.events.registry.client.RegisterAtlasSpriteEvent;
 import gg.moonflower.pollen.api.platform.Platform;
-import gg.moonflower.pollen.api.registry.client.ColorRegistry;
-import gg.moonflower.pollen.api.registry.client.EntityRendererRegistry;
-import gg.moonflower.pollen.api.registry.client.ItemPredicateRegistry;
-import gg.moonflower.pollen.api.registry.client.RenderTypeRegistry;
-import gg.moonflower.pollen.api.registry.client.ScreenRegistry;
+import gg.moonflower.pollen.api.registry.client.*;
 import net.minecraft.client.model.MinecartModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -30,7 +20,6 @@ import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
@@ -38,9 +27,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Jackson
@@ -67,41 +53,40 @@ public class Etched {
         EtchedMessages.init();
 
         // TODO: revamp trades
-        ModifyTradesEvents.VILLAGER.register((trades, type) -> {
-            if (type != EtchedVillagers.BARD.get())
+        ModifyTradesEvents.VILLAGER.register(context -> {
+            if (context.getProfession() != EtchedVillagers.BARD.get())
                 return;
 
-            List<VillagerTrades.ItemListing> tier1 = trades.get(1);
-            tier1.add(new ItemTrade(() -> Items.MUSIC_DISC_13, 8, 1, 16, 2, true));
-            tier1.add(new ItemTrade(() -> Items.NOTE_BLOCK, 1, 2, 16, 2, true));
-            tier1.add(new ItemTrade(EtchedItems.MUSIC_LABEL, 4, 2, 12, 1));
+            ModifyTradesEvents.TradeRegistry tier1 = context.getTrades(1);
+            tier1.add(Items.MUSIC_DISC_13, 8, 1, 16, 2, true);
+            tier1.add(Items.NOTE_BLOCK, 1, 2, 16, 2, true);
+            tier1.add(EtchedItems.MUSIC_LABEL, 4, 2, 12, 1, false);
 
-            List<VillagerTrades.ItemListing> tier2 = trades.get(2);
-            tier2.add(new ItemTrade(EtchedItems.BLANK_MUSIC_DISC, 28, 2, 12, 5));
-            tier2.add(new ItemTrade(EtchedBlocks.ETCHING_TABLE, 32, 1, 8, 5));
+            ModifyTradesEvents.TradeRegistry tier2 = context.getTrades(2);
+            tier2.add(EtchedItems.BLANK_MUSIC_DISC, 28, 2, 12, 5, false);
+            tier2.add(EtchedBlocks.ETCHING_TABLE, 32, 1, 8, 5, false);
 
-            List<VillagerTrades.ItemListing> tier3 = trades.get(3);
-            tier3.add(new ItemTrade(() -> Items.JUKEBOX, 26, 1, 12, 10));
-            tier3.add(new ItemTrade(() -> Items.MUSIC_DISC_CAT, 24, 1, 16, 20, true));
-            tier3.add(new ItemTrade(() -> Blocks.CLAY, 6, 1, 16, 2));
-            tier3.add(new ItemTrade(() -> Blocks.HAY_BLOCK, 12, 1, 8, 2));
-            tier3.add(new ItemTrade(() -> Blocks.WHITE_WOOL, 8, 1, 32, 4));
-            tier3.add(new ItemTrade(() -> Blocks.BONE_BLOCK, 24, 1, 8, 4));
-            tier3.add(new ItemTrade(() -> Blocks.PACKED_ICE, 36, 1, 4, 8));
-            tier3.add(new ItemTrade(() -> Blocks.GOLD_BLOCK, 48, 1, 2, 10));
+            ModifyTradesEvents.TradeRegistry tier3 = context.getTrades(3);
+            tier3.add(Items.JUKEBOX, 26, 1, 12, 10, false);
+            tier3.add(Items.MUSIC_DISC_CAT, 24, 1, 16, 20, true);
+            tier3.add(Blocks.CLAY, 6, 1, 16, 2, false);
+            tier3.add(Blocks.HAY_BLOCK, 12, 1, 8, 2, false);
+            tier3.add(Blocks.WHITE_WOOL, 8, 1, 32, 4, false);
+            tier3.add(Blocks.BONE_BLOCK, 24, 1, 8, 4, false);
+            tier3.add(Blocks.PACKED_ICE, 36, 1, 4, 8, false);
+            tier3.add(Blocks.GOLD_BLOCK, 48, 1, 2, 10, false);
 
-            List<VillagerTrades.ItemListing> tier4 = new ArrayList<>();
+            ModifyTradesEvents.TradeRegistry tier4 = context.getTrades(4);
             for (Item item : ItemTags.MUSIC_DISCS.getValues())
-                tier4.add(new ItemTrade(() -> item, 48, 1, 8, 30, true));
-            tier4.add(new ItemTrade(() -> Items.JUKEBOX, 20, 1, 16, 30, true));
-            tier4.add(new ItemTrade(EtchedItems.JUKEBOX_MINECART, 24, 1, 16, 30, true));
-            tier4.add(new ItemTrade(EtchedBlocks.ALBUM_JUKEBOX, 30, 1, 12, 15));
-            trades.get(4).addAll(tier4);
+                tier4.add(item, 48, 1, 8, 30, true);
+            tier4.add(Items.JUKEBOX, 20, 1, 16, 30, true);
+            tier4.add(EtchedItems.JUKEBOX_MINECART, 24, 1, 16, 30, true);
+            tier4.add(EtchedBlocks.ALBUM_JUKEBOX, 30, 1, 12, 15, false);
 
-            List<VillagerTrades.ItemListing> tier5 = trades.get(5);
-            tier5.add(new ItemTrade(EtchedItems.BLANK_MUSIC_DISC, 8, 1, 16, 40, true));
-            tier5.add(new ItemTrade(EtchedItems.MUSIC_LABEL, 1, 1, 16, 40, true));
-            tier5.add(new ItemTrade(EtchedBlocks.ETCHING_TABLE, 12, 1, 4, 40, true));
+            ModifyTradesEvents.TradeRegistry tier5 = context.getTrades(5);
+            tier5.add(EtchedItems.BLANK_MUSIC_DISC, 8, 1, 16, 40, true);
+            tier5.add(EtchedItems.MUSIC_LABEL, 1, 1, 16, 40, true);
+            tier5.add(EtchedBlocks.ETCHING_TABLE, 12, 1, 4, 40, true);
         });
     }
 

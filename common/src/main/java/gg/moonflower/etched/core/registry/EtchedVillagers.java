@@ -19,6 +19,7 @@ import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.structures.StructurePoolElement;
 import net.minecraft.world.level.levelgen.feature.structures.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -38,20 +39,24 @@ public class EtchedVillagers {
         SnowyVillagePools.bootstrap();
         TaigaVillagePools.bootstrap();
 
-        createVillagePiece("plains", "bard_house", 1, 3);
-        createVillagePiece("desert", "bard_house", 1, 5);
-        createVillagePiece("savanna", "bard_house", 1, 7);
-        createVillagePiece("snowy", "bard_house", 1, 10);
-        createVillagePiece("taiga", "bard_house", 1, 8);
+        createVillagePiece("plains", "bard_house", 1, 2, ProcessorLists.MOSSIFY_10_PERCENT);
+        createVillagePiece("desert", "bard_house", 1, 2);
+        createVillagePiece("savanna", "bard_house", 1, 4);
+        createVillagePiece("snowy", "bard_house", 1, 4);
+        createVillagePiece("taiga", "bard_house", 1, 4, ProcessorLists.MOSSIFY_10_PERCENT);
     }
 
     private static void createVillagePiece(String village, String name, int houseId, int weight) {
+        createVillagePiece(village, name, houseId, weight, ProcessorLists.EMPTY);
+    }
+
+    private static void createVillagePiece(String village, String name, int houseId, int weight, StructureProcessorList processorList) {
         ResourceLocation patternId = new ResourceLocation("village/" + village + "/houses");
         StructureTemplatePool pattern = BuiltinRegistries.TEMPLATE_POOL.get(patternId);
         if (pattern == null)
             return;
 
-        StructurePoolElement piece = StructurePoolElement.legacy(Etched.MOD_ID + ":village/" + village + "/houses/" + village + "_" + name + "_" + houseId, ProcessorLists.MOSSIFY_10_PERCENT).apply(StructureTemplatePool.Projection.RIGID);
+        StructurePoolElement piece = StructurePoolElement.legacy(Etched.MOD_ID + ":village/" + village + "/houses/" + village + "_" + name + "_" + houseId, processorList).apply(StructureTemplatePool.Projection.RIGID);
         List<StructurePoolElement> templates = ((StructureTemplatePoolAccessor) pattern).getTemplates();
         List<Pair<StructurePoolElement, Integer>> rawTemplates = ((StructureTemplatePoolAccessor) pattern).getRawTemplates();
         if (templates == null || rawTemplates == null)

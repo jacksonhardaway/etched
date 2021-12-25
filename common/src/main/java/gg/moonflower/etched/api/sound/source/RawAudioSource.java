@@ -1,9 +1,11 @@
 package gg.moonflower.etched.api.sound.source;
 
+import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.FileChannelInputStream;
 import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.Util;
 import net.minecraft.util.HttpUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,9 +26,9 @@ public class RawAudioSource implements AudioSource {
     private final CompletableFuture<?> downloadFuture;
     private CompletableFuture<InputStream> stream;
 
-    public RawAudioSource(Proxy proxy, String hash, URL url, boolean temporary) throws IOException {
+    public RawAudioSource(Proxy proxy, String hash, URL url, @Nullable DownloadProgressListener listener, boolean temporary) throws IOException {
         this.location = SoundCache.resolveFilePath(hash, temporary);
-        this.downloadFuture = CompletableFuture.runAsync(() -> AudioSource.downloadTo(this.location.toFile(), url, null, proxy, temporary), HttpUtil.DOWNLOAD_EXECUTOR);
+        this.downloadFuture = CompletableFuture.runAsync(() -> AudioSource.downloadTo(this.location.toFile(), url, listener, proxy, temporary), HttpUtil.DOWNLOAD_EXECUTOR);
     }
 
     @Override

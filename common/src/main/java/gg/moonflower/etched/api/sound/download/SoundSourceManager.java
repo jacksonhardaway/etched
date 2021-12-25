@@ -64,7 +64,7 @@ public final class SoundSourceManager {
                 if (urls.length == 0)
                     throw new IOException("No audio data was found at the source!");
                 if (urls.length == 1)
-                    return new RawAudioSource(proxy, DigestUtils.sha1Hex(url), urls[0], source.map(s -> s.isTemporary(url)).orElse(false));
+                    return new RawAudioSource(proxy, DigestUtils.sha1Hex(url), urls[0], listener, source.map(s -> s.isTemporary(url)).orElse(false));
                 return new StreamingAudioSource(proxy, DigestUtils.sha1Hex(url), urls, listener, source.map(s -> s.isTemporary(url)).orElse(false));
             } catch (Exception e) {
                 throw new CompletionException(e);

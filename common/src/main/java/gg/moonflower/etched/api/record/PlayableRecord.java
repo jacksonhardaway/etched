@@ -5,6 +5,7 @@ import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 
@@ -39,6 +40,15 @@ public interface PlayableRecord {
     static boolean canShowMessage(double x, double y, double z) {
         LocalPlayer player = Minecraft.getInstance().player;
         return player == null || player.distanceToSqr(x, y, z) <= 4096.0;
+    }
+
+    /**
+     * Displays the 'now playing' text on the screen.
+     *
+     * @param text The text to display as the record name
+     */
+    static void showMessage(Component text) {
+        Minecraft.getInstance().gui.setNowPlaying(text);
     }
 
     /**

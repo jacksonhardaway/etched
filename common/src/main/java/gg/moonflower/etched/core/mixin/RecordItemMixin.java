@@ -25,7 +25,7 @@ public class RecordItemMixin implements PlayableRecord {
             return Optional.empty();
 
         if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
-            Minecraft.getInstance().gui.setNowPlaying(((RecordItem) stack.getItem()).getDisplayName());
+           PlayableRecord.showMessage(((RecordItem) stack.getItem()).getDisplayName());
         return Optional.of(new EntityRecordSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
     }
 }

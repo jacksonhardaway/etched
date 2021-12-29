@@ -228,7 +228,12 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.STOP)
             return;
 
-        Entity entity = level.getEntity(pkt.getEntityId());
+        Entity entity = level.getEntity(entityId);
+        if (entity == null) {
+            LOGGER.error("Server sent sound for nonexistent entity: " + entityId);
+            return;
+        }
+
         ItemStack record = pkt.getRecord();
         if (!PlayableRecord.isPlayableRecord(record)) {
             LOGGER.error("Server sent invalid music disc: " + record);

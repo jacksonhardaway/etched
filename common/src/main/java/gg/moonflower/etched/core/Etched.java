@@ -1,32 +1,36 @@
 package gg.moonflower.etched.core;
 
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
+import gg.moonflower.etched.client.render.entity.ContextualMinecartRenderer;
+import gg.moonflower.etched.client.render.model.EtchedModelLayers;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.core.registry.*;
+import gg.moonflower.etched.core.registry.EtchedBlocks;
+import gg.moonflower.etched.core.registry.EtchedEntities;
+import gg.moonflower.etched.core.registry.EtchedItems;
+import gg.moonflower.etched.core.registry.EtchedMenus;
+import gg.moonflower.etched.core.registry.EtchedSounds;
+import gg.moonflower.etched.core.registry.EtchedVillagers;
 import gg.moonflower.pollen.api.event.events.entity.ModifyTradesEvents;
 import gg.moonflower.pollen.api.event.events.registry.client.RegisterAtlasSpriteEvent;
 import gg.moonflower.pollen.api.platform.Platform;
-import gg.moonflower.pollen.api.registry.client.*;
+import gg.moonflower.pollen.api.registry.client.ColorRegistry;
+import gg.moonflower.pollen.api.registry.client.EntityRendererRegistry;
+import gg.moonflower.pollen.api.registry.client.ItemPredicateRegistry;
+import gg.moonflower.pollen.api.registry.client.RenderTypeRegistry;
+import gg.moonflower.pollen.api.registry.client.ScreenRegistry;
 import net.minecraft.client.model.MinecartModel;
-import net.minecraft.client.model.geom.ModelLayerLocation;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.MinecartRenderer;
-import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Jackson
@@ -99,9 +103,8 @@ public class Etched {
         ColorRegistry.register((stack, index) -> index > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack), EtchedItems.BLANK_MUSIC_DISC, EtchedItems.MUSIC_LABEL);
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getPrimaryColor(stack) : index == 1 && EtchedMusicDiscItem.getPattern(stack).isColorable() ? EtchedMusicDiscItem.getSecondaryColor(stack) : -1, EtchedItems.ETCHED_MUSIC_DISC);
 
-        ModelLayerLocation layerLocation = new ModelLayerLocation(new ResourceLocation(Etched.MOD_ID, "jukebox_minecart"), "main");
-        EntityRendererRegistry.registerLayerDefinition(layerLocation, MinecartModel::createBodyLayer);
-        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, context -> new MinecartRenderer<>(context, layerLocation));
+        EntityRendererRegistry.registerLayerDefinition(EtchedModelLayers.JUKEBOX_MINECART, MinecartModel::createBodyLayer);
+        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, ContextualMinecartRenderer::new);
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
@@ -109,23 +112,12 @@ public class Etched {
     }
 
     public static void clientPostInit(Platform.ModSetupContext ctx) {
-        SoundSourceManager.registerSource(new SoundCloudSource());
-
         ctx.enqueueWork(() -> {
             ScreenRegistry.register(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
-            RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
-            ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), new ClampedItemPropertyFunction() {
-                @Override
-                public float call(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int i) {
-                    return EtchedMusicDiscItem.getPattern(stack).ordinal(); // :troll:
-                }
-
-                @Override
-                public float unclampedCall(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int i) {
-                    return EtchedMusicDiscItem.getPattern(stack).ordinal();
-                }
-            });
+            ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity, i) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
         });
+        SoundSourceManager.registerSource(new SoundCloudSource());
+        RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
     }
 }

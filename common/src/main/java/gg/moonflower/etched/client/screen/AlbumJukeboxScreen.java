@@ -77,10 +77,9 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     protected void renderTooltip(PoseStack poseStack, int i, int j) {
-        if (this.minecraft.player.getInventory().getSelected().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
+        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
             List<Component> tooltip = this.getTooltipFromItem(this.hoveredSlot.getItem());
             if (this.hoveredSlot.index == this.playingIndex)
                 tooltip.add(new TextComponent("Now Playing").withStyle(ChatFormatting.YELLOW));

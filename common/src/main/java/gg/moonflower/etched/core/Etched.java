@@ -108,6 +108,7 @@ public class Etched {
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
+        SoundSourceManager.registerSource(new SoundCloudSource());
         ctx.enqueueWork(EtchedVillagers::registerVillages);
     }
 
@@ -117,7 +118,6 @@ public class Etched {
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
             ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity, i) -> EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F);
         });
-        SoundSourceManager.registerSource(new SoundCloudSource());
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
     }
 }

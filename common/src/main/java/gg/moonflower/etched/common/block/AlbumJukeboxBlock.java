@@ -1,8 +1,13 @@
 package gg.moonflower.etched.common.block;
 
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.core.Etched;
+import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -25,6 +30,9 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
+import java.util.Random;
 
 /**
  * @author Ocelot
@@ -118,4 +126,22 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
         builder.add(FACING, POWERED);
     }
 
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, Random random) {
+        if (!Etched.CLIENT_CONFIG.showNotes.get())
+            return;
+
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof AlbumJukeboxBlockEntity))
+            return;
+
+        AlbumJukeboxBlockEntity jukebox = ((AlbumJukeboxBlockEntity) blockEntity);
+        if (jukebox.getPlayingIndex() <= -1)
+            return;
+
+        Minecraft minecraft = Minecraft.getInstance();
+        Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingRecords();
+        if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos)))
+            level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 1.2D, pos.getZ() + 0.5D, random.nextInt(25) / 24D, 0, 0);
+    }
 }

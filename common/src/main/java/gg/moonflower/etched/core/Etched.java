@@ -14,6 +14,8 @@ import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.etched.core.registry.EtchedMenus;
 import gg.moonflower.etched.core.registry.EtchedSounds;
 import gg.moonflower.etched.core.registry.EtchedVillagers;
+import gg.moonflower.pollen.api.config.ConfigManager;
+import gg.moonflower.pollen.api.config.PollinatedConfigType;
 import gg.moonflower.pollen.api.event.events.entity.ModifyTradesEvents;
 import gg.moonflower.pollen.api.event.events.registry.client.RegisterAtlasSpriteEvent;
 import gg.moonflower.pollen.api.platform.Platform;
@@ -39,6 +41,7 @@ import net.minecraft.world.level.block.Blocks;
 public class Etched {
 
     public static final String MOD_ID = "etched";
+    public static final EtchedConfig.Client CLIENT_CONFIG = ConfigManager.register(Etched.MOD_ID, PollinatedConfigType.CLIENT, EtchedConfig.Client::new);
     public static final Platform PLATFORM = Platform.builder(Etched.MOD_ID)
             .commonInit(Etched::commonInit)
             .commonPostInit(Etched::commonPostInit)

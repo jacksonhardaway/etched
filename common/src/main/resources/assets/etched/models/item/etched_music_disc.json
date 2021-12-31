@@ -9,37 +9,37 @@
     },
     {
       "predicate": {
-        "etched:pattern": 1
+        "etched:pattern": 0.1
       },
       "model": "etched:item/cross_etched_music_disc"
     },
     {
       "predicate": {
-        "etched:pattern": 2
+        "etched:pattern": 0.2
       },
       "model": "etched:item/eye_etched_music_disc"
     },
     {
       "predicate": {
-        "etched:pattern": 3
+        "etched:pattern": 0.3
       },
       "model": "etched:item/parallel_etched_music_disc"
     },
     {
       "predicate": {
-        "etched:pattern": 4
+        "etched:pattern": 0.4
       },
       "model": "etched:item/star_etched_music_disc"
     },
     {
       "predicate": {
-        "etched:pattern": 5
+        "etched:pattern": 0.5
       },
       "model": "etched:item/gold_etched_music_disc"
     },
     {
       "predicate": {
-        "etched:pattern": 6
+        "etched:pattern": 0.6
       },
       "model": "etched:item/flat_etched_music_disc"
     }

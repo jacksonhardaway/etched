@@ -1,20 +1,31 @@
 package gg.moonflower.etched.core;
 
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
+import gg.moonflower.etched.client.render.entity.ContextualMinecartRenderer;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.core.registry.*;
+import gg.moonflower.etched.core.registry.EtchedBlocks;
+import gg.moonflower.etched.core.registry.EtchedEntities;
+import gg.moonflower.etched.core.registry.EtchedItems;
+import gg.moonflower.etched.core.registry.EtchedMenus;
+import gg.moonflower.etched.core.registry.EtchedSounds;
+import gg.moonflower.etched.core.registry.EtchedVillagers;
 import gg.moonflower.pollen.api.event.events.entity.ModifyTradesEvents;
 import gg.moonflower.pollen.api.event.events.registry.client.RegisterAtlasSpriteEvent;
 import gg.moonflower.pollen.api.platform.Platform;
-import gg.moonflower.pollen.api.registry.client.*;
+import gg.moonflower.pollen.api.registry.client.ColorRegistry;
+import gg.moonflower.pollen.api.registry.client.EntityRendererRegistry;
+import gg.moonflower.pollen.api.registry.client.ItemPredicateRegistry;
+import gg.moonflower.pollen.api.registry.client.RenderTypeRegistry;
+import gg.moonflower.pollen.api.registry.client.ScreenRegistry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.MinecartRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
@@ -94,18 +105,17 @@ public class Etched {
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
+        SoundSourceManager.registerSource(new SoundCloudSource());
         ctx.enqueueWork(EtchedVillagers::registerVillages);
     }
 
     public static void clientPostInit(Platform.ModSetupContext ctx) {
-        SoundSourceManager.registerSource(new SoundCloudSource());
-
         ctx.enqueueWork(() -> {
             ScreenRegistry.register(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
-            RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
-            ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, livingEntity) -> EtchedMusicDiscItem.getPattern(stack).ordinal());
-            EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, context -> new MinecartRenderer<>(context.getEntityRenderDispatcher()));
+            ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity) -> Mth.clamp(EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F, 0, 1));
         });
+        RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
+        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, ContextualMinecartRenderer::new);
     }
 }

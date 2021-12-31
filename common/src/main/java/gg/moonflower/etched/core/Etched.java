@@ -1,7 +1,7 @@
 package gg.moonflower.etched.core;
 
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
-import gg.moonflower.etched.client.render.entity.ContextualMinecartRenderer;
+import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
@@ -24,7 +24,6 @@ import gg.moonflower.pollen.api.registry.client.ItemPredicateRegistry;
 import gg.moonflower.pollen.api.registry.client.RenderTypeRegistry;
 import gg.moonflower.pollen.api.registry.client.ScreenRegistry;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.MinecartRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
@@ -119,6 +118,6 @@ public class Etched {
             ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity) -> Mth.clamp(EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F, 0, 1));
         });
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
-        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, ContextualMinecartRenderer::new);
+        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
     }
 }

@@ -1,7 +1,7 @@
 package gg.moonflower.etched.core;
 
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
-import gg.moonflower.etched.client.render.entity.ContextualMinecartRenderer;
+import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
 import gg.moonflower.etched.client.render.model.EtchedModelLayers;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
@@ -107,7 +107,7 @@ public class Etched {
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getPrimaryColor(stack) : index == 1 && EtchedMusicDiscItem.getPattern(stack).isColorable() ? EtchedMusicDiscItem.getSecondaryColor(stack) : -1, EtchedItems.ETCHED_MUSIC_DISC);
 
         EntityRendererRegistry.registerLayerDefinition(EtchedModelLayers.JUKEBOX_MINECART, MinecartModel::createBodyLayer);
-        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, ContextualMinecartRenderer::new);
+        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {

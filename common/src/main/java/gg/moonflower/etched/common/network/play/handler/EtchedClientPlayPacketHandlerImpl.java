@@ -44,6 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
@@ -51,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
+@ApiStatus.Internal
 public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacketHandler {
 
     private static final Logger LOGGER = LogManager.getLogger();

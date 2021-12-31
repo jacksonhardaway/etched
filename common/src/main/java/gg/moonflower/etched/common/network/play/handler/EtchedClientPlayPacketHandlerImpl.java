@@ -44,6 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Map;
@@ -54,6 +55,11 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
+
+    @Nullable
+    public static SoundInstance getEntitySound(int entity) {
+        return ENTITY_PLAYING_SOUNDS.get(entity);
+    }
 
     public static SoundInstance getEtchedRecord(String url, Component title, Entity entity) {
         return new OnlineRecordSoundInstance(url, entity, new MusicDownloadListener(title, entity::getX, entity::getY, entity::getZ) {

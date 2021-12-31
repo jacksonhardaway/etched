@@ -39,26 +39,30 @@ public class EtchedVillagers {
         SnowyVillagePools.bootstrap();
         TaigaVillagePools.bootstrap();
 
-        createVillagePiece("plains", "bard_house", 1, 2, ProcessorLists.MOSSIFY_10_PERCENT);
-        createVillagePiece("desert", "bard_house", 1, 2);
-        createVillagePiece("savanna", "bard_house", 1, 4);
-        createVillagePiece("snowy", "bard_house", 1, 4);
-        createVillagePiece("taiga", "bard_house", 1, 4, ProcessorLists.MOSSIFY_10_PERCENT);
+        createVillagePiece("plains", "bard_house", 1, 2, ProcessorLists.MOSSIFY_10_PERCENT, ProcessorLists.ZOMBIE_PLAINS);
+        createVillagePiece("desert", "bard_house", 1, 2, ProcessorLists.ZOMBIE_DESERT);
+        createVillagePiece("savanna", "bard_house", 1, 4, ProcessorLists.ZOMBIE_SAVANNA);
+        createVillagePiece("snowy", "bard_house", 1, 4, ProcessorLists.ZOMBIE_SNOWY);
+        createVillagePiece("taiga", "bard_house", 1, 4, ProcessorLists.MOSSIFY_10_PERCENT, ProcessorLists.ZOMBIE_TAIGA);
     }
 
-    private static void createVillagePiece(String village, String name, int houseId, int weight) {
-        createVillagePiece(village, name, houseId, weight, ProcessorLists.EMPTY);
+    private static void createVillagePiece(String village, String name, int houseId, int weight, StructureProcessorList zombieProcessor) {
+        createVillagePiece(village, name, houseId, weight, ProcessorLists.EMPTY, zombieProcessor);
     }
 
-    private static void createVillagePiece(String village, String name, int houseId, int weight, StructureProcessorList processorList) {
-        ResourceLocation patternId = new ResourceLocation("village/" + village + "/houses");
-        StructureTemplatePool pattern = BuiltinRegistries.TEMPLATE_POOL.get(patternId);
-        if (pattern == null)
+    private static void createVillagePiece(String village, String name, int houseId, int weight, StructureProcessorList normalProcessor, StructureProcessorList zombieProcessor) {
+        EtchedVillagers.addToPool(new ResourceLocation("village/" + village + "/houses"), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), normalProcessor, weight);
+        EtchedVillagers.addToPool(new ResourceLocation("village/" + village + "/zombie/houses"), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), zombieProcessor, weight);
+    }
+
+    private static void addToPool(ResourceLocation poolId, ResourceLocation pieceId, StructureProcessorList processorList, int weight) {
+        StructureTemplatePool pool = BuiltinRegistries.TEMPLATE_POOL.get(poolId);
+        if (pool == null)
             return;
 
-        StructurePoolElement piece = StructurePoolElement.legacy(Etched.MOD_ID + ":village/" + village + "/houses/" + village + "_" + name + "_" + houseId, processorList).apply(StructureTemplatePool.Projection.RIGID);
-        List<StructurePoolElement> templates = ((StructureTemplatePoolAccessor) pattern).getTemplates();
-        List<Pair<StructurePoolElement, Integer>> rawTemplates = ((StructureTemplatePoolAccessor) pattern).getRawTemplates();
+        StructurePoolElement piece = StructurePoolElement.legacy(pieceId.toString(), processorList).apply(StructureTemplatePool.Projection.RIGID);
+        List<StructurePoolElement> templates = ((StructureTemplatePoolAccessor) pool).getTemplates();
+        List<Pair<StructurePoolElement, Integer>> rawTemplates = ((StructureTemplatePoolAccessor) pool).getRawTemplates();
         if (templates == null || rawTemplates == null)
             return;
 

@@ -180,21 +180,23 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
 
         BlockPos pos = pkt.getPos();
         SoundInstance soundInstance = playingRecords.get(pos);
-        if (soundInstance != null) {
-            soundManager.stop(soundInstance);
-            playingRecords.remove(pos);
-        }
+        ctx.enqueueWork(() -> {
+            if (soundInstance != null) {
+                soundManager.stop(soundInstance);
+                playingRecords.remove(pos);
+            }
 
-        if (!EtchedMusicDiscItem.isValidURL(pkt.getUrl())) {
-            LOGGER.error("Server sent invalid music URL: " + pkt.getUrl());
-            return;
-        }
+            if (!EtchedMusicDiscItem.isValidURL(pkt.getUrl())) {
+                LOGGER.error("Server sent invalid music URL: " + pkt.getUrl());
+                return;
+            }
 
-        playRecord(pos, new StopListeningSound(getEtchedRecord(pkt.getUrl(), pkt.getTitle(), level, pos), () -> Minecraft.getInstance().tell(() -> {
-            if (level.getBlockState(pos).is(Blocks.JUKEBOX))
-                for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
-                    livingEntity.setRecordPlayingNearby(pos, false);
-        })));
+            playRecord(pos, new StopListeningSound(getEtchedRecord(pkt.getUrl(), pkt.getTitle(), level, pos), () -> Minecraft.getInstance().tell(() -> {
+                if (level.getBlockState(pos).is(Blocks.JUKEBOX))
+                    for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
+                        livingEntity.setRecordPlayingNearby(pos, false);
+            })));
+        });
     }
 
     @Override
@@ -202,17 +204,19 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null)
             return;
-
-        MinecartJukebox entity = new MinecartJukebox(level, pkt.getX(), pkt.getY(), pkt.getZ());
-        int i = pkt.getId();
-        entity.setPacketCoordinates(pkt.getX(), pkt.getY(), pkt.getZ());
-        entity.moveTo(pkt.getX(), pkt.getY(), pkt.getZ());
-        entity.setXRot((float) (pkt.getxRot() * 360) / 256.0F);
-        entity.setYRot((float) (pkt.getyRot() * 360) / 256.0F);
-        entity.setId(i);
-        entity.setUUID(pkt.getUUID());
-        level.putNonPlayerEntity(i, entity);
-        Minecraft.getInstance().getSoundManager().play(new MinecartSoundInstance(entity));
+        
+        ctx.enqueueWork(() -> {
+            MinecartJukebox entity = new MinecartJukebox(level, pkt.getX(), pkt.getY(), pkt.getZ());
+            int i = pkt.getId();
+            entity.setPacketCoordinates(pkt.getX(), pkt.getY(), pkt.getZ());
+            entity.moveTo(pkt.getX(), pkt.getY(), pkt.getZ());
+            entity.setXRot((float) (pkt.getxRot() * 360) / 256.0F);
+            entity.setYRot((float) (pkt.getyRot() * 360) / 256.0F);
+            entity.setId(i);
+            entity.setUUID(pkt.getUUID());
+            level.putNonPlayerEntity(i, entity);
+            Minecraft.getInstance().getSoundManager().play(new MinecartSoundInstance(entity));
+        });
     }
 
     @Override
@@ -224,46 +228,50 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         int entityId = pkt.getEntityId();
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         SoundInstance soundInstance = ENTITY_PLAYING_SOUNDS.get(entityId);
-        if (soundInstance != null) {
-            if (soundInstance instanceof StopListeningSound)
-                ((StopListeningSound) soundInstance).stopListening();
-            if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.RESTART && soundManager.isActive(soundInstance))
+        ctx.enqueueWork(() -> {
+            if (soundInstance != null) {
+                if (soundInstance instanceof StopListeningSound)
+                    ((StopListeningSound) soundInstance).stopListening();
+                if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.RESTART && soundManager.isActive(soundInstance))
+                    return;
+                soundManager.stop(soundInstance);
+                ENTITY_PLAYING_SOUNDS.remove(entityId);
+            }
+
+            if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.STOP)
                 return;
-            soundManager.stop(soundInstance);
-            ENTITY_PLAYING_SOUNDS.remove(entityId);
-        }
 
-        if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.STOP)
-            return;
+            Entity entity = level.getEntity(entityId);
+            if (entity == null) {
+                LOGGER.error("Server sent sound for nonexistent entity: " + entityId);
+                return;
+            }
 
-        Entity entity = level.getEntity(entityId);
-        if (entity == null) {
-            LOGGER.error("Server sent sound for nonexistent entity: " + entityId);
-            return;
-        }
+            ItemStack record = pkt.getRecord();
+            if (!PlayableRecord.isPlayableRecord(record)) {
+                LOGGER.error("Server sent invalid music disc: " + record);
+                return;
+            }
 
-        ItemStack record = pkt.getRecord();
-        if (!PlayableRecord.isPlayableRecord(record)) {
-            LOGGER.error("Server sent invalid music disc: " + record);
-            return;
-        }
+            Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity);
+            if (!sound.isPresent()) {
+                LOGGER.error("Server sent invalid music disc: " + record);
+                return;
+            }
 
-        Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity);
-        if (!sound.isPresent()) {
-            LOGGER.error("Server sent invalid music disc: " + record);
-            return;
-        }
-
-        ENTITY_PLAYING_SOUNDS.put(entityId, sound.get());
-        soundManager.play(sound.get());
+            ENTITY_PLAYING_SOUNDS.put(entityId, sound.get());
+            soundManager.play(sound.get());
+        });
     }
 
     @Override
     public void handleSetInvalidEtch(ClientboundInvalidEtchUrlPacket pkt, PollinatedPacketContext ctx) {
-        if (Minecraft.getInstance().screen instanceof EtchingScreen) {
-            EtchingScreen screen = (EtchingScreen) Minecraft.getInstance().screen;
-            screen.setReason(pkt.getException());
-        }
+        ctx.enqueueWork(() -> {
+            if (Minecraft.getInstance().screen instanceof EtchingScreen) {
+                EtchingScreen screen = (EtchingScreen) Minecraft.getInstance().screen;
+                screen.setReason(pkt.getException());
+            }
+        });
     }
 
     public static class DownloadTextComponent extends BaseComponent {

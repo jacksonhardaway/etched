@@ -2,6 +2,8 @@ package gg.moonflower.etched.api.record;
 
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -86,5 +88,6 @@ public interface PlayableRecord {
      * @param entity The entity to play the sound for
      * @return The sound to play or nothing to error
      */
+    @Environment(EnvType.CLIENT)
     Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity);
 }

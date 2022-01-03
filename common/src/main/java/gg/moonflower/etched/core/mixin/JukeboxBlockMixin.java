@@ -3,6 +3,8 @@ package gg.moonflower.etched.core.mixin;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
 import gg.moonflower.etched.core.registry.EtchedItems;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
@@ -36,6 +38,7 @@ public abstract class JukeboxBlockMixin extends BaseEntityBlock {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public void animateTick(BlockState state, Level level, BlockPos pos, Random random) {
         if (state.getValue(JukeboxBlock.HAS_RECORD) && Etched.CLIENT_CONFIG.showNotes.get()) {
             Minecraft minecraft = Minecraft.getInstance();

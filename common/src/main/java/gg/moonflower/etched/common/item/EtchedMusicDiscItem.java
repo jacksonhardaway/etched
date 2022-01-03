@@ -185,6 +185,7 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity) {
         return getMusic(stack).map(musicInfo -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(musicInfo.getUrl(), musicInfo.getDisplayName(), entity));
     }

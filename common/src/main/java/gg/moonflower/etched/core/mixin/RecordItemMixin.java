@@ -2,7 +2,8 @@ package gg.moonflower.etched.core.mixin;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.client.sound.EntityRecordSoundInstance;
-import net.minecraft.client.Minecraft;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -20,6 +21,7 @@ public class RecordItemMixin implements PlayableRecord {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity) {
         if (!(stack.getItem() instanceof RecordItem))
             return Optional.empty();

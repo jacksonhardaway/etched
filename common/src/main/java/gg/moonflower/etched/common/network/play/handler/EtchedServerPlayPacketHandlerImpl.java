@@ -15,11 +15,9 @@ public class EtchedServerPlayPacketHandlerImpl implements EtchedServerPlayPacket
         if (player == null)
             return;
 
-        ctx.enqueueWork(() -> {
-            if (player.containerMenu instanceof EtchingMenu) {
-                EtchingMenu menu = (EtchingMenu) player.containerMenu;
-                menu.setUrl(pkt.getUrl());
-            }
-        });
+        if (player.containerMenu instanceof EtchingMenu) {
+            EtchingMenu menu = (EtchingMenu) player.containerMenu;
+            menu.setUrl(pkt.getUrl());
+        }
     }
 }

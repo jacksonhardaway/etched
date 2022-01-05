@@ -1,0 +1,22 @@
+{
+  "block.etched.album_jukebox": "Neverendin' Music Device",
+  "block.etched.etching_table": "Composin' Table",
+  "container.etched.album_jukebox": "Neverendin' Music Device",
+  "container.etched.etching_table": "Composin' Table",
+  "entity.etched.jukebox_minecart": "Travelin' Bard",
+  "entity.minecraft.villager.bard": "Man o' Music",
+  "entity.minecraft.villager.etched.bard": "Man o' Music",
+  "item.etched.blank_music_disc": "Empty Shanty Disc",
+  "item.etched.etched_music_disc": "Composed Shanty",
+  "item.etched.jukebox_minecart": "Travelin' Bard",
+  "item.etched.music_label": "Shanty Label",
+  "record.etched.downloadFail": "Arrrr, couldn't find yer cargo!",
+  "record.etched.downloadProgress": "Gettin yer cargo (%s Crates / %s Crates): %s",
+  "record.etched.loading": "Loadin' Cargo %s",
+  "screen.etched.etching_table.error.invalid_url": "Tharr port be wrong, can't find yer cargo",
+  "screen.etched.etching_table.error.missing_disc": "Ye need one blank disc t' make tunes",
+  "screen.etched.etching_table.error.missing_label": "Ye need one shanty label t' make tunes",
+  "sound_source.etched.requesting": "Requesting from %s...",
+  "sound_source.etched.sound_cloud": "Cargo be from SoundCloud & Co.",
+  "subtitles.etched.ui.etching_table.take_result": "Composin' Desk be makin' tunes"
+}

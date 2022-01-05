@@ -13,7 +13,7 @@
   "record.etched.downloadFail": "Arrrr, couldn't find yer cargo!",
   "record.etched.downloadProgress": "Gettin yer cargo (%s Crates / %s Crates): %s",
   "record.etched.loading": "Loadin' Cargo %s",
-  "screen.etched.etching_table.error.invalid_url": "Tharr port be wrong, cant find ye cargo",
+  "screen.etched.etching_table.error.invalid_url": "Tharr port be wrong, can't find yer cargo",
   "screen.etched.etching_table.error.missing_disc": "Ye need one blank disc t' make tunes",
   "screen.etched.etching_table.error.missing_label": "Ye need one shanty label t' make tunes",
   "sound_source.etched.requesting": "Requesting from %s...",

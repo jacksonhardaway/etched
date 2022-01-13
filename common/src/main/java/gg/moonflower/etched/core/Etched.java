@@ -50,7 +50,9 @@ public class Etched {
 
     public static void commonInit() {
         EtchedBlocks.BLOCKS.register(Etched.PLATFORM);
+        EtchedBlocks.BLOCK_ENTITIES.register(Etched.PLATFORM);
         EtchedItems.ITEMS.register(Etched.PLATFORM);
+        EtchedEntities.ENTITIES.register(Etched.PLATFORM);
         EtchedMenus.MENUS.register(Etched.PLATFORM);
         EtchedSounds.SOUNDS.register(Etched.PLATFORM);
         EtchedVillagers.POI_TYPES.register(Etched.PLATFORM);

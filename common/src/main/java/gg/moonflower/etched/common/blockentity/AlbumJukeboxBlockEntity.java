@@ -2,12 +2,11 @@ package gg.moonflower.etched.common.blockentity;
 
 import dev.architectury.injectables.annotations.PlatformOnly;
 import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,6 +41,24 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         this.playingIndex = -1;
         this.playingStack = ItemStack.EMPTY;
+    }
+
+    private void updateState() {
+        if (this.level != null) {
+            boolean hasItem = false;
+            for (ItemStack stack : this.getItems()) {
+                if (stack != ItemStack.EMPTY) {
+                    hasItem = true;
+                    break;
+                }
+            }
+
+            boolean hasRecord = this.level.getBlockState(this.worldPosition).getValue(AlbumJukeboxBlock.HAS_RECORD);
+            if (hasItem != hasRecord) {
+                this.level.setBlock(this.worldPosition, this.level.getBlockState(this.worldPosition).setValue(AlbumJukeboxBlock.HAS_RECORD, hasItem), 3);
+                this.setChanged();
+            }
+        }
     }
 
     private void updatePlaying() {
@@ -108,6 +125,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     @Override
     public ItemStack removeItem(int index, int amount) {
         ItemStack stack = super.removeItem(index, amount);
+        this.updateState();
         if (!stack.isEmpty())
             this.updatePlaying();
         return stack;
@@ -116,6 +134,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     @Override
     public ItemStack removeItemNoUpdate(int index) {
         ItemStack stack = super.removeItemNoUpdate(index);
+        this.updateState();
         if (!stack.isEmpty())
             this.updatePlaying();
         return stack;
@@ -124,12 +143,14 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     @Override
     public void setItem(int index, ItemStack stack) {
         super.setItem(index, stack);
+        this.updateState();
         this.updatePlaying();
     }
 
     @Override
     public void clearContent() {
         super.clearContent();
+        this.updateState();
         this.updatePlaying();
     }
 
@@ -158,7 +179,6 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         return 1;
     }
 
-    @Environment(EnvType.CLIENT)
     public int getPlayingIndex() {
         return playingIndex;
     }
@@ -166,7 +186,6 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     /**
      * Stops playing the current track and resets to the start.
      */
-    @Environment(EnvType.CLIENT)
     public void stopPlaying() {
         this.playingIndex = -1;
         this.playingStack = ItemStack.EMPTY;
@@ -175,7 +194,6 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     /**
      * Cycles to the next index to begin playing.
      */
-    @Environment(EnvType.CLIENT)
     public void next() {
         this.playingIndex++;
         this.playingIndex %= this.getContainerSize();
@@ -185,7 +203,6 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     /**
      * Starts playing the next valid song in the album.
      */
-    @Environment(EnvType.CLIENT)
     public void nextPlayingIndex() {
         boolean wrap = false;
         if (this.playingIndex < 0)
@@ -208,9 +225,8 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     /**
      * Changes the current playing index to the next valid disc.
      *
-     * @return Whether or not a change was made
+     * @return Whether a change was made
      */
-    @Environment(EnvType.CLIENT)
     public boolean recalculatePlayingIndex() {
         if (this.isEmpty()) {
             if (this.playingIndex == -1)

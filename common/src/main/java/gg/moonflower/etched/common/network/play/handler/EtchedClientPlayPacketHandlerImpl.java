@@ -28,6 +28,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
@@ -71,7 +72,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                     this.clearComponent();
                 } else {
                     if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
-                        Minecraft.getInstance().gui.setNowPlaying(title);
+                        PlayableRecord.showMessage(title);
                 }
             }
         });
@@ -85,8 +86,8 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 if (!playingRecords.containsKey(pos)) {
                     this.clearComponent();
                 } else {
-                    if (PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
-                        Minecraft.getInstance().gui.setNowPlaying(title);
+                    if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                        PlayableRecord.showMessage(title);
                     if (level.getBlockState(pos).is(Blocks.JUKEBOX))
                         for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
                             livingEntity.setRecordPlayingNearby(pos, true);
@@ -154,8 +155,8 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             }
         }
         if (disc.getItem() instanceof RecordItem) {
-            if (PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
-                Minecraft.getInstance().gui.setNowPlaying(((RecordItem) disc.getItem()).getDisplayName());
+            if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                PlayableRecord.showMessage(((RecordItem) disc.getItem()).getDisplayName());
             sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
         }
 
@@ -322,6 +323,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         private final DoubleSupplier x;
         private final DoubleSupplier y;
         private final DoubleSupplier z;
+        private final BlockPos.MutableBlockPos pos;
         private float size;
         private Component requesting;
         private DownloadTextComponent component;
@@ -331,10 +333,15 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             this.x = x;
             this.y = y;
             this.z = z;
+            this.pos = new BlockPos.MutableBlockPos();
+        }
+
+        private BlockPos.MutableBlockPos getPos() {
+            return this.pos.set(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble());
         }
 
         private void setComponent(Component text) {
-            if (!PlayableRecord.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
+            if (this.component == null && (Minecraft.getInstance().level == null || !Minecraft.getInstance().level.getBlockState(this.getPos().move(Direction.UP)).isAir() || !PlayableRecord.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble())))
                 return;
 
             if (this.component == null) {
@@ -382,8 +389,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
 
         @Override
         public void onFail() {
-            if (PlayableRecord.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))
-                Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
+            Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
         }
     }
 }

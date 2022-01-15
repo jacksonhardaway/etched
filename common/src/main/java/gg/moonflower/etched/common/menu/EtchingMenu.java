@@ -24,11 +24,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
@@ -38,6 +34,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -66,8 +63,7 @@ public class EtchingMenu extends AbstractContainerMenu {
     private final Container result;
     private final Player player;
     private String url;
-    private String cachedAuthor;
-    private String cachedTitle;
+    private SoundDownloadSource.TrackData cachedData;
     private int urlId;
     private long lastSoundTime;
 
@@ -268,32 +264,37 @@ public class EtchingMenu extends AbstractContainerMenu {
                     int labelColor = 0xFFFFFF;
                     String author = this.player.getDisplayName().getString();
                     String title = null;
+                    boolean album = false;
                     if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get()) {
                         discColor = EtchedMusicDiscItem.getPrimaryColor(discStack);
                         labelColor = EtchedMusicDiscItem.getSecondaryColor(discStack);
-                        author = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
-                        title = EtchedMusicDiscItem.getMusic(discStack).map(EtchedMusicDiscItem.MusicInfo::getTitle).orElse(null);
+                        Optional<EtchedMusicDiscItem.MusicInfo> musicInfo = EtchedMusicDiscItem.getMusic(discStack);
+                        author = musicInfo.map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
+                        title = musicInfo.map(EtchedMusicDiscItem.MusicInfo::getTitle).orElse(null);
+                        album = musicInfo.map(EtchedMusicDiscItem.MusicInfo::isAlbum).orElse(false);
                     }
                     if (!labelStack.isEmpty() && labelStack.hasCustomHoverName())
                         title = labelStack.getHoverName().getString();
                     if (SoundSourceManager.isValidUrl(this.url)) {
-                        if (this.cachedAuthor == null || this.cachedTitle == null) {
+                        if (this.cachedData == null) {
                             try {
-                                SoundSourceManager.resolveTrack(this.url, null, Proxy.NO_PROXY).ifPresent(track -> {
-                                    this.cachedAuthor = track.getFirst();
-                                    this.cachedTitle = track.getSecond();
-                                });
+                                SoundSourceManager.resolveTrack(this.url, null, Proxy.NO_PROXY).ifPresent(data -> this.cachedData = data);
                             } catch (Exception e) {
-                                this.cachedAuthor = null;
-                                this.cachedTitle = null;
+                                this.cachedData = null;
 
                                 if (!this.player.level.isClientSide())
                                     EtchedMessages.PLAY.sendTo((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e.getMessage()));
                                 throw new CompletionException(e);
                             }
                         }
-                        author = this.cachedAuthor;
-                        title = this.cachedTitle;
+                        if (this.cachedData != null) {
+                            author = this.cachedData.getArtist();
+                            title = this.cachedData.getTitle();
+                            album = this.cachedData.isAlbum();
+                        } else {
+                            author = null;
+                            title = null;
+                        }
                     } else if (!EtchedMusicDiscItem.isLocalSound(this.url)) {
                         try {
                             checkStatus(this.url);
@@ -316,6 +317,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                     info.setAuthor(author != null ? author : this.player.getDisplayName().getString());
                     if (title != null)
                         info.setTitle(title);
+                    info.setAlbum(album);
                     info.setUrl(EtchedMusicDiscItem.isLocalSound(this.url) ? new ResourceLocation(this.url).toString() : this.url);
 
                     EtchedMusicDiscItem.setMusic(resultStack, info);
@@ -349,8 +351,7 @@ public class EtchingMenu extends AbstractContainerMenu {
             this.url = string;
             this.urlId++;
             this.urlId %= 1000;
-            this.cachedAuthor = null;
-            this.cachedTitle = null;
+            this.cachedData = null;
             this.setupResultSlot();
         }
     }

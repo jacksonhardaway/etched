@@ -47,7 +47,7 @@ public class AccumulatingDownloadProgressListener implements DownloadProgressLis
     public void onSuccess() {
         this.success++;
         if (this.sizesReceived >= this.count)
-            this.parent.progressStagePercentage((int) ((float) this.success / (float) this.sizesReceived * 100.0F));
+            this.parent.progressStage((float) this.success / (float) this.sizesReceived);
         if (this.success >= this.count)
             this.parent.onSuccess();
     }

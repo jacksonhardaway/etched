@@ -1,6 +1,7 @@
 package gg.moonflower.etched.api.util;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 
 /**
  * @author Ocelot
@@ -27,6 +28,15 @@ public interface DownloadProgressListener {
      * @param percentage The percent downloaded for the file
      */
     void progressStagePercentage(int percentage);
+
+    /**
+     * Called each time a byte is downloaded.
+     *
+     * @param percentage The percent downloaded for the file
+     */
+    default void progressStage(float percentage) {
+        this.progressStagePercentage((int) (Mth.clamp(percentage, 0.0F, 1.0F) * 100.0F));
+    }
 
     /**
      * Called when the file starts loading.

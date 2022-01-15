@@ -49,13 +49,15 @@ public class RawAudioStream implements AudioStream {
     public ByteBuffer read(int amount) throws IOException {
         byte[] buf = new byte[amount];
         int read, total = 0;
-        while (total < buf.length) {
+        int fails = 0;
+        while (total < buf.length && fails < 10) {
             try {
                 while ((read = this.input.read(buf, total, buf.length - total)) != -1 && total < buf.length) {
+                    fails = 0;
                     total += read;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (ArrayIndexOutOfBoundsException ignored) { // Ignore because the mp3 parser sometimes doesn't allocate properly
+                fails++;
             }
         }
 

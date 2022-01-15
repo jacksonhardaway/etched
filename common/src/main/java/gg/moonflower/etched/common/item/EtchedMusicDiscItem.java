@@ -6,6 +6,7 @@ import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
+import gg.moonflower.pollen.api.util.NbtConstants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -14,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
@@ -42,6 +44,7 @@ import java.util.regex.Pattern;
  */
 public class EtchedMusicDiscItem extends Item implements PlayableRecord {
 
+    private static final Component ALBUM = new TranslatableComponent("item." + Etched.MOD_ID + ".etched_music_disc.album").withStyle(ChatFormatting.BLUE);
     private static final Pattern RESOURCE_LOCATION_PATTERN = Pattern.compile("[a-z0-9_.-]+");
 
     public EtchedMusicDiscItem(Properties properties) {
@@ -195,6 +198,8 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
         getMusic(stack).ifPresent(music -> {
             list.add(music.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
             SoundSourceManager.getBrandText(music.getUrl()).ifPresent(list::add);
+            if (music.isAlbum())
+                list.add(ALBUM);
         });
     }
 
@@ -265,11 +270,13 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
         private String url;
         private String title;
         private String author;
+        private boolean album;
 
         public MusicInfo() {
             this.url = null;
             this.title = "Custom Music";
             this.author = "Unknown";
+            this.album = false;
         }
 
         private CompoundTag save(CompoundTag nbt) {
@@ -279,13 +286,16 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
                 nbt.putString("Title", this.title);
             if (this.author != null)
                 nbt.putString("Author", this.author);
+            if (this.album)
+                nbt.putBoolean("Album", true);
             return nbt;
         }
 
         private void load(CompoundTag nbt) {
-            this.url = nbt.contains("Url", 8) ? nbt.getString("Url") : null;
-            this.title = nbt.contains("Title", 8) ? nbt.getString("Title") : "Custom Music";
-            this.author = nbt.contains("Author", 8) ? nbt.getString("Author") : "Unknown";
+            this.url = nbt.contains("Url", NbtConstants.STRING) ? nbt.getString("Url") : null;
+            this.title = nbt.contains("Title", NbtConstants.STRING) ? nbt.getString("Title") : "Custom Music";
+            this.author = nbt.contains("Author", NbtConstants.STRING) ? nbt.getString("Author") : "Unknown";
+            this.album = nbt.contains("Album", NbtConstants.BYTE) && nbt.getBoolean("Album");
         }
 
         /**
@@ -330,6 +340,20 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
          */
         public void setAuthor(String author) {
             this.author = author;
+        }
+
+        /**
+         * @return Whether this disc contains an album
+         */
+        public boolean isAlbum() {
+            return album;
+        }
+
+        /**
+         * @param album Whether to be an album
+         */
+        public void setAlbum(boolean album) {
+            this.album = album;
         }
 
         /**

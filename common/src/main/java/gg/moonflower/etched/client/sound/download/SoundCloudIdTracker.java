@@ -41,7 +41,7 @@ public final class SoundCloudIdTracker {
     }
 
     private static String findScriptUrl(Proxy proxy) throws IOException {
-        HttpURLConnection httpURLConnection = null;
+        HttpURLConnection httpURLConnection;
 
         try {
             URL uRL = new URL("https://soundcloud.com");
@@ -61,6 +61,8 @@ public final class SoundCloudIdTracker {
                 throw new IllegalStateException("Could not find application script from main page.");
 
             return result;
+        } catch (IOException e) {
+            throw e;
         } catch (Throwable e) {
             throw new IOException(e);
         }

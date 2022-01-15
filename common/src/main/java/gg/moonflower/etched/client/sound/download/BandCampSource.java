@@ -1,13 +1,17 @@
 package gg.moonflower.etched.client.sound.download;
 
-import com.google.gson.*;
-import com.mojang.datafixers.util.Pair;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
@@ -39,21 +43,17 @@ public class BandCampSource implements SoundDownloadSource {
             URL uRL = new URL(url);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
-            float f = 0.0F;
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
-            float g = (float) map.entrySet().size();
 
-            for (Map.Entry<String, String> entry : map.entrySet()) {
+            for (Map.Entry<String, String> entry : map.entrySet())
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
-                if (progressListener != null)
-                    progressListener.progressStagePercentage((int) (++f / g * 100.0F));
-            }
 
+            long size = httpURLConnection.getContentLengthLong();
             int response = httpURLConnection.getResponseCode();
             if (response != 200)
                 throw new IOException(response + " " + httpURLConnection.getResponseMessage());
 
-            return httpURLConnection.getInputStream();
+            return progressListener != null && size != -1 ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
         } catch (Throwable e) {
             throw new IOException(e);
         }
@@ -78,32 +78,34 @@ public class BandCampSource implements SoundDownloadSource {
     @Override
     public List<URL> resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
         return resolve(trackUrl, progressListener, proxy, json -> {
-            String globalArtist = GsonHelper.getAsString(json, "artist");
-
+            if (progressListener != null)
+                progressListener.progressStartRequest(RESOLVING_TRACKS);
             JsonArray trackInfoArray = GsonHelper.getAsJsonArray(json, "trackinfo");
             List<URL> trackUrls = new ArrayList<>(trackInfoArray.size());
             for (int i = 0; i < trackInfoArray.size(); i++) {
                 JsonObject trackInfoJson = GsonHelper.convertToJsonObject(trackInfoArray.get(i), "trackinfo[" + i + "]");
-                String title = GsonHelper.getAsString(trackInfoJson, "title");
-                JsonElement artistJson = trackInfoJson.get("artist");
-                String artist = artistJson == null || artistJson.isJsonNull() ? globalArtist : GsonHelper.getAsString(trackInfoJson, "artist", globalArtist);
                 JsonObject fileJson = GsonHelper.getAsJsonObject(trackInfoJson, "file");
-                if (fileJson.has("mp3-128")) {
+                if (fileJson.has("mp3-128"))
                     trackUrls.add(new URL(GsonHelper.getAsString(fileJson, "mp3-128")));
-                }
             }
             return trackUrls;
         });
     }
 
     @Override
-    public Optional<Pair<String, String>> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
+    public Optional<TrackData> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
         return Optional.of(resolve(trackUrl, progressListener, proxy, json -> {
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
             String artist = GsonHelper.getAsString(json, "artist");
             String title = GsonHelper.getAsString(current, "title");
-            return Pair.of(artist, title);
+            String type = GsonHelper.getAsString(GsonHelper.getAsJsonObject(json, "current"), "type");
+            return new TrackData(artist, title, "album".equals(type));
         }));
+    }
+
+    @Override
+    public Optional<InputStream> resolveAlbumCover(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
+        return Optional.empty();
     }
 
     @Override

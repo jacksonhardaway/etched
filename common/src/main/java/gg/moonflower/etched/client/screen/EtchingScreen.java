@@ -199,8 +199,6 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
 
         if (pattern.isColorable())
             RenderSystem.color3f((float) (primaryLabelColor >> 16 & 255) / 255.0F, (float) (primaryLabelColor >> 8 & 255) / 255.0F, (float) (primaryLabelColor & 255) / 255.0F);
-        RenderSystem.alphaFunc(GL_EQUAL, 1);
-        RenderSystem.enableAlphaTest();
 
         Pair<ResourceLocation, ResourceLocation> textures = pattern.getTextures();
         Minecraft.getInstance().getTextureManager().bind(textures.getLeft());
@@ -212,7 +210,6 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             Minecraft.getInstance().getTextureManager().bind(textures.getRight());
             Gui.blit(poseStack, x, y, 1, 1, 14, 14, 16, 16);
         }
-        RenderSystem.disableAlphaTest();
         RenderSystem.color4f(1F, 1F, 1F, 1F);
     }
 

@@ -54,6 +54,8 @@ public class BandCampSource implements SoundDownloadSource {
                 throw new IOException(response + " " + httpURLConnection.getResponseMessage());
 
             return progressListener != null && size != -1 ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
+        } catch (IOException e) {
+            throw e;
         } catch (Throwable e) {
             throw new IOException(e);
         }

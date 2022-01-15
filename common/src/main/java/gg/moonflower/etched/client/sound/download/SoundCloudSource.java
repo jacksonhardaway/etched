@@ -63,15 +63,9 @@ public class SoundCloudSource implements SoundDownloadSource {
                 throw new IOException(response + " " + httpURLConnection.getResponseMessage());
 
             return progressListener != null && size != -1 ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
+        } catch (IOException e) {
+            throw e;
         } catch (Throwable e) {
-            if (httpURLConnection != null) {
-                try {
-                    LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-
             throw new IOException(e);
         }
     }

@@ -27,10 +27,10 @@ import java.util.regex.Pattern;
 /**
  * @author Ocelot
  */
-public class BandCampSource implements SoundDownloadSource {
+public class BandcampSource implements SoundDownloadSource {
 
     private static final Pattern DATA_PATTERN = Pattern.compile("data-tralbum=\"([^\"]+)\"");
-    private static final Component BRAND = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".band_camp").withStyle(style -> style.withColor(TextColor.fromRgb(0x477987)));
+    private static final Component BRAND = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".bandcamp").withStyle(style -> style.withColor(TextColor.fromRgb(0x477987)));
 
     private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
@@ -130,7 +130,7 @@ public class BandCampSource implements SoundDownloadSource {
 
     @Override
     public String getApiName() {
-        return "BandCamp";
+        return "Bandcamp";
     }
 
     @Override

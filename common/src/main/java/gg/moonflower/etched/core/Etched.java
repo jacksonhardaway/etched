@@ -8,12 +8,7 @@ import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.core.registry.EtchedBlocks;
-import gg.moonflower.etched.core.registry.EtchedEntities;
-import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.etched.core.registry.EtchedMenus;
-import gg.moonflower.etched.core.registry.EtchedSounds;
-import gg.moonflower.etched.core.registry.EtchedVillagers;
+import gg.moonflower.etched.core.registry.*;
 import gg.moonflower.pollen.api.config.ConfigManager;
 import gg.moonflower.pollen.api.config.PollinatedConfigType;
 import gg.moonflower.pollen.api.event.events.entity.ModifyTradesEvents;
@@ -100,6 +95,8 @@ public class Etched {
     }
 
     public static void clientInit() {
+        EtchedShaders.init();
+
         RegisterAtlasSpriteEvent.event(InventoryMenu.BLOCK_ATLAS).register((atlas, registry) -> {
             registry.accept(new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc"));
             registry.accept(new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label"));

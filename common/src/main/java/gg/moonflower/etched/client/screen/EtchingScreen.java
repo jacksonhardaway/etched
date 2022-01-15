@@ -9,9 +9,11 @@ import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ServerboundSetEtchingUrlPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedItems;
+import gg.moonflower.etched.core.registry.EtchedShaders;
+import gg.moonflower.pollen.api.client.render.ShapeRenderer;
+import gg.moonflower.pollen.api.registry.client.ShaderRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -187,12 +189,9 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
 
         if (pattern.isColorable())
             RenderSystem.setShaderColor((float) (labelColor >> 16 & 255) / 255.0F, (float) (labelColor >> 8 & 255) / 255.0F, (float) (labelColor & 255) / 255.0F, 1.0F);
-        // TODO: make shader
-        //        RenderSystem.alphaFunc(GL_EQUAL, 1);
-//        RenderSystem.enableAlphaTest();
         RenderSystem.setShaderTexture(0, pattern.getTexture());
-        Gui.blit(poseStack, x, y, 1, 1, 14, 14, 16, 16);
-//        RenderSystem.disableAlphaTest();
+        ShapeRenderer.setShader(ShaderRegistry.getShader(EtchedShaders.ETCHING_SCREEN_LABEL));
+        ShapeRenderer.drawRectWithTexture(poseStack, x, y, 1, 1, 14, 14, 14, 14, 16, 16);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
     }
 

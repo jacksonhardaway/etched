@@ -17,12 +17,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -41,7 +36,7 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
-    public static final BooleanProperty HAS_RECORD =  BlockStateProperties.HAS_RECORD;
+    public static final BooleanProperty HAS_RECORD = BlockStateProperties.HAS_RECORD;
 
     public AlbumJukeboxBlock(Properties properties) {
         super(properties);
@@ -128,7 +123,7 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, Random random) {
-        if (!Etched.CLIENT_CONFIG.showNotes.get())
+        if (!Etched.CLIENT_CONFIG.showNotes.get() || !level.getBlockState(pos.above()).isAir())
             return;
 
         BlockEntity blockEntity = level.getBlockEntity(pos);

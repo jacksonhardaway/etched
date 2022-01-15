@@ -62,14 +62,6 @@ public final class SoundCloudIdTracker {
 
             return result;
         } catch (Throwable e) {
-            if (httpURLConnection != null) {
-                try {
-                    SoundCloudSource.LOGGER.error(IOUtils.toString(httpURLConnection.getErrorStream(), StandardCharsets.UTF_8));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-
             throw new IOException(e);
         }
     }

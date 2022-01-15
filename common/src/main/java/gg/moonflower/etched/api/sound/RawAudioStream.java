@@ -49,9 +49,14 @@ public class RawAudioStream implements AudioStream {
     public ByteBuffer read(int amount) throws IOException {
         byte[] buf = new byte[amount];
         int read, total = 0;
-        while ((read = this.input.read(buf, total, buf.length - total)) != -1
-                && total < buf.length) {
-            total += read;
+        while (total < buf.length) {
+            try {
+                while ((read = this.input.read(buf, total, buf.length - total)) != -1 && total < buf.length) {
+                    total += read;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         byte[] result = new byte[total];

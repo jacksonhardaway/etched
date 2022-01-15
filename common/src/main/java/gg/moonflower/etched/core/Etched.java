@@ -4,6 +4,7 @@ import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
+import gg.moonflower.etched.client.sound.download.BandCampSource;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
@@ -110,6 +111,7 @@ public class Etched {
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
         SoundSourceManager.registerSource(new SoundCloudSource());
+        SoundSourceManager.registerSource(new BandCampSource());
         ctx.enqueueWork(EtchedVillagers::registerVillages);
     }
 

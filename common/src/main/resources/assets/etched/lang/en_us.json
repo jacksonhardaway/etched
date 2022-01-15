@@ -18,5 +18,6 @@
   "screen.etched.etching_table.error.missing_label": "Music label is required to etch",
   "sound_source.etched.requesting": "Requesting from %s...",
   "sound_source.etched.sound_cloud": "Provided by SoundCloud",
+  "sound_source.etched.band_camp": "Provided by BandCamp",
   "subtitles.etched.ui.etching_table.take_result": "Etching Table used"
 }

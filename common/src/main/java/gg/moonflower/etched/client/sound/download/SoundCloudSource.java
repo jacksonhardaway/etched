@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.realmsclient.client.Request;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.M3uParser;
@@ -87,7 +88,7 @@ public class SoundCloudSource implements SoundDownloadSource {
         }
     }
 
-    private <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, Request<T> function) throws IOException, JsonParseException {
+    private <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, SourceRequest<T> function) throws IOException, JsonParseException {
         try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", progressListener, proxy, 0, true))) {
             JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
 
@@ -164,11 +165,5 @@ public class SoundCloudSource implements SoundDownloadSource {
     @Override
     public Optional<Component> getBrandText(String url) {
         return Optional.of(BRAND);
-    }
-
-    @FunctionalInterface
-    private interface Request<T> {
-
-        T process(JsonObject json) throws IOException, JsonParseException;
     }
 }

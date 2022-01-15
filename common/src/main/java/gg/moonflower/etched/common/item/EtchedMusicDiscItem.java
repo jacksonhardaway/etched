@@ -295,8 +295,8 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
         LabelPattern(boolean simple) {
             this.simple = simple;
             this.textures = Pair.of(
-                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_bottom") + ".png"),
-                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_top") + ".png")
+                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_top") + ".png"),
+                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_bottom") + ".png")
             );
         }
 

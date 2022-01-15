@@ -9,13 +9,12 @@ import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ServerboundSetEtchingUrlPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.etched.core.registry.EtchedShaders;
 import gg.moonflower.pollen.api.client.render.ShapeRenderer;
-import gg.moonflower.pollen.api.registry.client.ShaderRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -195,7 +194,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         Pair<ResourceLocation, ResourceLocation> textures = pattern.getTextures();
         RenderSystem.setShaderTexture(0, textures.getLeft());
 
-        ShapeRenderer.setShader(ShaderRegistry.getShader(EtchedShaders.ETCHING_SCREEN_LABEL));
+        ShapeRenderer.setShader(GameRenderer::getPositionColorTexShader);
         ShapeRenderer.drawRectWithTexture(poseStack, x, y, 1, 1, 14, 14, 14, 14, 16, 16);
         if (!pattern.isSimple()) {
             if (pattern.isColorable())

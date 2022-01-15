@@ -81,7 +81,7 @@ public final class SoundSourceManager {
      * @return The track information found or nothing
      * @throws IOException If any error occurs when connecting to the sources
      */
-    public static Optional<Pair<String, String>> resolveTrack(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
+    public static Optional<SoundDownloadSource.TrackData> resolveTrack(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
         SoundDownloadSource source = SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().orElseThrow(() -> new IOException("Unknown source for: " + url));
         try {
             return source.resolveTrack(url, listener, proxy);

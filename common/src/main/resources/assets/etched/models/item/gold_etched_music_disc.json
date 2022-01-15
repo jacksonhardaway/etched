@@ -2,6 +2,6 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "etched:item/etched_music_disc",
-    "layer1": "etched:item/gold_etched_music_disc_label"
+    "layer1": "etched:item/gold_label"
   }
 }

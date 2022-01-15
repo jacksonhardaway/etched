@@ -56,15 +56,13 @@ public interface AudioSource {
 
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
-                if (progressListener != null)
-                    progressListener.progressStagePercentage((int) (++f / (float) headers.entrySet().size() * 100.0F));
             }
 
             inputStream = httpURLConnection.getInputStream();
             float contentLength = (float) httpURLConnection.getContentLength();
             int j = httpURLConnection.getContentLength();
             if (progressListener != null)
-                progressListener.progressStartDownload(contentLength / 1000.0F / 1000.0F);
+                progressListener.progressStartDownload(contentLength / 1024.0F / 1024.0F);
 
             if (file.exists()) {
                 long l = file.length();
@@ -88,9 +86,8 @@ public interface AudioSource {
             byte[] bs = new byte[4096];
             while ((k = inputStream.read(bs)) >= 0) {
                 f += (float) k;
-                if (progressListener != null) {
-                    progressListener.progressStagePercentage((int) (f / contentLength * 100.0F));
-                }
+                if (progressListener != null)
+                    progressListener.progressStage(f / contentLength);
 
                 if (f > 104857600)
                     throw new IOException("Filesize was bigger than maximum allowed (got >= " + f + ", limit was 104857600)");

@@ -27,6 +27,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -185,13 +186,24 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             return;
 
         EtchedMusicDiscItem.LabelPattern pattern = EtchedMusicDiscItem.LabelPattern.values()[index];
-        int labelColor = this.labelStack.getItem() instanceof MusicLabelItem ? ((MusicLabelItem) this.labelStack.getItem()).getColor(this.labelStack) : 0xFFFFFF;
+        int primaryLabelColor = MusicLabelItem.getPrimaryColor(this.labelStack);
+        int secondaryLabelColor = MusicLabelItem.getSecondaryColor(this.labelStack);
 
         if (pattern.isColorable())
-            RenderSystem.setShaderColor((float) (labelColor >> 16 & 255) / 255.0F, (float) (labelColor >> 8 & 255) / 255.0F, (float) (labelColor & 255) / 255.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, pattern.getTexture());
+            RenderSystem.setShaderColor((float) (primaryLabelColor >> 16 & 255) / 255.0F, (float) (primaryLabelColor >> 8 & 255) / 255.0F, (float) (primaryLabelColor & 255) / 255.0F, 1.0F);
+
+        Pair<ResourceLocation, ResourceLocation> textures = pattern.getTextures();
+        RenderSystem.setShaderTexture(0, textures.getLeft());
+
         ShapeRenderer.setShader(ShaderRegistry.getShader(EtchedShaders.ETCHING_SCREEN_LABEL));
         ShapeRenderer.drawRectWithTexture(poseStack, x, y, 1, 1, 14, 14, 14, 14, 16, 16);
+        if (!pattern.isSimple()) {
+            if (pattern.isColorable())
+                RenderSystem.setShaderColor((float) (secondaryLabelColor >> 16 & 255) / 255.0F, (float) (secondaryLabelColor >> 8 & 255) / 255.0F, (float) (secondaryLabelColor & 255) / 255.0F, 1.0F);
+
+            RenderSystem.setShaderTexture(0, textures.getRight());
+            ShapeRenderer.drawRectWithTexture(poseStack, x, y, 1, 1, 14, 14, 14, 14, 16, 16);
+        }
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
     }
 

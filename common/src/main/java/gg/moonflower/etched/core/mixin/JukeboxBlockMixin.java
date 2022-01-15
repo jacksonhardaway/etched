@@ -40,7 +40,7 @@ public abstract class JukeboxBlockMixin extends BaseEntityBlock {
     @Override
     @Environment(EnvType.CLIENT)
     public void animateTick(BlockState state, Level level, BlockPos pos, Random random) {
-        if (state.getValue(JukeboxBlock.HAS_RECORD) && Etched.CLIENT_CONFIG.showNotes.get()) {
+        if (state.getValue(JukeboxBlock.HAS_RECORD) && Etched.CLIENT_CONFIG.showNotes.get() && level.getBlockState(pos.above()).isAir()) {
             Minecraft minecraft = Minecraft.getInstance();
             Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingRecords();
             if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos)))

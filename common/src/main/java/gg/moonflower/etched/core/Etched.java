@@ -7,6 +7,7 @@ import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.sound.download.BandCampSource;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
+import gg.moonflower.etched.common.item.MusicLabelItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
 import gg.moonflower.etched.core.registry.EtchedEntities;
@@ -105,8 +106,9 @@ public class Etched {
             registry.accept(new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label"));
         });
 
-        ColorRegistry.register((stack, index) -> index > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack), EtchedItems.BLANK_MUSIC_DISC, EtchedItems.MUSIC_LABEL);
-        ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getPrimaryColor(stack) : index == 1 && EtchedMusicDiscItem.getPattern(stack).isColorable() ? EtchedMusicDiscItem.getSecondaryColor(stack) : -1, EtchedItems.ETCHED_MUSIC_DISC);
+        ColorRegistry.register((stack, index) -> index > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack), EtchedItems.BLANK_MUSIC_DISC);
+        ColorRegistry.register((stack, index) -> index == 0 ? MusicLabelItem.getPrimaryColor(stack) : index == 1 ? MusicLabelItem.getSecondaryColor(stack) : -1, EtchedItems.COMPLEX_MUSIC_LABEL, EtchedItems.MUSIC_LABEL);
+        ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getDiscColor(stack) : EtchedMusicDiscItem.getPattern(stack).isColorable() ? index == 1 ? EtchedMusicDiscItem.getLabelPrimaryColor(stack) : index == 2 ? EtchedMusicDiscItem.getLabelSecondaryColor(stack) : -1 : -1, EtchedItems.ETCHED_MUSIC_DISC);
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {

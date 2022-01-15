@@ -106,7 +106,7 @@ public class EtchingMenu extends AbstractContainerMenu {
         this.labelSlot = this.addSlot(new Slot(this.input, 1, 62, 43) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.getItem() instanceof MusicLabelItem;
+                return stack.getItem() instanceof MusicLabelItem || stack.getItem() == EtchedItems.COMPLEX_MUSIC_LABEL.get();
             }
 
             @Override
@@ -261,13 +261,15 @@ public class EtchingMenu extends AbstractContainerMenu {
                     resultStack.setCount(1);
 
                     int discColor = 0x515151;
-                    int labelColor = 0xFFFFFF;
+                    int primaryLabelColor = 0xFFFFFF;
+                    int secondaryLabelColor = 0xFFFFFF;
                     String author = this.player.getDisplayName().getString();
                     String title = null;
                     boolean album = false;
                     if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get()) {
-                        discColor = EtchedMusicDiscItem.getPrimaryColor(discStack);
-                        labelColor = EtchedMusicDiscItem.getSecondaryColor(discStack);
+                        discColor = EtchedMusicDiscItem.getDiscColor(discStack);
+                        primaryLabelColor = EtchedMusicDiscItem.getLabelPrimaryColor(discStack);
+                        secondaryLabelColor = EtchedMusicDiscItem.getLabelSecondaryColor(discStack);
                         Optional<EtchedMusicDiscItem.MusicInfo> musicInfo = EtchedMusicDiscItem.getMusic(discStack);
                         author = musicInfo.map(EtchedMusicDiscItem.MusicInfo::getAuthor).orElse(null);
                         title = musicInfo.map(EtchedMusicDiscItem.MusicInfo::getTitle).orElse(null);
@@ -310,8 +312,10 @@ public class EtchingMenu extends AbstractContainerMenu {
                     }
                     if (discStack.getItem() instanceof BlankMusicDiscItem)
                         discColor = ((BlankMusicDiscItem) discStack.getItem()).getColor(discStack);
-                    if (labelStack.getItem() instanceof MusicLabelItem)
-                        labelColor = ((MusicLabelItem) labelStack.getItem()).getColor(labelStack);
+                    if (labelStack.getItem() instanceof MusicLabelItem || labelStack.getItem() == EtchedItems.COMPLEX_MUSIC_LABEL.get()) {
+                        primaryLabelColor = MusicLabelItem.getPrimaryColor(labelStack);
+                        secondaryLabelColor = MusicLabelItem.getSecondaryColor(labelStack);
+                    }
 
                     EtchedMusicDiscItem.MusicInfo info = new EtchedMusicDiscItem.MusicInfo();
                     info.setAuthor(author != null ? author : this.player.getDisplayName().getString());
@@ -321,7 +325,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                     info.setUrl(EtchedMusicDiscItem.isLocalSound(this.url) ? new ResourceLocation(this.url).toString() : this.url);
 
                     EtchedMusicDiscItem.setMusic(resultStack, info);
-                    EtchedMusicDiscItem.setColor(resultStack, discColor, labelColor);
+                    EtchedMusicDiscItem.setColor(resultStack, discColor, primaryLabelColor, secondaryLabelColor);
                     EtchedMusicDiscItem.setPattern(resultStack, EtchedMusicDiscItem.LabelPattern.values()[this.labelIndex.get()]);
 
                     return resultStack;

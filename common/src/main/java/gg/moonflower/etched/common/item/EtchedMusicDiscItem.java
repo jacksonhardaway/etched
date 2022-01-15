@@ -30,6 +30,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -87,24 +88,66 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
      * @param stack The stack to get the color from
      * @return The color for the physical disc
      */
-    public static int getPrimaryColor(ItemStack stack) {
+    public static int getDiscColor(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
-        if (nbt == null || !nbt.contains("PrimaryColor", 99))
+        if (nbt == null)
             return 0x515151;
-        return nbt.getInt("PrimaryColor");
+        
+        // Convert old colors
+        if (nbt.contains("PrimaryColor", 99)) {
+            nbt.putInt("DiscColor", nbt.getInt("PrimaryColor"));
+            nbt.remove("PrimaryColor");
+        }
+
+        if (!nbt.contains("DiscColor", 99))
+            return 0x515151;
+        return nbt.getInt("DiscColor");
     }
 
     /**
-     * Retrieves the color of the label from the specified stack.
+     * Retrieves the primary color of the label from the specified stack.
      *
      * @param stack The stack to get the color from
      * @return The color for the label
      */
-    public static int getSecondaryColor(ItemStack stack) {
+    public static int getLabelPrimaryColor(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
-        if (nbt == null || !nbt.contains("SecondaryColor", 99))
+        if (nbt == null)
             return 0xFFFFFF;
-        return nbt.getInt("SecondaryColor");
+
+        // Convert old colors
+        CompoundTag labelTag = nbt.getCompound("LabelColor");
+        if (nbt.contains("SecondaryColor", 99)) {
+            labelTag.putInt("Primary", nbt.getInt("SecondaryColor"));
+            labelTag.putInt("Secondary", nbt.getInt("SecondaryColor"));
+            nbt.put("LabelColor", labelTag);
+            nbt.remove("SecondaryColor");
+        }
+
+        return labelTag.contains("Primary", 99) ? labelTag.getInt("Primary") : 0xFFFFFF;
+    }
+
+    /**
+     * Retrieves the secondary color of the label from the specified stack.
+     *
+     * @param stack The stack to get the color from
+     * @return The color for the label
+     */
+    public static int getLabelSecondaryColor(ItemStack stack) {
+        CompoundTag nbt = stack.getTag();
+        if (nbt == null)
+            return 0xFFFFFF;
+
+        // Convert old colors
+        CompoundTag labelTag = nbt.getCompound("LabelColor");
+        if (nbt.contains("SecondaryColor", 99)) {
+            labelTag.putInt("Primary", nbt.getInt("SecondaryColor"));
+            labelTag.putInt("Secondary", nbt.getInt("SecondaryColor"));
+            nbt.put("LabelColor", labelTag);
+            nbt.remove("SecondaryColor");
+        }
+
+        return labelTag.contains("Secondary", 99) ? labelTag.getInt("Secondary") : 0xFFFFFF;
     }
 
     /**
@@ -144,9 +187,14 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
      * @param primaryColor   The color to use for the physical disk
      * @param secondaryColor The color to use for the label
      */
-    public static void setColor(ItemStack stack, int primaryColor, int secondaryColor) {
-        stack.getOrCreateTag().putInt("PrimaryColor", primaryColor);
-        stack.getOrCreateTag().putInt("SecondaryColor", secondaryColor);
+    public static void setColor(ItemStack stack, int discColor, int primaryColor, int secondaryColor) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putInt("DiscColor", discColor);
+
+        CompoundTag labelTag = tag.getCompound("LabelColor");
+        labelTag.putInt("Primary", primaryColor);
+        labelTag.putInt("Secondary", secondaryColor);
+        tag.put("LabelColor", labelTag);
     }
 
     /**
@@ -235,26 +283,40 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
      */
     public enum LabelPattern {
 
-        FLAT, CROSS, EYE, PARALLEL, STAR, GOLD;
+        FLAT, CROSS, EYE, PARALLEL, STAR, GOLD(true);
 
-        private final ResourceLocation texture;
+        private final boolean simple;
+        private final Pair<ResourceLocation, ResourceLocation> textures;
 
         LabelPattern() {
-            this.texture = new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_etched_music_disc_label.png");
+            this(false);
+        }
+
+        LabelPattern(boolean simple) {
+            this.simple = simple;
+            this.textures = Pair.of(
+                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_bottom") + ".png"),
+                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_top") + ".png")
+            );
         }
 
         /**
-         * @return The location of the label texture
+         * @return A pair of {@link ResourceLocation} for a top and bottom texture. If the pattern is simple, both locations are the same.
          */
-        @Environment(EnvType.CLIENT)
-        public ResourceLocation getTexture() {
-            return texture;
+        public Pair<ResourceLocation, ResourceLocation> getTextures() {
+            return textures;
         }
 
         /**
-         * @return Whether or not this label can be colored
+         * @return Whether the label pattern supports two colors.
          */
-        @Environment(EnvType.CLIENT)
+        public boolean isSimple() {
+            return simple;
+        }
+
+        /**
+         * @return Whether this label can be colored
+         */
         public boolean isColorable() {
             return this != GOLD;
         }

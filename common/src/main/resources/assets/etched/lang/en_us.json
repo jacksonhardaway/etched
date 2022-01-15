@@ -11,6 +11,7 @@
   "item.etched.etched_music_disc.album": "Album",
   "item.etched.jukebox_minecart": "Minecart with Jukebox",
   "item.etched.music_label": "Music Label",
+  "item.etched.complex_music_label": "Complex Music Label",
   "record.etched.downloadFail": "Failed to download %s",
   "record.etched.downloadProgress": "Downloading (%s MB / %s MB): %s",
   "record.etched.resolvingTracks": "Resolving Tracks...",

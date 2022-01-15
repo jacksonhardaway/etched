@@ -26,6 +26,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -193,14 +194,24 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             return;
 
         EtchedMusicDiscItem.LabelPattern pattern = EtchedMusicDiscItem.LabelPattern.values()[index];
-        int labelColor = this.labelStack.getItem() instanceof MusicLabelItem ? ((MusicLabelItem) this.labelStack.getItem()).getColor(this.labelStack) : 0xFFFFFF;
+        int primaryLabelColor = MusicLabelItem.getPrimaryColor(this.labelStack);
+        int secondaryLabelColor = MusicLabelItem.getSecondaryColor(this.labelStack);
 
         if (pattern.isColorable())
-            RenderSystem.color3f((float) (labelColor >> 16 & 255) / 255.0F, (float) (labelColor >> 8 & 255) / 255.0F, (float) (labelColor & 255) / 255.0F);
+            RenderSystem.color3f((float) (primaryLabelColor >> 16 & 255) / 255.0F, (float) (primaryLabelColor >> 8 & 255) / 255.0F, (float) (primaryLabelColor & 255) / 255.0F);
         RenderSystem.alphaFunc(GL_EQUAL, 1);
         RenderSystem.enableAlphaTest();
-        Minecraft.getInstance().getTextureManager().bind(pattern.getTexture());
+
+        Pair<ResourceLocation, ResourceLocation> textures = pattern.getTextures();
+        Minecraft.getInstance().getTextureManager().bind(textures.getLeft());
         Gui.blit(poseStack, x, y, 1, 1, 14, 14, 16, 16);
+        if (!pattern.isSimple()) {
+            if (pattern.isColorable())
+                RenderSystem.color3f((float) (secondaryLabelColor >> 16 & 255) / 255.0F, (float) (secondaryLabelColor >> 8 & 255) / 255.0F, (float) (secondaryLabelColor & 255) / 255.0F);
+
+            Minecraft.getInstance().getTextureManager().bind(textures.getRight());
+            Gui.blit(poseStack, x, y, 1, 1, 14, 14, 16, 16);
+        }
         RenderSystem.disableAlphaTest();
         RenderSystem.color4f(1F, 1F, 1F, 1F);
     }

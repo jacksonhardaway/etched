@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
@@ -77,9 +78,16 @@ public class BandcampSource implements SoundDownloadSource {
         }
     }
 
+    @Nullable
+    private String getTrackUrl(JsonObject fileJson) {
+        if (fileJson.has("mp3-128"))
+            return GsonHelper.getAsString(fileJson, "mp3-128");
+        return null;
+    }
+
     @Override
-    public List<URL> resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
-        return resolve(trackUrl, progressListener, proxy, json -> {
+    public List<URL> resolveUrl(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
+        return resolve(url, progressListener, proxy, json -> {
             if (progressListener != null)
                 progressListener.progressStartRequest(RESOLVING_TRACKS);
             JsonArray trackInfoArray = GsonHelper.getAsJsonArray(json, "trackinfo");
@@ -87,26 +95,44 @@ public class BandcampSource implements SoundDownloadSource {
             for (int i = 0; i < trackInfoArray.size(); i++) {
                 JsonObject trackInfoJson = GsonHelper.convertToJsonObject(trackInfoArray.get(i), "trackinfo[" + i + "]");
                 JsonObject fileJson = GsonHelper.getAsJsonObject(trackInfoJson, "file");
-                if (fileJson.has("mp3-128"))
-                    trackUrls.add(new URL(GsonHelper.getAsString(fileJson, "mp3-128")));
+                String trackUrl = this.getTrackUrl(fileJson);
+                if (trackUrl != null)
+                    trackUrls.add(new URL(trackUrl));
             }
             return trackUrls;
         });
     }
 
     @Override
-    public Optional<TrackData> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
-        return Optional.of(resolve(trackUrl, progressListener, proxy, json -> {
+    public Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
+        return this.resolve(url, progressListener, proxy, json -> {
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
             String artist = GsonHelper.getAsString(json, "artist");
             String title = GsonHelper.getAsString(current, "title");
             String type = GsonHelper.getAsString(GsonHelper.getAsJsonObject(json, "current"), "type");
-            return new TrackData(artist, title, "album".equals(type));
-        }));
+            if ("album".equals(type)) {
+                JsonArray trackInfoJson = GsonHelper.getAsJsonArray(json, "trackinfo");
+                List<TrackData> tracks = new ArrayList<>(trackInfoJson.size());
+                tracks.add(new TrackData(url, artist, title));
+                for (int i = 0; i < trackInfoJson.size(); i++) {
+                    JsonObject trackJson = GsonHelper.convertToJsonObject(trackInfoJson.get(i), "trackinfo[" + i + "]");
+                    String trackUrl = this.getTrackUrl(GsonHelper.getAsJsonObject(trackJson, "file"));
+                    if (trackUrl == null)
+                        continue;
+
+                    String trackArtist = trackJson.has("artist") && !trackJson.get("artist").isJsonNull() ? GsonHelper.getAsString(trackJson, "artist", artist) : artist;
+                    String trackTitle = GsonHelper.getAsString(trackJson, "title");
+
+                    tracks.add(new TrackData(trackUrl, trackArtist, trackTitle));
+                }
+                return Optional.of(tracks.toArray(new TrackData[0]));
+            }
+            return Optional.of(new TrackData[]{new TrackData(url, artist, title)});
+        });
     }
 
     @Override
-    public Optional<InputStream> resolveAlbumCover(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
+    public Optional<InputStream> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
         return Optional.empty();
     }
 

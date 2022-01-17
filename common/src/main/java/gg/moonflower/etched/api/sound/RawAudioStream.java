@@ -56,6 +56,7 @@ public class RawAudioStream implements AudioStream {
                     fails = 0;
                     total += read;
                 }
+                break; // EOF
             } catch (ArrayIndexOutOfBoundsException ignored) { // Ignore because the mp3 parser sometimes doesn't allocate properly
                 fails++;
             }

@@ -1,6 +1,7 @@
 package gg.moonflower.etched.api.sound.download;
 
 import com.google.gson.JsonParseException;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.SharedConstants;
@@ -44,37 +45,37 @@ public interface SoundDownloadSource {
     /**
      * Resolves the streaming URL for the specified track.
      *
-     * @param trackUrl         The URL to the track
+     * @param url              The URL to the track or album
      * @param progressListener The listener for net status
      * @param proxy            The internet proxy
      * @return The URL to the audio file
      * @throws IOException        If any error occurs with requests
      * @throws JsonParseException If any error occurs when parsing
      */
-    List<URL> resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException;
+    List<URL> resolveUrl(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException;
 
     /**
-     * Resolves the artist and title for the specified track.
+     * Resolves the artist and title for the specified track. If the more than one tracks are returned, the first data will be treated as the album data.
      *
-     * @param trackUrl         The URL to the track
+     * @param url              The URL to the track or album
      * @param progressListener The listener for net status
      * @param proxy            The internet proxy
      * @return The artist and title in a pair
      * @throws IOException        If any error occurs with requests
      * @throws JsonParseException If any error occurs when parsing
      */
-    Optional<TrackData> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
+    Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
 
     /**
      * Resolves the input stream to the cover for the specified album.
      *
-     * @param trackUrl         The URL to the album
+     * @param url              The URL to the album
      * @param progressListener The listener for net status
      * @param proxy            The internet proxy
      * @return A stream to the track or <code>{@link Optional#empty()}</code> if there is no cover
      * @throws IOException If any error occurs with requests
      */
-    Optional<InputStream> resolveAlbumCover(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException;
+    Optional<InputStream> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException;
 
     /**
      * Checks to see if the specified URL is for this source.
@@ -105,45 +106,5 @@ public interface SoundDownloadSource {
      */
     default Optional<Component> getBrandText(String url) {
         return Optional.empty();
-    }
-
-    /**
-     * Information about track metadata for discs
-     *
-     * @author Ocelot
-     * @since 2.0.0
-     */
-    class TrackData {
-
-        private final String artist;
-        private final String title;
-        private final boolean album;
-
-        public TrackData(String artist, String title, boolean album) {
-            this.artist = artist;
-            this.title = title;
-            this.album = album;
-        }
-
-        /**
-         * @return The name of the artist
-         */
-        public String getArtist() {
-            return artist;
-        }
-
-        /**
-         * @return The title of the piece
-         */
-        public String getTitle() {
-            return title;
-        }
-
-        /**
-         * @return Whether the music is an album or a single track
-         */
-        public boolean isAlbum() {
-            return album;
-        }
     }
 }

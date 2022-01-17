@@ -1,6 +1,7 @@
 package gg.moonflower.etched.common.network.play.handler;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.OnlineRecordSoundInstance;
 import gg.moonflower.etched.api.sound.StopListeningSound;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
@@ -113,6 +114,52 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         playAlbum((AlbumJukeboxBlockEntity) blockEntity, level, pos, true);
     }
 
+    private static void playJukeboxRecord(BlockPos pos, TrackData[] tracks, int track) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null)
+            return;
+
+        if (track >= tracks.length) {
+            if (level.getBlockState(pos).is(Blocks.JUKEBOX))
+                for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
+                    livingEntity.setRecordPlayingNearby(pos, false);
+            return;
+        }
+
+        TrackData trackData = tracks[track];
+        if (trackData.getUrl() == null || !TrackData.isValidURL(trackData.getUrl())) {
+            playJukeboxRecord(pos, tracks, track + 1);
+            return;
+        }
+        playRecord(pos, new StopListeningSound(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> {
+            if (!((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords().containsKey(pos))
+                return;
+            playJukeboxRecord(pos, tracks, track + 1);
+        })));
+    }
+
+    private static void playEntityRecord(ItemStack record, int entityId, int track) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null)
+            return;
+
+        Entity entity = level.getEntity(entityId);
+        if (entity == null)
+            return;
+
+        Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track);
+        if (!sound.isPresent())
+            return;
+
+        SoundInstance entitySound = new StopListeningSound(sound.get(), () -> {
+            ENTITY_PLAYING_SOUNDS.remove(entityId);
+            playEntityRecord(record, entityId, track + 1);
+        });
+
+        ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
+        Minecraft.getInstance().getSoundManager().play(entitySound);
+    }
+
     /**
      * Plays the records in an album jukebox in order.
      *
@@ -146,11 +193,12 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         ItemStack disc = jukebox.getItem(jukebox.getPlayingIndex());
         SoundInstance sound = null;
         if (disc.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get()) {
-            Optional<EtchedMusicDiscItem.MusicInfo> optional = EtchedMusicDiscItem.getMusic(disc);
+            Optional<TrackData[]> optional = EtchedMusicDiscItem.getMusic(disc);
             if (optional.isPresent()) {
-                EtchedMusicDiscItem.MusicInfo music = optional.get();
-                if (EtchedMusicDiscItem.isValidURL(music.getUrl())) {
-                    sound = new StopListeningSound(getEtchedRecord(music.getUrl(), music.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+                TrackData[] tracks = optional.get();
+                TrackData track = jukebox.getTrack() < 0 || jukebox.getTrack() >= tracks.length ? tracks[0] : tracks[jukebox.getTrack()];
+                if (TrackData.isValidURL(track.getUrl())) {
+                    sound = new StopListeningSound(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }
         }
@@ -187,16 +235,10 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 playingRecords.remove(pos);
             }
 
-            if (!EtchedMusicDiscItem.isValidURL(pkt.getUrl())) {
-                LOGGER.error("Server sent invalid music URL: " + pkt.getUrl());
+            if (pkt.getTracks().length == 0)
                 return;
-            }
 
-            playRecord(pos, new StopListeningSound(getEtchedRecord(pkt.getUrl(), pkt.getTitle(), level, pos), () -> Minecraft.getInstance().tell(() -> {
-                if (level.getBlockState(pos).is(Blocks.JUKEBOX))
-                    for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
-                        livingEntity.setRecordPlayingNearby(pos, false);
-            })));
+            playJukeboxRecord(pos, pkt.getTracks(), 0);
         });
     }
 
@@ -254,14 +296,19 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 return;
             }
 
-            Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity);
+            Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, 0);
             if (!sound.isPresent()) {
                 LOGGER.error("Server sent invalid music disc: " + record);
                 return;
             }
 
-            ENTITY_PLAYING_SOUNDS.put(entityId, sound.get());
-            soundManager.play(sound.get());
+            SoundInstance entitySound = new StopListeningSound(sound.get(), () -> {
+                ENTITY_PLAYING_SOUNDS.remove(entityId);
+                playEntityRecord(record, entityId, 1);
+            });
+
+            ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
+            soundManager.play(entitySound);
         });
     }
 

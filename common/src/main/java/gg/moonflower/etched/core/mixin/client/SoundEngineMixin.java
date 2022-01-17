@@ -1,6 +1,7 @@
 package gg.moonflower.etched.core.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.AbstractOnlineSoundInstance;
 import gg.moonflower.etched.api.sound.MonoWrapper;
 import gg.moonflower.etched.api.sound.RawAudioStream;
@@ -72,7 +73,7 @@ public abstract class SoundEngineMixin {
             return soundBufferLibrary.getStream(resourceLocation, loop);
 
         AbstractOnlineSoundInstance.OnlineSound onlineSound = (AbstractOnlineSoundInstance.OnlineSound) this.sound;
-        if (EtchedMusicDiscItem.isLocalSound(onlineSound.getURL())) {
+        if (TrackData.isLocalSound(onlineSound.getURL())) {
             WeighedSoundEvents weighedSoundEvents = Minecraft.getInstance().getSoundManager().getSoundEvent(new ResourceLocation(onlineSound.getURL()));
             if (weighedSoundEvents == null)
                 throw new CompletionException(new FileNotFoundException("Unable to play unknown soundEvent: " + resourceLocation));

@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.mojang.datafixers.util.Pair;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.M3uParser;
@@ -15,7 +15,6 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
-import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -86,70 +85,68 @@ public class SoundCloudSource implements SoundDownloadSource {
         }
     }
 
-    private List<URL> resolveTrackUrl(JsonObject json, Proxy proxy) throws IOException {
-        JsonArray media = GsonHelper.getAsJsonArray(GsonHelper.getAsJsonObject(json, "media"), "transcodings");
-
-        int progressiveIndex = -1;
-        for (int i = 0; i < media.size(); i++) {
-            JsonObject transcodingJson = GsonHelper.convertToJsonObject(media.get(i), "transcodings[" + i + "]");
-
-            JsonObject format = transcodingJson.getAsJsonObject("format");
-            String protocol = format.get("protocol").getAsString();
-            if ("progressive".equals(protocol))
-                progressiveIndex = i;
-            if ("hls".equals(protocol)) {
-                try (InputStreamReader r = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", null, proxy, 0, true))) {
-                    try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), null, proxy, 0, false))) {
-                        return M3uParser.parse(reader);
-                    }
-                }
-            }
-        }
-        if (progressiveIndex == -1)
-            throw new IOException("Could not find an audio source");
-        try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url") + "?client_id=", null, proxy, 0, true))) {
-            return Collections.singletonList(new URL(GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url")));
-        }
-    }
-
     @Override
-    public List<URL> resolveUrl(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
-        return resolve(trackUrl, progressListener, proxy, json -> {
+    public List<URL> resolveUrl(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
+        return resolve(url, progressListener, proxy, json -> {
             if (progressListener != null)
                 progressListener.progressStartRequest(RESOLVING_TRACKS);
-            String kind = GsonHelper.getAsString(json, "kind");
-            if ("playlist".equals(kind)) {
-                JsonArray tracksJson = GsonHelper.getAsJsonArray(json, "tracks");
-                List<URL> urls = new ArrayList<>();
+            JsonArray media = GsonHelper.getAsJsonArray(GsonHelper.getAsJsonObject(json, "media"), "transcodings");
 
-                for (int i = 0; i < tracksJson.size(); i++) {
-                    try {
-                        urls.addAll(resolveTrackUrl(GsonHelper.convertToJsonObject(tracksJson.get(i), "tracks[" + i + "]"), proxy));
-                    } catch (Exception ignored) {
+            int progressiveIndex = -1;
+            for (int i = 0; i < media.size(); i++) {
+                JsonObject transcodingJson = GsonHelper.convertToJsonObject(media.get(i), "transcodings[" + i + "]");
+
+                JsonObject format = transcodingJson.getAsJsonObject("format");
+                String protocol = format.get("protocol").getAsString();
+                if ("progressive".equals(protocol))
+                    progressiveIndex = i;
+                if ("hls".equals(protocol)) {
+                    try (InputStreamReader r = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", null, proxy, 0, true))) {
+                        try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), null, proxy, 0, false))) {
+                            return M3uParser.parse(reader);
+                        }
                     }
                 }
-                if (urls.isEmpty())
-                    throw new IOException("Failed to retrieve tracks in album");
-                return urls;
             }
-            return resolveTrackUrl(json, proxy);
+            if (progressiveIndex == -1)
+                throw new IOException("Could not find an audio source");
+            try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url") + "?client_id=", null, proxy, 0, true))) {
+                return Collections.singletonList(new URL(GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url")));
+            }
         });
     }
 
     @Override
-    public Optional<TrackData> resolveTrack(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
-        return Optional.of(resolve(trackUrl, progressListener, proxy, json -> {
+    public Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
+        return this.resolve(url, progressListener, proxy, json -> {
             JsonObject user = GsonHelper.getAsJsonObject(json, "user");
             String artist = GsonHelper.getAsString(user, "username");
             String title = GsonHelper.getAsString(json, "title");
             String kind = GsonHelper.getAsString(json, "kind");
-            return new TrackData(artist, title, "playlist".equals(kind));
-        }));
+            if ("playlist".equals(kind)) {
+                JsonArray tracksJson = GsonHelper.getAsJsonArray(json, "tracks");
+                List<TrackData> tracks = new ArrayList<>();
+                tracks.add(new TrackData(url, artist, title));
+
+                for (int i = 0; i < tracksJson.size(); i++) {
+                    JsonObject trackJson = GsonHelper.convertToJsonObject(tracksJson.get(i), "tracks[" + i + "]");
+                    JsonObject trackUser = GsonHelper.getAsJsonObject(trackJson, "user");
+                    String trackUrl = GsonHelper.getAsString(trackJson, "permalink_url");
+                    String trackArtist = GsonHelper.getAsString(trackUser, "username");
+                    String trackTitle = GsonHelper.getAsString(trackJson, "title");
+                    tracks.add(new TrackData(trackUrl, trackArtist, trackTitle));
+                }
+
+                return Optional.of(tracks.toArray(new TrackData[0]));
+            }
+
+            return Optional.of(new TrackData[]{new TrackData(url, artist, title)});
+        });
     }
 
     @Override
-    public Optional<InputStream> resolveAlbumCover(String trackUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
-        return resolve(trackUrl, progressListener, proxy, json -> {
+    public Optional<InputStream> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
+        return resolve(url, progressListener, proxy, json -> {
             if (!"playlist".equals(GsonHelper.getAsString(json, "kind")))
                 return Optional.empty();
             if (!json.has("artwork_url") || json.get("artwork__url").isJsonNull())

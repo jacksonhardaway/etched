@@ -22,12 +22,12 @@ public class RecordItemMixin implements PlayableRecord {
 
     @Override
     @Environment(EnvType.CLIENT)
-    public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity) {
-        if (!(stack.getItem() instanceof RecordItem))
+    public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
+        if (track != 0 || !(stack.getItem() instanceof RecordItem))
             return Optional.empty();
 
         if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
-           PlayableRecord.showMessage(((RecordItem) stack.getItem()).getDisplayName());
+            PlayableRecord.showMessage(((RecordItem) stack.getItem()).getDisplayName());
         return Optional.of(new EntityRecordSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
     }
 }

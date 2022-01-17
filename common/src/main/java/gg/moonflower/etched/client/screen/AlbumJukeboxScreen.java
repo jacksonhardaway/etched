@@ -2,7 +2,10 @@ package gg.moonflower.etched.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import gg.moonflower.etched.api.record.TrackData;
+import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -12,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.List;
@@ -22,9 +26,11 @@ import java.util.List;
 public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu> {
 
     private static final ResourceLocation CONTAINER_LOCATION = new ResourceLocation("textures/gui/container/dispenser.png");
+    private static final Component NOW_PLAYING = new TextComponent("Now Playing").withStyle(ChatFormatting.YELLOW);
 
     private BlockPos pos;
     private int playingIndex;
+    private int playingTrack;
 
     public AlbumJukeboxScreen(AlbumJukeboxMenu dispenserMenu, Inventory inventory, Component component) {
         super(dispenserMenu, inventory, component);
@@ -54,6 +60,7 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
         this.blit(poseStack, guiLeft, guiTop, 0, 0, this.imageWidth, this.imageHeight);
 
         this.playingIndex = -1;
+        this.playingTrack = 0;
         ClientLevel level = this.minecraft.level;
         if (level == null || !this.menu.isInitialized())
             return;
@@ -70,6 +77,7 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
             return;
 
         this.playingIndex = ((AlbumJukeboxBlockEntity) blockEntity).getPlayingIndex();
+        this.playingTrack = ((AlbumJukeboxBlockEntity) blockEntity).getTrack();
         if (this.playingIndex != -1) {
             int x = this.playingIndex % 3;
             int y = this.playingIndex / 3;
@@ -80,9 +88,18 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
     @Override
     protected void renderTooltip(PoseStack poseStack, int i, int j) {
         if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
-            List<Component> tooltip = this.getTooltipFromItem(this.hoveredSlot.getItem());
-            if (this.hoveredSlot.index == this.playingIndex)
-                tooltip.add(new TextComponent("Now Playing").withStyle(ChatFormatting.YELLOW));
+            ItemStack stack = this.hoveredSlot.getItem();
+            List<Component> tooltip = this.getTooltipFromItem(stack);
+            if (this.hoveredSlot.index == this.playingIndex) {
+                tooltip.add(NOW_PLAYING);
+                if (this.playingTrack >= 0 && EtchedMusicDiscItem.getTrackCount(stack) > 1) {
+                    EtchedMusicDiscItem.getMusic(stack).filter(tracks -> this.playingTrack < tracks.length).ifPresent(tracks -> {
+                        TrackData track = tracks[this.playingTrack];
+                        tooltip.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
+                        SoundSourceManager.getBrandText(track.getUrl()).ifPresent(tooltip::add);
+                    });
+                }
+            }
             this.renderComponentTooltip(poseStack, tooltip, i, j);
         }
     }

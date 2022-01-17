@@ -3,6 +3,7 @@ package gg.moonflower.etched.common.blockentity;
 import dev.architectury.injectables.annotations.PlatformOnly;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
+import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
@@ -34,12 +35,14 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
     private NonNullList<ItemStack> items;
     private int playingIndex;
+    private int track;
     private ItemStack playingStack;
 
     public AlbumJukeboxBlockEntity(BlockPos pos, BlockState state) {
         super(EtchedBlocks.ALBUM_JUKEBOX_BE.get(), pos, state);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         this.playingIndex = -1;
+        this.track = 0;
         this.playingStack = ItemStack.EMPTY;
     }
 
@@ -183,11 +186,16 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         return playingIndex;
     }
 
+    public int getTrack() {
+        return track;
+    }
+
     /**
      * Stops playing the current track and resets to the start.
      */
     public void stopPlaying() {
         this.playingIndex = -1;
+        this.track = 0;
         this.playingStack = ItemStack.EMPTY;
     }
 
@@ -195,9 +203,15 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
      * Cycles to the next index to begin playing.
      */
     public void next() {
-        this.playingIndex++;
-        this.playingIndex %= this.getContainerSize();
-        this.playingStack = ItemStack.EMPTY;
+        int tracks = EtchedMusicDiscItem.getTrackCount(this.playingStack);
+        if (this.track < tracks - 1) {
+            this.track++;
+        } else {
+            this.playingIndex++;
+            this.playingIndex %= this.getContainerSize();
+            this.track = 0;
+            this.playingStack = ItemStack.EMPTY;
+        }
     }
 
     /**
@@ -213,6 +227,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
                 this.playingIndex = 0;
                 if (wrap) {
                     this.playingIndex = -1;
+                    this.track = 0;
                     this.playingStack = ItemStack.EMPTY;
                     return;
                 }
@@ -232,12 +247,17 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
             if (this.playingIndex == -1)
                 return false;
             this.playingIndex = -1;
+            this.track = 0;
             return true;
         }
 
         int oldIndex = this.playingIndex;
         ItemStack oldStack = this.playingStack.copy();
         this.nextPlayingIndex();
-        return oldIndex != this.playingIndex || !ItemStack.matches(oldStack, this.playingStack);
+        if (oldIndex != this.playingIndex || !ItemStack.matches(oldStack, this.playingStack)) {
+            this.track = 0;
+            return true;
+        }
+        return false;
     }
 }

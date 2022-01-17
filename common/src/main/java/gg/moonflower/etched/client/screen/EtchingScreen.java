@@ -2,6 +2,7 @@ package gg.moonflower.etched.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;
 import gg.moonflower.etched.common.menu.EtchingMenu;
@@ -107,7 +108,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         if (slot == 0) {
             if (this.discStack.isEmpty() && !stack.isEmpty())
                 this.url.setValue("");
-            EtchedMusicDiscItem.getMusic(stack).ifPresent(musicInfo -> this.url.setValue(musicInfo.getUrl()));
+            EtchedMusicDiscItem.getAlbum(stack).ifPresent(track -> this.url.setValue(track.getUrl()));
             this.discStack = stack;
         }
 
@@ -145,7 +146,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.missing_label").getVisualOrderText());
         } else if (!isEtched && this.discStack.isEmpty() && !this.labelStack.isEmpty()) {
             reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.missing_disc").getVisualOrderText());
-        } else if ((!this.url.getValue().isEmpty() && !EtchedMusicDiscItem.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty()) {
+        } else if ((!this.url.getValue().isEmpty() && !TrackData.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty()) {
             reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.invalid_url").getVisualOrderText());
             if (!this.invalidReason.isEmpty())
                 reasonLines.addAll(this.font.split(new TextComponent(this.invalidReason).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC), 200));
@@ -162,7 +163,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
 
         RenderSystem.setShaderTexture(0, TEXTURE);
         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        if ((!this.url.getValue().isEmpty() && !EtchedMusicDiscItem.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty() || (this.discStack.getItem() != EtchedItems.ETCHED_MUSIC_DISC.get() && ((!this.discStack.isEmpty() && this.labelStack.isEmpty()) || (this.discStack.isEmpty() && !this.labelStack.isEmpty()))))
+        if ((!this.url.getValue().isEmpty() && !TrackData.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty() || (this.discStack.getItem() != EtchedItems.ETCHED_MUSIC_DISC.get() && ((!this.discStack.isEmpty() && this.labelStack.isEmpty()) || (this.discStack.isEmpty() && !this.labelStack.isEmpty()))))
             this.blit(poseStack, this.leftPos + 83, this.topPos + 44, 0, 226, 27, 17);
 
         this.blit(poseStack, this.leftPos + 9, this.topPos + 21, 0, (this.discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get() || (!this.discStack.isEmpty() && !this.labelStack.isEmpty()) ? 180 : 196), 158, 16);

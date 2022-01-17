@@ -1,6 +1,6 @@
 package gg.moonflower.etched.api.sound.download;
 
-import com.mojang.datafixers.util.Pair;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.source.RawAudioSource;
 import gg.moonflower.etched.api.sound.source.StreamingAudioSource;
@@ -81,10 +81,10 @@ public final class SoundSourceManager {
      * @return The track information found or nothing
      * @throws IOException If any error occurs when connecting to the sources
      */
-    public static Optional<SoundDownloadSource.TrackData> resolveTrack(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
+    public static Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
         SoundDownloadSource source = SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().orElseThrow(() -> new IOException("Unknown source for: " + url));
         try {
-            return source.resolveTrack(url, listener, proxy);
+            return source.resolveTracks(url, listener, proxy);
         } catch (Exception e) {
             throw new IOException("Failed to connect to " + source.getApiName() + " API", e);
         }

@@ -3,7 +3,6 @@ package gg.moonflower.etched.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.etched.api.record.TrackData;
-import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
@@ -13,7 +12,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -21,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Ocelot
@@ -93,13 +92,16 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
             ItemStack stack = this.hoveredSlot.getItem();
             List<Component> tooltip = this.getTooltipFromItem(stack);
             if (this.hoveredSlot.index == this.playingIndex) {
-                tooltip.add(NOW_PLAYING);
                 if (this.playingTrack >= 0 && EtchedMusicDiscItem.getTrackCount(stack) > 1) {
-                    EtchedMusicDiscItem.getMusic(stack).filter(tracks -> this.playingTrack < tracks.length).ifPresent(tracks -> {
-                        TrackData track = tracks[this.playingTrack];
-                        tooltip.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-                        SoundSourceManager.getBrandText(track.getUrl()).ifPresent(tooltip::add);
-                    });
+                    Optional<TrackData[]> optional = EtchedMusicDiscItem.getMusic(stack).filter(tracks -> this.playingTrack < tracks.length);
+                    if (optional.isPresent()) {
+                        TrackData track = optional.get()[this.playingTrack];
+                        tooltip.add(NOW_PLAYING.copy().append(": ").append(track.getDisplayName()));
+                    } else {
+                        tooltip.add(NOW_PLAYING);
+                    }
+                } else {
+                    tooltip.add(NOW_PLAYING);
                 }
             }
             this.renderComponentTooltip(poseStack, tooltip, i, j);

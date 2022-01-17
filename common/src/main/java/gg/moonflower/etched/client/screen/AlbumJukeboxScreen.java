@@ -7,12 +7,14 @@ import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
+import gg.moonflower.etched.core.Etched;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +28,7 @@ import java.util.List;
 public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu> {
 
     private static final ResourceLocation CONTAINER_LOCATION = new ResourceLocation("textures/gui/container/dispenser.png");
-    private static final Component NOW_PLAYING = new TextComponent("Now Playing").withStyle(ChatFormatting.YELLOW);
+    private static final Component NOW_PLAYING = new TranslatableComponent("screen." + Etched.MOD_ID + ".album_jukebox.now_playing").withStyle(ChatFormatting.YELLOW);
 
     private BlockPos pos;
     private int playingIndex;

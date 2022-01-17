@@ -19,6 +19,7 @@
   "screen.etched.etching_table.error.invalid_url": "Cannot etch invalid url",
   "screen.etched.etching_table.error.missing_disc": "Blank disc is required to etch",
   "screen.etched.etching_table.error.missing_label": "Music label is required to etch",
+  "screen.etched.album_jukebox.now_playing": "Now Playing",
   "sound_source.etched.requesting": "Requesting from %s...",
   "sound_source.etched.sound_cloud": "Provided by SoundCloud",
   "sound_source.etched.bandcamp": "Provided by Bandcamp",

@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.download;
+package gg.moonflower.etched.common.sound.download;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;

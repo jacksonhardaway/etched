@@ -106,6 +106,9 @@ public class BandcampSource implements SoundDownloadSource {
     @Override
     public Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
         return this.resolve(url, progressListener, proxy, json -> {
+            int urlEnd = url.indexOf(".com/");
+            if (urlEnd == -1)
+                urlEnd = url.length() - 4;
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
             String artist = GsonHelper.getAsString(json, "artist");
             String title = GsonHelper.getAsString(current, "title");
@@ -116,10 +119,7 @@ public class BandcampSource implements SoundDownloadSource {
                 tracks.add(new TrackData(url, artist, title));
                 for (int i = 0; i < trackInfoJson.size(); i++) {
                     JsonObject trackJson = GsonHelper.convertToJsonObject(trackInfoJson.get(i), "trackinfo[" + i + "]");
-                    String trackUrl = this.getTrackUrl(GsonHelper.getAsJsonObject(trackJson, "file"));
-                    if (trackUrl == null)
-                        continue;
-
+                    String trackUrl = url.substring(0, urlEnd + 4) + GsonHelper.getAsString(trackJson, "title_link");
                     String trackArtist = trackJson.has("artist") && !trackJson.get("artist").isJsonNull() ? GsonHelper.getAsString(trackJson, "artist", artist) : artist;
                     String trackTitle = GsonHelper.getAsString(trackJson, "title");
 

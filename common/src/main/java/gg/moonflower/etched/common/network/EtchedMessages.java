@@ -1,10 +1,6 @@
 package gg.moonflower.etched.common.network;
 
-import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
-import gg.moonflower.etched.common.network.play.ClientboundInvalidEtchUrlPacket;
-import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
-import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
-import gg.moonflower.etched.common.network.play.ServerboundSetEtchingUrlPacket;
+import gg.moonflower.etched.common.network.play.*;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.common.network.play.handler.EtchedServerPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
@@ -23,5 +19,6 @@ public class EtchedMessages {
         PLAY.register(ClientboundPlayEntityMusicPacket.class, ClientboundPlayEntityMusicPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
         PLAY.register(ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
         PLAY.register(ServerboundSetEtchingUrlPacket.class, ServerboundSetEtchingUrlPacket::new, PollinatedPacketDirection.PLAY_SERVERBOUND);
+        PLAY.register(SetAlbumJukeboxTrackPacket.class, SetAlbumJukeboxTrackPacket::new, null); // Bidirectional
     }
 }

@@ -17,6 +17,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -191,6 +192,27 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     /**
+     * Sets the playing disc and track.
+     *
+     * @param playingIndex The new index to play
+     * @param track        The track to play on the disc
+     * @return Whether a change was made in the index
+     */
+    public boolean setPlayingIndex(int playingIndex, int track) {
+        this.playingIndex = playingIndex;
+        this.track = track;
+
+        if (this.recalculatePlayingIndex(false)) {
+            int tracks = EtchedMusicDiscItem.getTrackCount(this.playingStack);
+            if (this.track >= tracks)
+                this.track = 0;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Stops playing the current track and resets to the start.
      */
     public void stopPlaying() {
@@ -200,10 +222,26 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     /**
+     * Cycles to the previous index to begin playing.
+     */
+    public void previous() {
+        if (this.track > 0) {
+            this.track--;
+        } else {
+            this.playingIndex--;
+            if (this.playingIndex < 0)
+                this.playingIndex = this.getContainerSize() - 1;
+            this.recalculatePlayingIndex(true);
+            this.track = Math.max(0, EtchedMusicDiscItem.getTrackCount(this.playingStack) - 1);
+            this.playingStack = ItemStack.EMPTY;
+        }
+    }
+
+    /**
      * Cycles to the next index to begin playing.
      */
     public void next() {
-        int tracks = EtchedMusicDiscItem.getTrackCount(this.playingStack);
+        int tracks = this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 1 : EtchedMusicDiscItem.getTrackCount(this.getItem(this.playingIndex));
         if (this.track < tracks - 1) {
             this.track++;
         } else {
@@ -217,21 +255,34 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     /**
      * Starts playing the next valid song in the album.
      */
-    public void nextPlayingIndex() {
+    public void nextPlayingIndex(boolean reverse) {
         boolean wrap = false;
-        if (this.playingIndex < 0)
-            this.playingIndex = 0;
+        this.playingIndex = Mth.clamp(this.playingIndex, 0, this.getContainerSize() - 1);
         while (!PlayableRecord.isPlayableRecord(this.getItem(this.playingIndex))) {
-            this.playingIndex++;
-            if (this.playingIndex >= this.getContainerSize()) {
-                this.playingIndex = 0;
-                if (wrap) {
-                    this.playingIndex = -1;
-                    this.track = 0;
-                    this.playingStack = ItemStack.EMPTY;
-                    return;
+            if (reverse) {
+                this.playingIndex--;
+                if (this.playingIndex < 0) {
+                    this.playingIndex = this.getContainerSize() - 1;
+                    if (wrap) {
+                        this.playingIndex = -1;
+                        this.track = 0;
+                        this.playingStack = ItemStack.EMPTY;
+                        return;
+                    }
+                    wrap = true;
                 }
-                wrap = true;
+            } else {
+                this.playingIndex++;
+                if (this.playingIndex >= this.getContainerSize()) {
+                    this.playingIndex = 0;
+                    if (wrap) {
+                        this.playingIndex = -1;
+                        this.track = 0;
+                        this.playingStack = ItemStack.EMPTY;
+                        return;
+                    }
+                    wrap = true;
+                }
             }
         }
         this.playingStack = this.getItem(this.playingIndex).copy();
@@ -242,7 +293,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
      *
      * @return Whether a change was made
      */
-    public boolean recalculatePlayingIndex() {
+    public boolean recalculatePlayingIndex(boolean reverse) {
         if (this.isEmpty()) {
             if (this.playingIndex == -1)
                 return false;
@@ -253,11 +304,16 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
         int oldIndex = this.playingIndex;
         ItemStack oldStack = this.playingStack.copy();
-        this.nextPlayingIndex();
+        this.nextPlayingIndex(reverse);
         if (oldIndex != this.playingIndex || !ItemStack.matches(oldStack, this.playingStack)) {
             this.track = 0;
             return true;
         }
         return false;
+    }
+
+    public boolean isPlaying() {
+        BlockState state = this.getBlockState();
+        return (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED)) && !this.isEmpty();
     }
 }

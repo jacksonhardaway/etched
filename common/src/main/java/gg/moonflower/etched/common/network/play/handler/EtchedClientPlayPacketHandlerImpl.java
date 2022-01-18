@@ -5,15 +5,13 @@ import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.OnlineRecordSoundInstance;
 import gg.moonflower.etched.api.sound.StopListeningSound;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.entity.MinecartJukebox;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
-import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
-import gg.moonflower.etched.common.network.play.ClientboundInvalidEtchUrlPacket;
-import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
-import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
+import gg.moonflower.etched.common.network.play.*;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.GuiAccessor;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
@@ -51,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
@@ -173,7 +172,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
         BlockState state = level.getBlockState(pos);
-        if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !jukebox.recalculatePlayingIndex() && !force) // Something must already be playing since it would otherwise be -1 and a change would occur
+        if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !jukebox.recalculatePlayingIndex(false) && !force) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
         SoundInstance soundInstance = playingRecords.get(pos);
@@ -318,6 +317,19 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             if (Minecraft.getInstance().screen instanceof EtchingScreen) {
                 EtchingScreen screen = (EtchingScreen) Minecraft.getInstance().screen;
                 screen.setReason(pkt.getException());
+            }
+        });
+    }
+
+    @Override
+    public void handleSetAlbumJukeboxTrack(SetAlbumJukeboxTrackPacket pkt, PollinatedPacketContext ctx) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ctx.enqueueWork(() -> {
+            if (minecraft.level != null && minecraft.screen instanceof AlbumJukeboxScreen) {
+                AlbumJukeboxScreen screen = (AlbumJukeboxScreen) minecraft.screen;
+                BlockPos pos = screen.getMenu().getPos();
+                if (screen.getMenu().setPlayingTrack(minecraft.level, pkt))
+                    EtchedClientPlayPacketHandlerImpl.playAlbum((AlbumJukeboxBlockEntity) Objects.requireNonNull(minecraft.level.getBlockEntity(pos)), minecraft.level, pos, true);
             }
         });
     }

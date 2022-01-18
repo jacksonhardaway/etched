@@ -3,11 +3,13 @@ package gg.moonflower.etched.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.etched.api.record.TrackData;
+import gg.moonflower.etched.common.item.ComplexMusicLabelItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;
+import gg.moonflower.etched.common.item.SimpleMusicLabelItem;
 import gg.moonflower.etched.common.menu.EtchingMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.common.network.play.ServerboundSetEtchingUrlPacket;
+import gg.moonflower.etched.common.network.play.ServerboundSetEtchingTableUrlPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import net.minecraft.ChatFormatting;
@@ -70,7 +72,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         this.url.setMaxLength(32500);
         this.url.setResponder(s -> {
             if (!Objects.equals(this.oldUrl, s) && this.urlTicks <= 0)
-                EtchedMessages.PLAY.sendToServer(new ServerboundSetEtchingUrlPacket(""));
+                EtchedMessages.PLAY.sendToServer(new ServerboundSetEtchingTableUrlPacket(""));
             this.urlTicks = 8;
         });
         this.url.setCanLoseFocus(true);
@@ -99,7 +101,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             this.urlTicks--;
             if (this.urlTicks <= 0 && !Objects.equals(this.oldUrl, this.url.getValue())) {
                 this.oldUrl = this.url.getValue();
-                EtchedMessages.PLAY.sendToServer(new ServerboundSetEtchingUrlPacket(this.url.getValue()));
+                EtchedMessages.PLAY.sendToServer(new ServerboundSetEtchingTableUrlPacket(this.url.getValue()));
             }
         }
     }
@@ -193,8 +195,15 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             return;
 
         EtchedMusicDiscItem.LabelPattern pattern = EtchedMusicDiscItem.LabelPattern.values()[index];
-        int primaryLabelColor = MusicLabelItem.getPrimaryColor(this.labelStack);
-        int secondaryLabelColor = MusicLabelItem.getSecondaryColor(this.labelStack);
+        int primaryLabelColor = 0xFFFFFF;
+        int secondaryLabelColor = primaryLabelColor;
+        if (this.labelStack.getItem() instanceof MusicLabelItem)  {
+            primaryLabelColor = MusicLabelItem.getLabelColor(this.labelStack);
+            secondaryLabelColor = primaryLabelColor;
+        } else if  (this.labelStack.getItem() instanceof ComplexMusicLabelItem) {
+            primaryLabelColor = ComplexMusicLabelItem.getPrimaryColor(this.labelStack);
+            secondaryLabelColor = ComplexMusicLabelItem.getSecondaryColor(this.labelStack);
+        }
 
         if (pattern.isColorable())
             RenderSystem.color3f((float) (primaryLabelColor >> 16 & 255) / 255.0F, (float) (primaryLabelColor >> 8 & 255) / 255.0F, (float) (primaryLabelColor & 255) / 255.0F);

@@ -6,31 +6,23 @@ import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.sound.download.BandcampSource;
 import gg.moonflower.etched.client.sound.download.SoundCloudSource;
+import gg.moonflower.etched.common.item.BlankMusicDiscItem;
+import gg.moonflower.etched.common.item.ComplexMusicLabelItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.core.registry.EtchedBlocks;
-import gg.moonflower.etched.core.registry.EtchedEntities;
-import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.etched.core.registry.EtchedMenus;
-import gg.moonflower.etched.core.registry.EtchedSounds;
-import gg.moonflower.etched.core.registry.EtchedVillagers;
+import gg.moonflower.etched.core.registry.*;
 import gg.moonflower.pollen.api.config.ConfigManager;
 import gg.moonflower.pollen.api.config.PollinatedConfigType;
 import gg.moonflower.pollen.api.event.events.entity.ModifyTradesEvents;
 import gg.moonflower.pollen.api.event.events.registry.client.RegisterAtlasSpriteEvent;
 import gg.moonflower.pollen.api.platform.Platform;
-import gg.moonflower.pollen.api.registry.client.ColorRegistry;
-import gg.moonflower.pollen.api.registry.client.EntityRendererRegistry;
-import gg.moonflower.pollen.api.registry.client.ItemPredicateRegistry;
-import gg.moonflower.pollen.api.registry.client.RenderTypeRegistry;
-import gg.moonflower.pollen.api.registry.client.ScreenRegistry;
+import gg.moonflower.pollen.api.registry.client.*;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -106,8 +98,10 @@ public class Etched {
             registry.accept(new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label"));
         });
 
-        ColorRegistry.register((stack, index) -> index > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack), EtchedItems.BLANK_MUSIC_DISC);
-        ColorRegistry.register((stack, index) -> index == 0 ? MusicLabelItem.getPrimaryColor(stack) : index == 1 ? MusicLabelItem.getSecondaryColor(stack) : -1, EtchedItems.COMPLEX_MUSIC_LABEL, EtchedItems.MUSIC_LABEL);
+        ColorRegistry.register((stack, index) -> index == 0 || index == 1 ? MusicLabelItem.getLabelColor(stack) : -1, EtchedItems.MUSIC_LABEL);
+        ColorRegistry.register((stack, index) -> index == 0 ? ComplexMusicLabelItem.getPrimaryColor(stack) : index == 1 ? ComplexMusicLabelItem.getSecondaryColor(stack) : -1, EtchedItems.COMPLEX_MUSIC_LABEL);
+
+        ColorRegistry.register((stack, index) -> index > 0 ? -1 : ((BlankMusicDiscItem) stack.getItem()).getColor(stack), EtchedItems.BLANK_MUSIC_DISC);
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getDiscColor(stack) : EtchedMusicDiscItem.getPattern(stack).isColorable() ? index == 1 ? EtchedMusicDiscItem.getLabelPrimaryColor(stack) : index == 2 ? EtchedMusicDiscItem.getLabelSecondaryColor(stack) : -1 : -1, EtchedItems.ETCHED_MUSIC_DISC);
     }
 

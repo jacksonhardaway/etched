@@ -2,10 +2,13 @@ package gg.moonflower.etched.api.record;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import gg.moonflower.etched.core.Etched;
 import gg.moonflower.pollen.api.util.NbtConstants;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 import java.io.IOException;
 import java.net.URI;
@@ -20,11 +23,11 @@ import java.util.regex.Pattern;
  */
 public class TrackData {
 
-    public static final TrackData EMPTY = new TrackData(null, "Custom Music", "Unknown");
+    public static final TrackData EMPTY = new TrackData(null, "Unknown", "Custom Music");
     public static final Codec<TrackData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("Url").forGetter(TrackData::getUrl),
-            Codec.STRING.optionalFieldOf("Title", EMPTY.getTitle()).forGetter(TrackData::getTitle),
-            Codec.STRING.optionalFieldOf("Author", EMPTY.getArtist()).forGetter(TrackData::getArtist)
+            Codec.STRING.optionalFieldOf("Author", EMPTY.getArtist()).forGetter(TrackData::getArtist),
+            Codec.STRING.optionalFieldOf("Title", EMPTY.getTitle()).forGetter(TrackData::getTitle)
     ).apply(instance, TrackData::new));
 
     private static final Pattern RESOURCE_LOCATION_PATTERN = Pattern.compile("[a-z0-9_.-]+");
@@ -123,6 +126,6 @@ public class TrackData {
      * @return The name to show as the record title
      */
     public Component getDisplayName() {
-        return new TextComponent(this.artist + " - " + this.title);
+        return new TranslatableComponent("sound_source." + Etched.MOD_ID + ".info", this.artist, this.title);
     }
 }

@@ -7,12 +7,9 @@ import com.mojang.datafixers.util.Pair;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
-import gg.moonflower.etched.common.item.BlankMusicDiscItem;
-import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
-import gg.moonflower.etched.common.item.MusicLabelItem;
+import gg.moonflower.etched.common.item.*;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundInvalidEtchUrlPacket;
-import gg.moonflower.etched.common.network.play.SetAlbumJukeboxTrackPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
 import gg.moonflower.etched.core.registry.EtchedItems;
@@ -56,7 +53,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     static {
         ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
-        builder.add("audio/wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
+        builder.add("audio/wav", "audio/x-wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
         VALID_FORMATS = builder.build();
     }
 
@@ -111,7 +108,7 @@ public class EtchingMenu extends AbstractContainerMenu {
         this.labelSlot = this.addSlot(new Slot(this.input, 1, 62, 43) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.getItem() instanceof MusicLabelItem || stack.getItem() == EtchedItems.COMPLEX_MUSIC_LABEL.get();
+                return stack.getItem() instanceof SimpleMusicLabelItem;
             }
 
             @Override
@@ -275,8 +272,8 @@ public class EtchingMenu extends AbstractContainerMenu {
                         secondaryLabelColor = EtchedMusicDiscItem.getLabelSecondaryColor(discStack);
                         data = EtchedMusicDiscItem.getMusic(discStack).orElse(data);
                     }
-                    if (data.length == 1 && !labelStack.isEmpty() && labelStack.hasCustomHoverName())
-                        data[0] = data[0].withTitle(labelStack.getHoverName().getString());
+                    if (data.length == 1 && !labelStack.isEmpty())
+                        data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack));
                     if (SoundSourceManager.isValidUrl(this.url)) {
                         if (!Platform.isProduction())
                             DATA_CACHE.invalidate(this.url);
@@ -304,17 +301,22 @@ public class EtchingMenu extends AbstractContainerMenu {
                     }
                     if (discStack.getItem() instanceof BlankMusicDiscItem)
                         discColor = ((BlankMusicDiscItem) discStack.getItem()).getColor(discStack);
-                    if (labelStack.getItem() instanceof MusicLabelItem || labelStack.getItem() == EtchedItems.COMPLEX_MUSIC_LABEL.get()) {
-                        primaryLabelColor = MusicLabelItem.getPrimaryColor(labelStack);
-                        secondaryLabelColor = MusicLabelItem.getSecondaryColor(labelStack);
+                    if (labelStack.getItem() instanceof MusicLabelItem) {
+                        primaryLabelColor = MusicLabelItem.getLabelColor(labelStack);
+                        secondaryLabelColor = primaryLabelColor;
+                    } else if (labelStack.getItem() instanceof ComplexMusicLabelItem) {
+                        primaryLabelColor = ComplexMusicLabelItem.getPrimaryColor(labelStack);
+                        secondaryLabelColor = ComplexMusicLabelItem.getSecondaryColor(labelStack);
                     }
 
                     for (int i = 0; i < data.length; i++) {
                         TrackData trackData = data[i];
                         if (trackData.getArtist().equals(TrackData.EMPTY.getArtist()))
-                            trackData = trackData.withArtist(this.player.getDisplayName().getString());
+                            trackData = trackData.withArtist(MusicLabelItem.getAuthor(labelStack));
                         if (TrackData.isLocalSound(this.url))
                             trackData = trackData.withUrl(new ResourceLocation(this.url).toString());
+                        else
+                            trackData = trackData.withUrl(this.url);
                         data[i] = trackData;
                     }
 

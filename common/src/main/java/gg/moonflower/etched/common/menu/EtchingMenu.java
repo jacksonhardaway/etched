@@ -15,7 +15,6 @@ import gg.moonflower.etched.core.registry.EtchedBlocks;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.etched.core.registry.EtchedMenus;
 import gg.moonflower.etched.core.registry.EtchedSounds;
-import gg.moonflower.pollen.api.platform.Platform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
@@ -68,6 +67,8 @@ public class EtchingMenu extends AbstractContainerMenu {
     private String url;
     private int urlId;
     private long lastSoundTime;
+    private CompletableFuture<?> currentRequest;
+    private int currentRequestId;
 
     public EtchingMenu(int id, Inventory inventory) {
         this(id, inventory, ContainerLevelAccess.NULL);
@@ -245,20 +246,29 @@ public class EtchingMenu extends AbstractContainerMenu {
         }
 
         this.setupResultSlot();
-        this.broadcastChanges();
+        super.slotsChanged(container);
     }
 
     private void setupResultSlot() {
-        if (!this.player.level.isClientSide())
-            EtchedMessages.PLAY.sendTo((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(""));
+        if (this.player.level.isClientSide())
+            return;
+        if (this.currentRequest != null && !this.currentRequest.isDone() && this.urlId == this.currentRequestId)
+            return;
+
+        EtchedMessages.PLAY.sendTo((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(""));
         this.resultSlot.set(ItemStack.EMPTY);
-        if (this.labelIndex.get() >= 0 && this.labelIndex.get() < EtchedMusicDiscItem.LabelPattern.values().length && this.url != null && TrackData.isValidURL(this.url)) {
+        if (this.labelIndex.get() >= 0 && this.labelIndex.get() < EtchedMusicDiscItem.LabelPattern.values().length) {
             ItemStack discStack = this.discSlot.getItem();
             ItemStack labelStack = this.labelSlot.getItem();
 
             if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get() || (!discStack.isEmpty() && !labelStack.isEmpty())) {
-                int currentId = this.urlId;
-                CompletableFuture.supplyAsync(() -> {
+                if (!discStack.isEmpty())
+                    this.url = EtchedMusicDiscItem.getAlbum(discStack).map(TrackData::getUrl).orElse(null);
+                if (this.url == null || !TrackData.isValidURL(this.url))
+                    return;
+
+                int currentId = this.currentRequestId = this.urlId;
+                this.currentRequest = CompletableFuture.supplyAsync(() -> {
                     ItemStack resultStack = new ItemStack(EtchedItems.ETCHED_MUSIC_DISC.get());
                     resultStack.setCount(1);
 
@@ -275,8 +285,6 @@ public class EtchingMenu extends AbstractContainerMenu {
                     if (data.length == 1 && !labelStack.isEmpty())
                         data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack)).withArtist(MusicLabelItem.getAuthor(labelStack));
                     if (SoundSourceManager.isValidUrl(this.url)) {
-                        if (!Platform.isProduction())
-                            DATA_CACHE.invalidate(this.url);
                         try {
                             TrackData[] cache = DATA_CACHE.get(this.url, () -> SoundSourceManager.resolveTracks(this.url, null, Proxy.NO_PROXY).orElse(null));
                             if (cache != null)
@@ -327,8 +335,11 @@ public class EtchingMenu extends AbstractContainerMenu {
                 }, HttpUtil.DOWNLOAD_EXECUTOR).thenAcceptAsync(resultStack -> {
                     if (this.urlId == currentId && !ItemStack.matches(resultStack, this.resultSlot.getItem()) && !ItemStack.matches(resultStack, this.discSlot.getItem())) {
                         this.resultSlot.set(resultStack);
+                        this.urlId++;
+                        this.urlId %= 1000;
+                        this.broadcastChanges();
                     }
-                }).exceptionally(e -> {
+                }, this.player.level.getServer()).exceptionally(e -> {
                     e.printStackTrace();
                     return null;
                 });

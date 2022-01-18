@@ -311,7 +311,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
                     for (int i = 0; i < data.length; i++) {
                         TrackData trackData = data[i];
-                        if (trackData.getArtist() == null)
+                        if (trackData.getArtist().equals(TrackData.EMPTY.getArtist()))
                             trackData = trackData.withArtist(this.player.getDisplayName().getString());
                         if (TrackData.isLocalSound(this.url))
                             trackData = trackData.withUrl(new ResourceLocation(this.url).toString());

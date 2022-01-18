@@ -289,6 +289,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                     } else if (!TrackData.isLocalSound(this.url)) {
                         try {
                             checkStatus(this.url);
+                            data = new TrackData[]{data[0].withUrl(this.url)};
                         } catch (UnknownHostException e) {
                             if (!this.player.level.isClientSide())
                                 EtchedMessages.PLAY.sendTo((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket("Unknown host: " + this.url));
@@ -315,8 +316,6 @@ public class EtchingMenu extends AbstractContainerMenu {
                             trackData = trackData.withArtist(MusicLabelItem.getAuthor(labelStack));
                         if (TrackData.isLocalSound(this.url))
                             trackData = trackData.withUrl(new ResourceLocation(this.url).toString());
-                        else
-                            trackData = trackData.withUrl(this.url);
                         data[i] = trackData;
                     }
 

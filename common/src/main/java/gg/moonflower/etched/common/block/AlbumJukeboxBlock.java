@@ -1,9 +1,11 @@
 package gg.moonflower.etched.common.block;
 
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,11 +25,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Random;
 
 import java.util.Map;
 import java.util.Random;
@@ -112,6 +112,14 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
     @Override
     public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> GameEventListener getListener(Level level, T blockEntity) {
+        if (blockEntity instanceof AlbumJukeboxBlockEntity && level.isClientSide())
+            EtchedClientPlayPacketHandlerImpl.playAlbum((AlbumJukeboxBlockEntity) blockEntity, (ClientLevel) level, blockEntity.getBlockPos(), false);
+        return null;
     }
 
     @Nullable

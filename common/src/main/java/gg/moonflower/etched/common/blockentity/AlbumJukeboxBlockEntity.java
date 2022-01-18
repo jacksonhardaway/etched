@@ -71,6 +71,11 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
     }
 
+    public void onLoad() {
+        if (this.level != null && this.level.isClientSide())
+            EtchedClientPlayPacketHandlerImpl.playAlbum(this, (ClientLevel) this.level, this.getBlockPos(), false);
+    }
+
     @Override
     public void load(CompoundTag nbt) {
         super.load(nbt);

@@ -171,7 +171,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
-        BlockState state = level.getBlockState(pos);
+        BlockState state = jukebox.getBlockState();
         if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !jukebox.recalculatePlayingIndex(false) && !force) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
@@ -183,7 +183,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             playingRecords.remove(pos);
         }
 
-        if (level.getBlockState(pos).getValue(AlbumJukeboxBlock.POWERED))
+        if (state.getValue(AlbumJukeboxBlock.POWERED))
             jukebox.stopPlaying();
 
         if (jukebox.getPlayingIndex() < 0) // Nothing can be played inside the jukebox

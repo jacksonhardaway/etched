@@ -1,4 +1,4 @@
-package gg.moonflower.etched.client.sound.download;
+package gg.moonflower.etched.common.sound.download;
 
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import net.minecraft.Util;

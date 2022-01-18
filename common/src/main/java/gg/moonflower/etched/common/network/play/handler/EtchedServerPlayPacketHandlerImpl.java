@@ -41,7 +41,7 @@ public class EtchedServerPlayPacketHandlerImpl implements EtchedServerPlayPacket
         if (player == null)
             return;
 
-        ItemStack labelStack = player.inventory.getItem(slot);
+        ItemStack labelStack = player.getInventory().getItem(slot);
         SimpleMusicLabelItem.setTitle(labelStack, StringUtils.normalizeSpace(pkt.getTitle()));
         SimpleMusicLabelItem.setAuthor(labelStack, StringUtils.normalizeSpace(pkt.getAuthor()));
     }

@@ -56,7 +56,7 @@ public class EditMusicLabelScreen extends Screen {
             this.saveChanges();
             this.minecraft.setScreen(null);
         });
-        this.addButton(this.doneButton);
+        this.addRenderableWidget(this.doneButton);
 
         this.title = new EditBox(this.font, leftPos + 10, topPos + 91, 154, 10, TITLE_COMPONENT);
         this.title.setValue(SimpleMusicLabelItem.getTitle(this.labelStack));
@@ -83,7 +83,7 @@ public class EditMusicLabelScreen extends Screen {
                 this.doneButton.active = true;
             }
         });
-        this.addButton(this.title);
+        this.addRenderableWidget(this.title);
 
         this.author.setResponder(string -> {
             if ((this.title.getValue().isEmpty() || string.isEmpty()) && this.doneButton.active) {
@@ -92,7 +92,7 @@ public class EditMusicLabelScreen extends Screen {
                 this.doneButton.active = true;
             }
         });
-        this.addButton(this.author);
+        this.addRenderableWidget(this.author);
     }
 
     @Override
@@ -129,7 +129,7 @@ public class EditMusicLabelScreen extends Screen {
         int leftPos = (this.width - this.imageWidth) / 2;
         int topPos = (this.height - this.imageHeight) / 2;
 
-        Minecraft.getInstance().getTextureManager().bind(TEXTURE);
+        RenderSystem.setShaderTexture(0, TEXTURE);
         this.blit(poseStack, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
         this.font.draw(poseStack, TITLE_COMPONENT, leftPos + 7, topPos + 77, 4210752);
         this.font.draw(poseStack, AUTHOR_COMPONENT, leftPos + 7, topPos + 77 + 30, 4210752);
@@ -144,11 +144,11 @@ public class EditMusicLabelScreen extends Screen {
             secondaryLabelColor = ComplexMusicLabelItem.getSecondaryColor(this.labelStack);
         }
 
-        Minecraft.getInstance().getTextureManager().bind(LABEL);
-        RenderSystem.color4f((float) (primaryLabelColor >> 16 & 255) / 255.0F, (float) (primaryLabelColor >> 8 & 255) / 255.0F, (float) (primaryLabelColor & 255) / 255.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, LABEL);
+        RenderSystem.setShaderColor((float) (primaryLabelColor >> 16 & 255) / 255.0F, (float) (primaryLabelColor >> 8 & 255) / 255.0F, (float) (primaryLabelColor & 255) / 255.0F, 1.0F);
         this.blit(poseStack, leftPos, topPos, 0, 0, this.imageWidth, 70);
 
-        RenderSystem.color4f((float) (secondaryLabelColor >> 16 & 255) / 255.0F, (float) (secondaryLabelColor >> 8 & 255) / 255.0F, (float) (secondaryLabelColor & 255) / 255.0F, 1.0F);
+        RenderSystem.setShaderColor((float) (secondaryLabelColor >> 16 & 255) / 255.0F, (float) (secondaryLabelColor >> 8 & 255) / 255.0F, (float) (secondaryLabelColor & 255) / 255.0F, 1.0F);
         this.blit(poseStack, leftPos, topPos, 0, 70, this.imageWidth, 70);
     }
 
@@ -165,7 +165,7 @@ public class EditMusicLabelScreen extends Screen {
         SimpleMusicLabelItem.setTitle(this.labelStack, title);
         SimpleMusicLabelItem.setAuthor(this.labelStack, author);
 
-        int slot = this.hand == InteractionHand.MAIN_HAND ? this.player.inventory.selected : 40;
+        int slot = this.hand == InteractionHand.MAIN_HAND ? this.player.getInventory().selected : 40;
         EtchedMessages.PLAY.sendToServer(new ServerboundEditMusicLabelPacket(slot, author, title));
     }
 }

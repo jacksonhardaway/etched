@@ -51,6 +51,7 @@ public class Etched {
         EtchedSounds.SOUNDS.register(Etched.PLATFORM);
         EtchedVillagers.POI_TYPES.register(Etched.PLATFORM);
         EtchedVillagers.PROFESSIONS.register(Etched.PLATFORM);
+        EtchedRecipes.RECIPES.register(Etched.PLATFORM);
 
         EtchedMessages.init();
 

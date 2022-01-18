@@ -273,7 +273,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                         data = EtchedMusicDiscItem.getMusic(discStack).orElse(data);
                     }
                     if (data.length == 1 && !labelStack.isEmpty())
-                        data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack));
+                        data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack)).withArtist(MusicLabelItem.getAuthor(labelStack));
                     if (SoundSourceManager.isValidUrl(this.url)) {
                         if (!Platform.isProduction())
                             DATA_CACHE.invalidate(this.url);

@@ -73,8 +73,8 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
         Component last = new TextComponent("Last");
         Component next = new TextComponent("Next");
         Font font = Minecraft.getInstance().font;
-        this.addButton(new Button(this.leftPos + 7 + (54 - font.width(last)) / 2 - buttonPadding, this.topPos + 33, font.width(last) + 2 * buttonPadding, 20, last, b -> this.update(false)));
-        this.addButton(new Button(this.leftPos + 115 + (54 - font.width(last)) / 2 - buttonPadding, this.topPos + 33, font.width(next) + 2 * buttonPadding, 20, next, b -> this.update(true)));
+        this.addRenderableWidget(new Button(this.leftPos + 7 + (54 - font.width(last)) / 2 - buttonPadding, this.topPos + 33, font.width(last) + 2 * buttonPadding, 20, last, b -> this.update(false)));
+        this.addRenderableWidget(new Button(this.leftPos + 115 + (54 - font.width(last)) / 2 - buttonPadding, this.topPos + 33, font.width(next) + 2 * buttonPadding, 20, next, b -> this.update(true)));
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
     }
 

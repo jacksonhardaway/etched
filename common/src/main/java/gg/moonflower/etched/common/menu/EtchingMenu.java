@@ -262,7 +262,7 @@ public class EtchingMenu extends AbstractContainerMenu {
             ItemStack labelStack = this.labelSlot.getItem();
 
             if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get() || (!discStack.isEmpty() && !labelStack.isEmpty())) {
-                if (!discStack.isEmpty())
+                if (this.url == null && !discStack.isEmpty())
                     this.url = EtchedMusicDiscItem.getAlbum(discStack).map(TrackData::getUrl).orElse(null);
                 if (this.url == null || !TrackData.isValidURL(this.url))
                     return;

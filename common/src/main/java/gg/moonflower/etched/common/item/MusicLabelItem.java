@@ -2,11 +2,9 @@ package gg.moonflower.etched.common.item;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeableLeatherItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-public class MusicLabelItem extends Item implements DyeableLeatherItem {
-
+public class MusicLabelItem extends SimpleMusicLabelItem implements DyeableLeatherItem {
     public MusicLabelItem(Properties properties) {
         super(properties);
     }
@@ -17,19 +15,9 @@ public class MusicLabelItem extends Item implements DyeableLeatherItem {
         return compoundTag != null && compoundTag.contains("color", 99) ? compoundTag.getInt("color") : 0xFFFFFF;
     }
 
-    public static int getPrimaryColor(ItemStack itemStack) {
-        if (itemStack.getItem() instanceof MusicLabelItem)
-            return ((DyeableLeatherItem) itemStack.getItem()).getColor(itemStack);
-
-        CompoundTag compoundTag = itemStack.getTagElement("LabelColor");
-        return compoundTag != null && compoundTag.contains("Primary", 99) ? compoundTag.getInt("Primary") : 0xFFFFFF;
-    }
-
-    public static int getSecondaryColor(ItemStack itemStack) {
-        if (itemStack.getItem() instanceof MusicLabelItem)
-            return ((DyeableLeatherItem) itemStack.getItem()).getColor(itemStack);
-
-        CompoundTag compoundTag = itemStack.getTagElement("LabelColor");
-        return compoundTag != null && compoundTag.contains("Secondary", 99) ? compoundTag.getInt("Secondary") : 0xFFFFFF;
+    public static int getLabelColor(ItemStack stack) {
+        if (stack.getItem() instanceof MusicLabelItem)
+            return ((MusicLabelItem) stack.getItem()).getColor(stack);
+        return -1;
     }
 }

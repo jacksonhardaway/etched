@@ -8,15 +8,15 @@ import net.minecraft.network.FriendlyByteBuf;
 /**
  * @author Jackson
  */
-public class ServerboundSetEtchingUrlPacket implements PollinatedPacket<EtchedServerPlayPacketHandler> {
+public class ServerboundSetEtchingTableUrlPacket implements PollinatedPacket<EtchedServerPlayPacketHandler> {
 
     private final String url;
 
-    public ServerboundSetEtchingUrlPacket(String url) {
+    public ServerboundSetEtchingTableUrlPacket(String url) {
         this.url = url;
     }
 
-    public ServerboundSetEtchingUrlPacket(FriendlyByteBuf buf) {
+    public ServerboundSetEtchingTableUrlPacket(FriendlyByteBuf buf) {
         this.url = buf.readUtf(32767);
     }
 
@@ -27,7 +27,7 @@ public class ServerboundSetEtchingUrlPacket implements PollinatedPacket<EtchedSe
 
     @Override
     public void processPacket(EtchedServerPlayPacketHandler handler, PollinatedPacketContext ctx) {
-        handler.handleSetEtcherUrl(this, ctx);
+        handler.handleSetEtchingTableUrl(this, ctx);
     }
 
     /**

@@ -6,7 +6,7 @@ import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
 import net.minecraft.network.FriendlyByteBuf;
 
 /**
- * @author Jackson
+ * @author Ocelot
  */
 public class SetAlbumJukeboxTrackPacket implements PollinatedPacket<EtchedServerPlayPacketHandler> {
 

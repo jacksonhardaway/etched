@@ -1,6 +1,8 @@
 package gg.moonflower.etched.common.menu;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.network.play.SetAlbumJukeboxTrackPacket;
 import gg.moonflower.etched.core.registry.EtchedMenus;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -13,13 +15,15 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * @author Ocelot
  */
 public class AlbumJukeboxMenu extends AbstractContainerMenu {
 
-    public final int[] pos;
+    private final BlockPos.MutableBlockPos pos;
     private final Container container;
     private boolean initialized;
 
@@ -33,10 +37,40 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
         this.container = container;
         container.startOpen(inventory.player);
 
-        this.pos = new int[]{pos.getX(), pos.getY(), pos.getZ()};
-        this.addDataSlot(DataSlot.shared(this.pos, 0));
-        this.addDataSlot(DataSlot.shared(this.pos, 1));
-        this.addDataSlot(DataSlot.shared(this.pos, 2));
+        this.pos = new BlockPos.MutableBlockPos().set(pos);
+        this.addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return AlbumJukeboxMenu.this.pos.getX();
+            }
+
+            @Override
+            public void set(int value) {
+                AlbumJukeboxMenu.this.pos.setX(value);
+            }
+        });
+        this.addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return AlbumJukeboxMenu.this.pos.getY();
+            }
+
+            @Override
+            public void set(int value) {
+                AlbumJukeboxMenu.this.pos.setY(value);
+            }
+        });
+        this.addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return AlbumJukeboxMenu.this.pos.getZ();
+            }
+
+            @Override
+            public void set(int value) {
+                AlbumJukeboxMenu.this.pos.setZ(value);
+            }
+        });
 
         for (int n = 0; n < 3; ++n) {
             for (int m = 0; m < 3; ++m) {
@@ -58,6 +92,13 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
         for (int n = 0; n < 9; ++n) {
             this.addSlot(new Slot(inventory, n, 8 + n * 18, 142));
         }
+    }
+
+    public boolean setPlayingTrack(Level level, SetAlbumJukeboxTrackPacket pkt) {
+        BlockEntity blockEntity = level.getBlockEntity(this.pos);
+        if (blockEntity instanceof AlbumJukeboxBlockEntity)
+            return ((AlbumJukeboxBlockEntity) blockEntity).setPlayingIndex(pkt.getPlayingIndex(), pkt.getTrack());
+        return false;
     }
 
     @Override
@@ -112,5 +153,9 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
     @Environment(EnvType.CLIENT)
     public boolean isInitialized() {
         return initialized;
+    }
+
+    public BlockPos getPos() {
+        return pos;
     }
 }

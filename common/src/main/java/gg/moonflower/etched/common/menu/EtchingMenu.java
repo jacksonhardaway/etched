@@ -12,6 +12,7 @@ import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundInvalidEtchUrlPacket;
+import gg.moonflower.etched.common.network.play.SetAlbumJukeboxTrackPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
 import gg.moonflower.etched.core.registry.EtchedItems;

@@ -56,23 +56,22 @@ public class Etched {
 
         EtchedMessages.init();
 
-        // TODO: revamp trades
         ModifyTradesEvents.VILLAGER.register(context -> {
             if (context.getProfession() != EtchedVillagers.BARD.get())
                 return;
 
             ModifyTradesEvents.TradeRegistry tier1 = context.getTrades(1);
-            tier1.add(Items.MUSIC_DISC_13, 8, 1, 16, 2, true);
+            tier1.add(Items.MUSIC_DISC_13, 8, 1, 4, 20, true);
+            tier1.add(Items.MUSIC_DISC_11, 8, 1, 4, 20, true);
+            tier1.add(Items.MUSIC_DISC_CAT, 8, 1, 4, 20, true);
             tier1.add(Items.NOTE_BLOCK, 1, 2, 16, 2, true);
-            tier1.add(EtchedItems.MUSIC_LABEL, 4, 2, 12, 1, false);
+            tier1.add(EtchedItems.MUSIC_LABEL, 4, 2, 16, 1, false);
 
             ModifyTradesEvents.TradeRegistry tier2 = context.getTrades(2);
-            tier2.add(EtchedItems.BLANK_MUSIC_DISC, 28, 2, 12, 5, false);
-            tier2.add(EtchedBlocks.ETCHING_TABLE, 32, 1, 8, 5, false);
+            tier2.add(EtchedItems.BLANK_MUSIC_DISC, 28, 2, 12, 15, false);
+            tier2.add(EtchedBlocks.ETCHING_TABLE, 32, 1, 8, 15, false);
 
             ModifyTradesEvents.TradeRegistry tier3 = context.getTrades(3);
-            tier3.add(Items.JUKEBOX, 26, 1, 12, 10, false);
-            tier3.add(Items.MUSIC_DISC_CAT, 24, 1, 16, 20, true);
             tier3.add(Blocks.CLAY, 6, 1, 16, 2, false);
             tier3.add(Blocks.HAY_BLOCK, 12, 1, 8, 2, false);
             tier3.add(Blocks.WHITE_WOOL, 8, 1, 32, 4, false);
@@ -81,16 +80,14 @@ public class Etched {
             tier3.add(Blocks.GOLD_BLOCK, 48, 1, 2, 10, false);
 
             ModifyTradesEvents.TradeRegistry tier4 = context.getTrades(4);
-            for (Item item : ItemTags.MUSIC_DISCS.getValues())
-                tier4.add(item, 48, 1, 8, 30, true);
-            tier4.add(Items.JUKEBOX, 20, 1, 16, 30, true);
-            tier4.add(EtchedItems.JUKEBOX_MINECART, 24, 1, 16, 30, true);
-            tier4.add(EtchedBlocks.ALBUM_JUKEBOX, 30, 1, 12, 15, false);
+            tier3.add(Items.JUKEBOX, 26, 1, 4, 30, false);
+            tier4.add(EtchedItems.JUKEBOX_MINECART, 28, 1, 4, 30, false);
+            tier4.add(EtchedBlocks.ALBUM_JUKEBOX, 30, 1, 4, 30, false);
 
             ModifyTradesEvents.TradeRegistry tier5 = context.getTrades(5);
-            tier5.add(EtchedItems.BLANK_MUSIC_DISC, 8, 1, 16, 40, true);
-            tier5.add(EtchedItems.MUSIC_LABEL, 1, 1, 16, 40, true);
-            tier5.add(EtchedBlocks.ETCHING_TABLE, 12, 1, 4, 40, true);
+            tier5.add(Items.DIAMOND, 8, 1, 8, 40, true);
+            for (Item item : ItemTags.MUSIC_DISCS.getValues())
+                tier5.add(item, 10, 1, 4, 40, true);
         });
     }
 

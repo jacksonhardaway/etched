@@ -64,6 +64,7 @@ public class Etched {
             tier1.add(Items.MUSIC_DISC_13, 8, 1, 4, 20, true);
             tier1.add(Items.MUSIC_DISC_11, 8, 1, 4, 20, true);
             tier1.add(Items.MUSIC_DISC_CAT, 8, 1, 4, 20, true);
+            tier1.add(Items.MUSIC_DISC_OTHERSIDE, 8, 1, 4, 20, true);
             tier1.add(Items.NOTE_BLOCK, 1, 2, 16, 2, true);
             tier1.add(EtchedItems.MUSIC_LABEL, 4, 2, 16, 1, false);
 
@@ -86,6 +87,7 @@ public class Etched {
 
             ModifyTradesEvents.TradeRegistry tier5 = context.getTrades(5);
             tier5.add(Items.DIAMOND, 8, 1, 8, 40, true);
+            tier5.add(Items.AMETHYST_SHARD, 1, 8, 10, 40, true);
             for (Item item : ItemTags.MUSIC_DISCS.getValues())
                 tier5.add(item, 10, 1, 4, 40, true);
         });

@@ -48,9 +48,9 @@ public class BoomboxItem extends Item {
             {
                 ItemStack mainStack = entity.getMainHandItem();
                 ItemStack offStack = entity.getOffhandItem();
-                if (mainStack.getItem() instanceof BoomboxItem && hasRecord(mainStack)) {
+                if (mainStack.getItem() instanceof BoomboxItem && hasRecord(mainStack) && !isPaused(mainStack)) {
                     newPlayingRecord = getRecord(mainStack);
-                } else if (offStack.getItem() instanceof BoomboxItem && hasRecord(offStack)) {
+                } else if (offStack.getItem() instanceof BoomboxItem && hasRecord(offStack) && !isPaused(offStack)) {
                     newPlayingRecord = getRecord(offStack);
                 }
             }
@@ -58,7 +58,7 @@ public class BoomboxItem extends Item {
             if (entity instanceof Player && newPlayingRecord.isEmpty() && Minecraft.getInstance().cameraEntity == entity) {
                 Inventory inventory = ((Player) entity).inventory;
                 for (ItemStack stack : inventory.items) {
-                    if (stack.getItem() instanceof BoomboxItem && hasRecord(stack)) {
+                    if (stack.getItem() instanceof BoomboxItem && hasRecord(stack) && !isPaused(stack)) {
                         newPlayingRecord = getRecord(stack);
                     }
                 }
@@ -83,7 +83,7 @@ public class BoomboxItem extends Item {
     public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
         if (!entity.level.isClientSide())
             return false;
-        updatePlaying(entity, getRecord(stack));
+        updatePlaying(entity, hasRecord(stack) && !isPaused(stack) ? getRecord(stack) : ItemStack.EMPTY);
         return false;
     }
 
@@ -119,8 +119,7 @@ public class BoomboxItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         if (!hasRecord(stack))
             return;
-        CompoundTag compoundTag = stack.getTag();
-        ItemStack record = compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
+        ItemStack record = getRecord(stack);
         record.getItem().appendHoverText(record, level, tooltipComponents, isAdvanced);
         if (isPaused(stack))
             tooltipComponents.add(PAUSED);
@@ -163,7 +162,7 @@ public class BoomboxItem extends Item {
         if (!(stack.getItem() instanceof BoomboxItem))
             return ItemStack.EMPTY;
         CompoundTag compoundTag = stack.getTag();
-        return compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND) && !isPaused(stack) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
+        return compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
     }
 
     public static void setRecord(ItemStack stack, ItemStack record) {

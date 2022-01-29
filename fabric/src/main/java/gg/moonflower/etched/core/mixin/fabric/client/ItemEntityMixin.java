@@ -1,4 +1,4 @@
-package gg.moonflower.etched.core.mixin.client;
+package gg.moonflower.etched.core.mixin.fabric.client;
 
 import gg.moonflower.etched.common.item.BoomboxItem;
 import net.minecraft.world.entity.Entity;
@@ -24,7 +24,8 @@ public abstract class ItemEntityMixin extends Entity {
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
-        if (this.level.isClientSide())
-            BoomboxItem.updatePlaying(this, BoomboxItem.getRecord(this.getItem()));
+        ItemStack stack = this.getItem();
+        if (stack.getItem() instanceof BoomboxItem)
+            ((BoomboxItem) stack.getItem()).onEntityItemUpdate(stack, (ItemEntity) (Object) this);
     }
 }

@@ -7,7 +7,6 @@
     "client.ChannelMixin",
     "client.GuiAccessor",
     "client.GuiMixin",
-    "client.ItemEntityMixin",
     "client.LevelRendererAccessor",
     "client.SoundEngineMixin"
   ],

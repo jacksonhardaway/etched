@@ -1,5 +1,6 @@
 package gg.moonflower.etched.common.item;
 
+import dev.architectury.injectables.annotations.PlatformOnly;
 import gg.moonflower.etched.common.menu.BoomboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
@@ -16,6 +17,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -64,7 +66,7 @@ public class BoomboxItem extends Item {
         });
     }
 
-    public static void updatePlaying(Entity entity, ItemStack record) {
+    private static void updatePlaying(Entity entity, ItemStack record) {
         if (!ItemStack.matches(PLAYING_RECORDS.getOrDefault(entity.getId(), ItemStack.EMPTY), record)) {
             EtchedClientPlayPacketHandlerImpl.playBoombox(entity, record);
             if (record.isEmpty()) {
@@ -73,6 +75,13 @@ public class BoomboxItem extends Item {
                 PLAYING_RECORDS.put(entity.getId(), record);
             }
         }
+    }
+
+    public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
+        if (!entity.level.isClientSide())
+            return false;
+        updatePlaying(entity, getRecord(stack));
+        return false;
     }
 
     @Override

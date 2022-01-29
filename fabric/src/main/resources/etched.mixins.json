@@ -6,6 +6,7 @@
   "plugin": "gg.moonflower.etched.core.mixin.fabric.EtchedFabricMixinPlugin",
   "client": [
     "client.ClientPacketListenerMixin",
+    "client.ItemEntityMixin",
     "client.LevelRendererMixin",
     "client.OptifineLevelRendererMixin"
   ],

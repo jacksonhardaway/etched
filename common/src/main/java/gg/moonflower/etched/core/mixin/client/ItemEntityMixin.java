@@ -24,6 +24,7 @@ public abstract class ItemEntityMixin extends Entity {
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tick(CallbackInfo ci) {
-        BoomboxItem.updatePlaying(this, BoomboxItem.getRecord(this.getItem()));
+        if (this.level.isClientSide())
+            BoomboxItem.updatePlaying(this, BoomboxItem.getRecord(this.getItem()));
     }
 }

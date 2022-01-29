@@ -2,12 +2,15 @@ package gg.moonflower.etched.common.item;
 
 import gg.moonflower.etched.common.menu.BoomboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
+import gg.moonflower.etched.core.Etched;
 import gg.moonflower.pollen.api.event.events.lifecycle.TickEvents;
 import gg.moonflower.pollen.api.util.NbtConstants;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -28,6 +31,7 @@ import java.util.Map;
 public class BoomboxItem extends Item {
 
     private static final Map<Integer, ItemStack> PLAYING_RECORDS = new Int2ObjectArrayMap<>();
+    private static final Component PAUSED = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.paused").withStyle(ChatFormatting.BLUE);
 
     public BoomboxItem(Properties properties) {
         super(properties);
@@ -74,6 +78,10 @@ public class BoomboxItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (player.isSecondaryUseActive()) {
+            setPaused(stack, !isPaused(stack));
+            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        }
         int index = player.inventory.findSlotMatchingItem(stack);
         if (index == -1)
             return InteractionResultHolder.pass(stack);
@@ -99,8 +107,18 @@ public class BoomboxItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         if (!hasRecord(stack))
             return;
-        ItemStack record = getRecord(stack);
+        CompoundTag compoundTag = stack.getTag();
+        ItemStack record = compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
         record.getItem().appendHoverText(record, level, tooltipComponents, isAdvanced);
+        if (isPaused(stack))
+            tooltipComponents.add(PAUSED);
+    }
+
+    public static boolean isPaused(ItemStack stack) {
+        if (!(stack.getItem() instanceof BoomboxItem))
+            return false;
+        CompoundTag compoundTag = stack.getTag();
+        return compoundTag != null && compoundTag.getBoolean("Paused");
     }
 
     public static boolean hasRecord(ItemStack stack) {
@@ -114,7 +132,7 @@ public class BoomboxItem extends Item {
         if (!(stack.getItem() instanceof BoomboxItem))
             return ItemStack.EMPTY;
         CompoundTag compoundTag = stack.getTag();
-        return compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
+        return compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND) && !isPaused(stack) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
     }
 
     public static void setRecord(ItemStack stack, ItemStack record) {
@@ -125,6 +143,17 @@ public class BoomboxItem extends Item {
             stack.removeTagKey("Record");
         } else {
             stack.getOrCreateTag().put("Record", record.save(new CompoundTag()));
+        }
+    }
+
+    public static void setPaused(ItemStack stack, boolean paused) {
+        if (!(stack.getItem() instanceof BoomboxItem))
+            return;
+
+        if (!paused) {
+            stack.removeTagKey("Paused");
+        } else {
+            stack.getOrCreateTag().putBoolean("Paused", true);
         }
     }
 }

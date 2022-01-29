@@ -9,6 +9,8 @@
   "item.etched.blank_music_disc": "Blank Music Disc",
   "item.etched.etched_music_disc": "Etched Music Disc",
   "item.etched.etched_music_disc.album": "Album",
+  "item.etched.boombox": "Boombox",
+  "item.etched.boombox.paused": "Paused",
   "item.etched.jukebox_minecart": "Minecart with Jukebox",
   "item.etched.music_label": "Music Label",
   "item.etched.complex_music_label": "Complex Music Label",

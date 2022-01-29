@@ -4,6 +4,8 @@ import com.mojang.blaze3d.audio.OggAudioStream;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.*;
 import gg.moonflower.etched.api.sound.source.AudioSource;
+import gg.moonflower.etched.api.sound.stream.MonoWrapper;
+import gg.moonflower.etched.api.sound.stream.RawAudioStream;
 import gg.moonflower.etched.api.util.SeekingStream;
 import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;

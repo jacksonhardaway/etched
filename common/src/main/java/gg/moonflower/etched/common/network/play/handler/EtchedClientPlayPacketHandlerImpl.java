@@ -130,7 +130,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             playJukeboxRecord(pos, tracks, track + 1);
             return;
         }
-        playRecord(pos, new StopListeningSound(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> {
+        playRecord(pos, StopListeningSound.create(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> {
             if (!((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords().containsKey(pos))
                 return;
             playJukeboxRecord(pos, tracks, track + 1);
@@ -157,7 +157,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             Minecraft.getInstance().getSoundManager().stop(entitySound);
         }
 
-        entitySound = new StopListeningSound(sound.get(), () -> {
+        entitySound = StopListeningSound.create(sound.get(), () -> {
             ENTITY_PLAYING_SOUNDS.remove(entityId);
             playEntityRecord(record, entityId, track + 1);
         });
@@ -215,14 +215,14 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 TrackData[] tracks = optional.get();
                 TrackData track = jukebox.getTrack() < 0 || jukebox.getTrack() >= tracks.length ? tracks[0] : tracks[jukebox.getTrack()];
                 if (TrackData.isValidURL(track.getUrl())) {
-                    sound = new StopListeningSound(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+                    sound = StopListeningSound.create(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }
         }
         if (disc.getItem() instanceof RecordItem) {
             if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
                 PlayableRecord.showMessage(((RecordItem) disc.getItem()).getDisplayName());
-            sound = new StopListeningSound(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+            sound = StopListeningSound.create(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
         }
 
         if (sound == null)
@@ -319,7 +319,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 return;
             }
 
-            SoundInstance entitySound = new StopListeningSound(sound.get(), () -> {
+            SoundInstance entitySound = StopListeningSound.create(sound.get(), () -> {
                 ENTITY_PLAYING_SOUNDS.remove(entityId);
                 playEntityRecord(record, entityId, 1);
             });

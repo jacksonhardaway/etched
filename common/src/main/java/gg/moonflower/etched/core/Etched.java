@@ -3,6 +3,7 @@ package gg.moonflower.etched.core;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
+import gg.moonflower.etched.client.screen.BoomboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.common.sound.download.BandcampSource;
 import gg.moonflower.etched.common.sound.download.SoundCloudSource;
@@ -113,6 +114,7 @@ public class Etched {
         ctx.enqueueWork(() -> {
             ScreenRegistry.register(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
+            ScreenRegistry.register(EtchedMenus.BOOMBOX.get(), BoomboxScreen::new);
             ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity) -> Mth.clamp(EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F, 0, 1));
         });
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());

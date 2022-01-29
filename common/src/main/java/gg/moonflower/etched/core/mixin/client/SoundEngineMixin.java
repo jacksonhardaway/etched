@@ -2,16 +2,12 @@ package gg.moonflower.etched.core.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
 import gg.moonflower.etched.api.record.TrackData;
-import gg.moonflower.etched.api.sound.AbstractOnlineSoundInstance;
-import gg.moonflower.etched.api.sound.MonoWrapper;
-import gg.moonflower.etched.api.sound.RawAudioStream;
-import gg.moonflower.etched.api.sound.SoundStopListener;
+import gg.moonflower.etched.api.sound.*;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.util.SeekingStream;
 import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
 import gg.moonflower.etched.client.sound.SoundCache;
-import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
@@ -94,7 +90,7 @@ public abstract class SoundEngineMixin {
             try {
                 // Try loading as OGG
                 try {
-                    return new MonoWrapper(loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is));
+                    return this.getStream(loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is));
                 } catch (Exception e) {
                     LOGGER.debug("Failed to load as OGG", e);
                     ((SeekingStream) is).beginning();
@@ -103,7 +99,7 @@ public abstract class SoundEngineMixin {
                     try {
                         AudioInputStream ais = WaveDataReader.getAudioInputStream(is);
                         AudioFormat format = ais.getFormat();
-                        return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
+                        return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais));
                     } catch (Exception e1) {
                         LOGGER.debug("Failed to load as WAV", e1);
                         ((SeekingStream) is).beginning();
@@ -112,7 +108,7 @@ public abstract class SoundEngineMixin {
                         try {
                             fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(new BufferedInputStream(is));
                             AudioFormat format = sound.getAudioFormat();
-                            return new MonoWrapper(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
+                            return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
                         } catch (Exception e2) {
                             LOGGER.debug("Failed to load as MP3", e2);
                             IOUtils.closeQuietly(is);
@@ -135,5 +131,10 @@ public abstract class SoundEngineMixin {
             onlineSound.getProgressListener().onSuccess();
             return stream;
         }, Util.backgroundExecutor());
+    }
+
+    @Unique
+    private AudioStream getStream(AudioStream stream) {
+        return this.sound instanceof SoundStreamModifier ? ((SoundStreamModifier) this.sound).modifyStream(stream) : new MonoWrapper(stream);
     }
 }

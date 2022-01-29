@@ -150,13 +150,31 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         if (!sound.isPresent())
             return;
 
-        SoundInstance entitySound = new StopListeningSound(sound.get(), () -> {
+        SoundInstance entitySound = ENTITY_PLAYING_SOUNDS.remove(entity.getId());
+        if (entitySound != null) {
+            if (entitySound instanceof StopListeningSound)
+                ((StopListeningSound) entitySound).stopListening();
+            Minecraft.getInstance().getSoundManager().stop(entitySound);
+        }
+
+        entitySound = new StopListeningSound(sound.get(), () -> {
             ENTITY_PLAYING_SOUNDS.remove(entityId);
             playEntityRecord(record, entityId, track + 1);
         });
 
         ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
         Minecraft.getInstance().getSoundManager().play(entitySound);
+    }
+
+    public static void playBoombox(Entity entity, ItemStack record) {
+        SoundInstance soundInstance = ENTITY_PLAYING_SOUNDS.remove(entity.getId());
+        if (soundInstance != null) {
+            if (soundInstance instanceof StopListeningSound)
+                ((StopListeningSound) soundInstance).stopListening();
+            Minecraft.getInstance().getSoundManager().stop(soundInstance);
+        }
+        if (!record.isEmpty())
+            playEntityRecord(record, entity.getId(), 0);
     }
 
     /**

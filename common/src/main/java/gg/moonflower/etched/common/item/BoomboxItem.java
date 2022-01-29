@@ -1,6 +1,5 @@
 package gg.moonflower.etched.common.item;
 
-import dev.architectury.injectables.annotations.PlatformOnly;
 import gg.moonflower.etched.common.menu.BoomboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
@@ -17,6 +16,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -45,10 +45,13 @@ public class BoomboxItem extends Item {
                 return true;
 
             ItemStack newPlayingRecord = ItemStack.EMPTY;
-            for (InteractionHand hand : InteractionHand.values()) {
-                ItemStack stack = entity.getItemInHand(hand);
-                if (stack.getItem() instanceof BoomboxItem && hasRecord(stack)) {
-                    newPlayingRecord = getRecord(stack);
+            {
+                ItemStack mainStack = entity.getMainHandItem();
+                ItemStack offStack = entity.getOffhandItem();
+                if (mainStack.getItem() instanceof BoomboxItem && hasRecord(mainStack)) {
+                    newPlayingRecord = getRecord(mainStack);
+                } else if (offStack.getItem() instanceof BoomboxItem && hasRecord(offStack)) {
+                    newPlayingRecord = getRecord(offStack);
                 }
             }
 
@@ -121,6 +124,25 @@ public class BoomboxItem extends Item {
         record.getItem().appendHoverText(record, level, tooltipComponents, isAdvanced);
         if (isPaused(stack))
             tooltipComponents.add(PAUSED);
+    }
+
+    /**
+     * Retrieves the current hand boombox sounds are coming from for the specified entity.
+     *
+     * @param entity The entity to check
+     * @return The hand the entity is using or <code>null</code> if no boombox is playing
+     */
+    @Nullable
+    public static InteractionHand getPlayingHand(LivingEntity entity) {
+        if (!PLAYING_RECORDS.containsKey(entity.getId()))
+            return null;
+        ItemStack stack = entity.getMainHandItem();
+        if (stack.getItem() instanceof BoomboxItem && hasRecord(stack))
+            return InteractionHand.MAIN_HAND;
+        stack = entity.getOffhandItem();
+        if (stack.getItem() instanceof BoomboxItem && hasRecord(stack))
+            return InteractionHand.OFF_HAND;
+        return null;
     }
 
     public static boolean isPaused(ItemStack stack) {

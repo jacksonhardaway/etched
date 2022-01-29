@@ -137,7 +137,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         })));
     }
 
-    private static void playEntityRecord(ItemStack record, int entityId, int track) {
+    private static void playEntityRecord(ItemStack record, int entityId, int track, boolean loop) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null)
             return;
@@ -147,8 +147,11 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             return;
 
         Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track);
-        if (!sound.isPresent())
+        if (!sound.isPresent()) {
+            if (loop && track != 0)
+                playEntityRecord(record, entityId, 0, true);
             return;
+        }
 
         SoundInstance entitySound = ENTITY_PLAYING_SOUNDS.remove(entity.getId());
         if (entitySound != null) {
@@ -159,7 +162,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
 
         entitySound = StopListeningSound.create(sound.get(), () -> {
             ENTITY_PLAYING_SOUNDS.remove(entityId);
-            playEntityRecord(record, entityId, track + 1);
+            playEntityRecord(record, entityId, track + 1, loop);
         });
 
         ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
@@ -174,7 +177,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             Minecraft.getInstance().getSoundManager().stop(soundInstance);
         }
         if (!record.isEmpty())
-            playEntityRecord(record, entity.getId(), 0);
+            playEntityRecord(record, entity.getId(), 0, true);
     }
 
     /**
@@ -321,7 +324,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
 
             SoundInstance entitySound = StopListeningSound.create(sound.get(), () -> {
                 ENTITY_PLAYING_SOUNDS.remove(entityId);
-                playEntityRecord(record, entityId, 1);
+                playEntityRecord(record, entityId, 1, false);
             });
 
             ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);

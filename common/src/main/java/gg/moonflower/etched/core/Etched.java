@@ -37,6 +37,7 @@ public class Etched {
 
     public static final String MOD_ID = "etched";
     public static final EtchedConfig.Client CLIENT_CONFIG = ConfigManager.register(Etched.MOD_ID, PollinatedConfigType.CLIENT, EtchedConfig.Client::new);
+    public static final EtchedConfig.Server SERVER_CONFIG = ConfigManager.register(Etched.MOD_ID, PollinatedConfigType.SERVER, EtchedConfig.Server::new);
     public static final Platform PLATFORM = Platform.builder(Etched.MOD_ID)
             .commonInit(Etched::commonInit)
             .commonPostInit(Etched::commonPostInit)

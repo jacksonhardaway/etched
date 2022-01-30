@@ -14,4 +14,15 @@ public class EtchedConfig {
             builder.pop();
         }
     }
+
+    public static class Server {
+
+        public final PollinatedConfigBuilder.ConfigValue<Boolean> useBoomboxMenu;
+
+        public Server(PollinatedConfigBuilder builder) {
+            builder.push("Boombox");
+            this.useBoomboxMenu = builder.comment("Disables right clicking music discs into boomboxes and allows the menu to be used by shift right-clicking").define("Use boombox menu", false);
+            builder.pop();
+        }
+    }
 }

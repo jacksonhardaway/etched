@@ -160,10 +160,10 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             Minecraft.getInstance().getSoundManager().stop(entitySound);
         }
 
-        entitySound = StopListeningSound.create(sound.get(), () -> {
+        entitySound = StopListeningSound.create(sound.get(), () -> Minecraft.getInstance().tell(() -> {
             ENTITY_PLAYING_SOUNDS.remove(entityId);
             playEntityRecord(record, entityId, track + 1, loop);
-        });
+        }));
 
         ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
         Minecraft.getInstance().getSoundManager().play(entitySound);
@@ -322,10 +322,10 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 return;
             }
 
-            SoundInstance entitySound = StopListeningSound.create(sound.get(), () -> {
+            SoundInstance entitySound = StopListeningSound.create(sound.get(), () -> Minecraft.getInstance().tell(() -> {
                 ENTITY_PLAYING_SOUNDS.remove(entityId);
                 playEntityRecord(record, entityId, 1, false);
-            });
+            }));
 
             ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
             soundManager.play(entitySound);

@@ -1,0 +1,19 @@
+{
+	"parent": "etched:item/boombox_in_hand",
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [0, -55, 90],
+			"translation": [-5.75, -1.75, -0.5]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [0, -55, 90],
+			"translation": [-5.75, -1.75, -0.5]
+		},
+		"firstperson_righthand": {
+			"rotation": [-50.5, -71.25, -45.5]
+		},
+		"firstperson_lefthand": {
+			"rotation": [-50.5, -71.25, -45.5]
+		}
+	}
+}

@@ -44,6 +44,6 @@ public abstract class OptifineLevelRendererMixin {
 
     @ModifyVariable(method = "playRecord", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), index = 3, remap = false)
     public SoundInstance modifySoundInstance(SoundInstance soundInstance) {
-        return new StopListeningSound(soundInstance, () -> this.notifyNearbyEntities(this.level, this.pos, false));
+        return StopListeningSound.create(soundInstance, () -> this.notifyNearbyEntities(this.level, this.pos, false));
     }
 }

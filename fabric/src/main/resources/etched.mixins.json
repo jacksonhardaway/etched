@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "plugin": "gg.moonflower.etched.core.mixin.fabric.EtchedFabricMixinPlugin",
   "client": [
+    "client.ItemEntityMixin",
     "client.LevelChunkMixin",
     "client.LevelRendererMixin",
     "client.OptifineLevelRendererMixin"

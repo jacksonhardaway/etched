@@ -1,4 +1,4 @@
-package gg.moonflower.etched.api.sound;
+package gg.moonflower.etched.api.sound.stream;
 
 import net.minecraft.client.sounds.AudioStream;
 

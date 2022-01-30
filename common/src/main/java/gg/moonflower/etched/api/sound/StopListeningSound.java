@@ -2,6 +2,7 @@ package gg.moonflower.etched.api.sound;
 
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.client.sounds.WeighedSoundEvents;
 import net.minecraft.resources.ResourceLocation;
@@ -19,10 +20,14 @@ public class StopListeningSound implements SoundInstance, SoundStopListener {
     private final SoundStopListener listener;
     private boolean ignoringEvents;
 
-    public StopListeningSound(SoundInstance source, SoundStopListener listener) {
+    StopListeningSound(SoundInstance source, SoundStopListener listener) {
         this.source = source;
         this.listener = listener;
         this.ignoringEvents = false;
+    }
+
+    public static StopListeningSound create(SoundInstance source, SoundStopListener listener) {
+        return source instanceof TickableSoundInstance ? new TickableStopListeningSound((TickableSoundInstance) source, listener) : new StopListeningSound(source, listener);
     }
 
     public void stopListening() {

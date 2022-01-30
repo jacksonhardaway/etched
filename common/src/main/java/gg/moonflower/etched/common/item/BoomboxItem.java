@@ -117,10 +117,10 @@ public class BoomboxItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        if (!hasRecord(stack))
-            return;
-        ItemStack record = getRecord(stack);
-        record.getItem().appendHoverText(record, level, tooltipComponents, isAdvanced);
+        if (hasRecord(stack)) {
+            ItemStack record = getRecord(stack);
+            record.getItem().appendHoverText(record, level, tooltipComponents, isAdvanced);
+        }
         if (isPaused(stack))
             tooltipComponents.add(PAUSED);
     }

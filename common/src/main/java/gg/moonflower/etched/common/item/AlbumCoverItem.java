@@ -109,8 +109,6 @@ public class AlbumCoverItem extends Item {
             if (i >= MAX_RECORDS)
                 break;
             keysNbt.add(key.save(new CompoundTag()));
-            if (!getCoverStack(stack).isPresent())
-                setCover(stack, key);
             i++;
         }
         nbt.put("Records", keysNbt);

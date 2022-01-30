@@ -37,8 +37,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.Proxy;
 import java.util.List;
 import java.util.Locale;
@@ -274,8 +272,8 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
     }
 
     @Override
-    public Optional<CompletableFuture<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
-        return getAlbum(stack).flatMap(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager));
+    public CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
+        return getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(null));
     }
 
     @Override

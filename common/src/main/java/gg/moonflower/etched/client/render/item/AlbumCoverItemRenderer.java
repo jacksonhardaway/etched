@@ -132,15 +132,16 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
         if (stack.isEmpty())
             return;
 
-        ItemStack coverStack = AlbumCoverItem.getCoverStack(stack).orElse(ItemStack.EMPTY);
-
-        ModelData data = coverStack.isEmpty() ? this.data.blank : this.data.defaultCover;
-        if (!coverStack.isEmpty() && coverStack.getItem() instanceof PlayableRecord) {
-            data = this.covers.computeIfAbsent(stack.getTagElement("CoverRecord"), __ -> ((PlayableRecord) coverStack.getItem()).getAlbumCover(coverStack, Minecraft.getInstance().getProxy(), Minecraft.getInstance().getResourceManager()).map(future -> future.thenApplyAsync(image -> image != null ? new ModelData(image) : this.data.defaultCover, Minecraft.getInstance()).exceptionally(e -> {
-                e.printStackTrace();
-                return this.data.defaultCover;
-            })).orElse(CompletableFuture.completedFuture(this.data.defaultCover))).getNow(this.data.defaultCover);
-        }
+        ModelData data = stack.getTagElement("CoverRecord") == null ? this.data.blank : this.covers.computeIfAbsent(stack.getTagElement("CoverRecord"), __ -> {
+            ItemStack coverStack = AlbumCoverItem.getCoverStack(stack).orElse(ItemStack.EMPTY);
+            if (!coverStack.isEmpty() && coverStack.getItem() instanceof PlayableRecord) {
+                return ((PlayableRecord) coverStack.getItem()).getAlbumCover(coverStack, Minecraft.getInstance().getProxy(), Minecraft.getInstance().getResourceManager()).thenApplyAsync(image -> image.map(ModelData::new).orElseGet(() -> this.data.defaultCover), Minecraft.getInstance()).exceptionally(e -> {
+                    e.printStackTrace();
+                    return this.data.defaultCover;
+                });
+            }
+            return CompletableFuture.completedFuture(this.data.blank);
+        }).getNow(this.data.defaultCover);
 
         BakedModel model = data.getModel();
         matrixStack.pushPose();

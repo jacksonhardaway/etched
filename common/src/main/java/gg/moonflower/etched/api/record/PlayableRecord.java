@@ -107,5 +107,5 @@ public interface PlayableRecord {
      * @return
      */
     @Environment(EnvType.CLIENT)
-    Optional<CompletableFuture<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager);
+    CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager);
 }

@@ -112,21 +112,21 @@ public final class SoundSourceManager {
      * @param proxy    The connection proxy
      * @return The album cover found or nothing
      */
-    public static Optional<CompletableFuture<NativeImage>> resolveAlbumCover(String url, @Nullable DownloadProgressListener listener, Proxy proxy, ResourceManager resourceManager) {
-        return SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().flatMap(source -> {
+    public static CompletableFuture<Optional<NativeImage>> resolveAlbumCover(String url, @Nullable DownloadProgressListener listener, Proxy proxy, ResourceManager resourceManager) {
+        return CompletableFuture.supplyAsync(() -> SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().flatMap(source -> {
             try {
-                return source.resolveAlbumCover(url, listener, proxy, resourceManager).map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
-                    try (InputStream is = new FileInputStream(path.toFile())) {
-                        return AlbumImageProcessor.apply(NativeImage.read(is), AlbumCoverItemRenderer.getOverlayImage(), 1);
-                    } catch (Exception e) {
-                        throw new CompletionException("Failed to read album cover from '" + path + "'", e);
-                    }
-                }, Util.ioPool()));
+                return source.resolveAlbumCover(url, listener, proxy, resourceManager);
             } catch (Exception e) {
                 LOGGER.error("Failed to connect to " + source.getApiName() + " API", e);
                 return Optional.empty();
             }
-        });
+        }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
+            try (InputStream is = new FileInputStream(path.toFile())) {
+                return Optional.of(AlbumImageProcessor.apply(NativeImage.read(is), AlbumCoverItemRenderer.getOverlayImage(), 1));
+            } catch (Exception e) {
+                throw new CompletionException("Failed to read album cover from '" + url + "'", e);
+            }
+        }, Util.ioPool())).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())));
     }
 
     /**

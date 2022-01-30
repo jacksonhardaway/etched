@@ -74,6 +74,17 @@ public class AlbumCoverMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void removed(Player player) {
+        super.removed(player);
+
+        if (this.albumCoverIndex == -1)
+            return;
+        ItemStack cover = this.inventory.getItem(this.albumCoverIndex);
+        if (!AlbumCoverItem.getCoverStack(cover).isPresent())
+            AlbumCoverItem.setCover(cover, this.albumCoverInventory.getItem(0));
+    }
+
+    @Override
     public ItemStack quickMoveStack(Player player, int slot) {
         return MOVE_HELPER.quickMoveStack(this, player, slot);
     }

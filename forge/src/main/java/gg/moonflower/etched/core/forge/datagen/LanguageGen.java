@@ -21,6 +21,7 @@ public class LanguageGen extends LanguageProvider {
         this.addItem(EtchedItems.BOOMBOX, "Boombox");
         this.addItem(EtchedItems.MUSIC_LABEL, "Music Label");
         this.addItem(EtchedItems.JUKEBOX_MINECART, "Minecart with Jukebox");
+        this.addItem(EtchedItems.ALBUM_COVER, "Album Cover");
         this.add("item." + Etched.MOD_ID + ".etched_music_disc.sound_cloud", "Provided by SoundCloud");
         this.add("item." + Etched.MOD_ID + ".boombox.paused", "Paused");
         this.add("container." + Etched.MOD_ID + ".etching_table", "Etching Table");

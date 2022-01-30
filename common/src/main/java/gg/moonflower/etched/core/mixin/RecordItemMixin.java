@@ -48,15 +48,15 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
     }
 
     @Override
-    public Optional<CompletableFuture<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
+    public CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
         ResourceLocation name = ((Object) this).getClass() == RecordItem.class ? new ResourceLocation(Etched.MOD_ID, "vanilla") : Registry.ITEM.getKey(this);
         ResourceLocation location = new ResourceLocation(name.getNamespace(), "textures/item/" + name.getPath() + "_cover.png");
-        return !resourceManager.hasResource(location) ? Optional.empty() : Optional.of(CompletableFuture.supplyAsync(() -> {
+        return !resourceManager.hasResource(location) ? CompletableFuture.completedFuture(Optional.empty()) : CompletableFuture.supplyAsync(() -> {
             try (Resource resource = resourceManager.getResource(location)) {
-                return NativeImage.read(resource.getInputStream());
+                return Optional.of(NativeImage.read(resource.getInputStream()));
             } catch (IOException e) {
                 throw new CompletionException("Failed to read album cover from '" + location + "'", e);
             }
-        }, Util.ioPool()));
+        }, Util.ioPool());
     }
 }

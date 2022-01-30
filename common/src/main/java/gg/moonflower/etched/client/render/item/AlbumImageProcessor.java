@@ -17,25 +17,25 @@ public class AlbumImageProcessor {
         NativeImage nativeImage2 = new NativeImage(overlay.getWidth(), overlay.getHeight(), true);
         int k = nativeImage2.getWidth();
         int l = nativeImage2.getHeight();
+        int w = overlay.getWidth() / 16;
+        int h = overlay.getHeight() / 16;
 
-        if (image.getWidth() > overlay.getWidth() && image.getHeight() > overlay.getHeight()) {
-            for (int m = border; m < k - border; ++m) {
-                for (int n = border; n < l - border; ++n) {
-                    int x1 = (int) ((float) image.getWidth() / (float) (overlay.getWidth() * 2) * m * 2);
-                    int x2 = (int) ((float) image.getWidth() / (float) (overlay.getWidth() * 2) * (m * 2 + 1));
-                    int y1 = (int) ((float) image.getHeight() / (float) (overlay.getHeight() * 2) * n * 2);
-                    int y2 = (int) ((float) image.getHeight() / (float) (overlay.getHeight() * 2) * (n * 2 + 1));
-                    int baseColor = alphaBlend(image.getPixelRGBA(x1, y1), image.getPixelRGBA(x2, y1), image.getPixelRGBA(x1, y2), image.getPixelRGBA(x2, y2));
-                    int overlayColor = overlay.getPixelRGBA(m, n);
-                    nativeImage2.setPixelRGBA(m, n, (baseColor & 0xFF000000) | multiply(baseColor, overlayColor, 16) | multiply(baseColor, overlayColor, 8) | multiply(baseColor, overlayColor, 0));
-                }
+        for (int m = border * w; m < k - border * w; ++m) {
+            for (int n = border * h; n < l - border * h; ++n) {
+                int x1 = (int) ((float) image.getWidth() / (float) (overlay.getWidth() * 2) * m * 2);
+                int x2 = (int) ((float) image.getWidth() / (float) (overlay.getWidth() * 2) * (m * 2 + 1));
+                int y1 = (int) ((float) image.getHeight() / (float) (overlay.getHeight() * 2) * n * 2);
+                int y2 = (int) ((float) image.getHeight() / (float) (overlay.getHeight() * 2) * (n * 2 + 1));
+                int baseColor = alphaBlend(image.getPixelRGBA(x1, y1), image.getPixelRGBA(x2, y1), image.getPixelRGBA(x1, y2), image.getPixelRGBA(x2, y2));
+                int overlayColor = overlay.getPixelRGBA(m, n);
+                nativeImage2.setPixelRGBA(m, n, (baseColor & 0xFF000000) | multiply(baseColor, overlayColor, 16) | multiply(baseColor, overlayColor, 8) | multiply(baseColor, overlayColor, 0));
             }
         }
 
-        nativeImage2.setPixelRGBA(1, 1, 0);
-        nativeImage2.setPixelRGBA(14, 1, 0);
-        nativeImage2.setPixelRGBA(1, 14, 0);
-        nativeImage2.setPixelRGBA(14, 14, 0);
+        nativeImage2.fillRect(w, h, w, h, 0);
+        nativeImage2.fillRect(overlay.getWidth() - w * 2, h, w, h, 0);
+        nativeImage2.fillRect(w, overlay.getHeight() - h * 2, w, h, 0);
+        nativeImage2.fillRect(overlay.getWidth() - w * 2, overlay.getHeight() - h * 2, w, h, 0);
 
         image.close();
         return nativeImage2;

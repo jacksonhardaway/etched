@@ -1,0 +1,84 @@
+{
+  "credit": "Made by Farcr",
+  "gui_light": "front",
+  "texture_size": [32, 32],
+  "textures": {
+    "boombox": "etched:item/boombox_model",
+    "particle": "etched:item/boombox_model"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 5],
+      "to": [16, 7, 11],
+      "faces": {
+        "north": {"uv": [0, 0, 8, 3.5], "texture": "#boombox"},
+        "east": {"uv": [8, 0, 11, 3.5], "texture": "#boombox"},
+        "south": {"uv": [0, 3.5, 8, 7], "texture": "#boombox"},
+        "west": {"uv": [11, 0, 14, 3.5], "texture": "#boombox"},
+        "up": {"uv": [0, 7, 8, 10], "texture": "#boombox"},
+        "down": {"uv": [0, 10, 8, 13], "texture": "#boombox"}
+      }
+    },
+    {
+      "from": [3, 7, 7],
+      "to": [5, 9, 9],
+      "faces": {
+        "north": {"uv": [12, 4.5, 13, 5.5], "texture": "#boombox"},
+        "east": {"uv": [12, 4.5, 13, 5.5], "texture": "#boombox"},
+        "south": {"uv": [12, 4.5, 13, 5.5], "texture": "#boombox"},
+        "west": {"uv": [12, 4.5, 13, 5.5], "texture": "#boombox"}
+      }
+    },
+    {
+      "from": [11, 7, 7],
+      "to": [13, 9, 9],
+      "faces": {
+        "north": {"uv": [8, 4.5, 9, 5.5], "texture": "#boombox"},
+        "east": {"uv": [8, 4.5, 9, 5.5], "texture": "#boombox"},
+        "south": {"uv": [8, 4.5, 9, 5.5], "texture": "#boombox"},
+        "west": {"uv": [8, 4.5, 9, 5.5], "texture": "#boombox"},
+        "down": {"uv": [0, 0, 0, 0], "texture": "#boombox"}
+      }
+    },
+    {
+      "from": [3, 9, 7],
+      "to": [13, 11, 9],
+      "faces": {
+        "north": {"uv": [8, 3.5, 13, 4.5], "texture": "#boombox"},
+        "east": {"uv": [8, 3.5, 9, 4.5], "texture": "#boombox"},
+        "south": {"uv": [8, 3.5, 13, 4.5], "texture": "#boombox"},
+        "west": {"uv": [0, 3, 0.5, 3.5], "texture": "#boombox"},
+        "up": {"uv": [8, 3.5, 13, 4.5], "texture": "#boombox"},
+        "down": {"uv": [8, 3.5, 13, 4.5], "texture": "#boombox"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [67.5, 91.5, 0],
+      "translation": [0, -2.5, 0]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [67.5, 91.5, 0],
+      "translation": [0, -2.5, 0]
+    },
+    "firstperson_righthand": {
+      "rotation": [-50.5, -71.25, -45.5]
+    },
+    "firstperson_lefthand": {
+      "rotation": [-50.5, -71.25, -45.5]
+    },
+    "head": {
+      "translation": [0, 16.75, 0],
+      "scale": [1.3, 1.3, 1.3]
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "etched:playing": 1
+      },
+      "model": "etched:item/boombox_playing"
+    }
+  ]
+}

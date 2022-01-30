@@ -5,13 +5,10 @@ import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.BoomboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
+import gg.moonflower.etched.common.item.*;
+import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.sound.download.BandcampSource;
 import gg.moonflower.etched.common.sound.download.SoundCloudSource;
-import gg.moonflower.etched.common.item.BlankMusicDiscItem;
-import gg.moonflower.etched.common.item.ComplexMusicLabelItem;
-import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
-import gg.moonflower.etched.common.item.MusicLabelItem;
-import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.core.registry.*;
 import gg.moonflower.pollen.api.config.ConfigManager;
 import gg.moonflower.pollen.api.config.PollinatedConfigType;
@@ -20,9 +17,12 @@ import gg.moonflower.pollen.api.event.events.registry.client.RegisterAtlasSprite
 import gg.moonflower.pollen.api.platform.Platform;
 import gg.moonflower.pollen.api.registry.client.*;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -97,6 +97,8 @@ public class Etched {
             registry.accept(new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label"));
         });
 
+        ModelRegistry.registerSpecial(new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
+
         ColorRegistry.register((stack, index) -> index == 0 || index == 1 ? MusicLabelItem.getLabelColor(stack) : -1, EtchedItems.MUSIC_LABEL);
         ColorRegistry.register((stack, index) -> index == 0 ? ComplexMusicLabelItem.getPrimaryColor(stack) : index == 1 ? ComplexMusicLabelItem.getSecondaryColor(stack) : -1, EtchedItems.COMPLEX_MUSIC_LABEL);
 
@@ -115,6 +117,12 @@ public class Etched {
             ScreenRegistry.register(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
             ScreenRegistry.register(EtchedMenus.BOOMBOX.get(), BoomboxScreen::new);
+            ItemPredicateRegistry.register(EtchedItems.BOOMBOX.get(), new ResourceLocation(Etched.MOD_ID, "playing"), (stack, level, entity) -> {
+                if (!(entity instanceof Player))
+                    return 0;
+                InteractionHand hand = BoomboxItem.getPlayingHand(entity);
+                return hand != null && stack == entity.getItemInHand(hand) ? 1 : 0;
+            });
             ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity) -> Mth.clamp(EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F, 0, 1));
         });
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());

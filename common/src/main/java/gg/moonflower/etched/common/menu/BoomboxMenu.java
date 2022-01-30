@@ -27,9 +27,9 @@ public class BoomboxMenu extends AbstractContainerMenu {
         this(containerId, inventory, -1);
     }
 
-    public BoomboxMenu(int containerId, Inventory inventory, int keyringIndex) {
+    public BoomboxMenu(int containerId, Inventory inventory, int index) {
         super(EtchedMenus.BOOMBOX.get(), containerId);
-        this.boomboxInventory = keyringIndex == -1 ? new SimpleContainer(1) : new BoomboxContainer(inventory, keyringIndex);
+        this.boomboxInventory = index == -1 ? new SimpleContainer(1) : new BoomboxContainer(inventory, index);
 
         this.addSlot(new Slot(this.boomboxInventory, 0, 80, 20) {
             @Override

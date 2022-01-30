@@ -1,19 +1,35 @@
 package gg.moonflower.etched.core.mixin;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.client.sound.EntityRecordSoundInstance;
+import gg.moonflower.etched.core.Etched;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.Util;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
 import org.spongepowered.asm.mixin.Mixin;
 
+import java.io.IOException;
+import java.net.Proxy;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Mixin(RecordItem.class)
-public class RecordItemMixin implements PlayableRecord {
+public abstract class RecordItemMixin extends Item implements PlayableRecord {
+
+    private RecordItemMixin(Properties properties) {
+        super(properties);
+    }
 
     @Override
     public boolean canPlay(ItemStack stack) {
@@ -29,5 +45,18 @@ public class RecordItemMixin implements PlayableRecord {
         if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
             PlayableRecord.showMessage(((RecordItem) stack.getItem()).getDisplayName());
         return Optional.of(new EntityRecordSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
+    }
+
+    @Override
+    public Optional<CompletableFuture<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
+        ResourceLocation name = ((Object) this).getClass() == RecordItem.class ? new ResourceLocation(Etched.MOD_ID, "vanilla") : Registry.ITEM.getKey(this);
+        ResourceLocation location = new ResourceLocation(name.getNamespace(), "textures/item/" + name.getPath() + "_cover.png");
+        return !resourceManager.hasResource(location) ? Optional.empty() : Optional.of(CompletableFuture.supplyAsync(() -> {
+            try (Resource resource = resourceManager.getResource(location)) {
+                return NativeImage.read(resource.getInputStream());
+            } catch (IOException e) {
+                throw new CompletionException("Failed to read album cover from '" + location + "'", e);
+            }
+        }, Util.ioPool()));
     }
 }

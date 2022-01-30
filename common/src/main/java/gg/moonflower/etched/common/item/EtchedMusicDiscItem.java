@@ -1,5 +1,6 @@
 package gg.moonflower.etched.common.item;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
@@ -20,6 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -35,9 +37,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Proxy;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Ocelot
@@ -265,6 +271,11 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
     @Environment(EnvType.CLIENT)
     public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
         return track < 0 ? Optional.empty() : getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity));
+    }
+
+    @Override
+    public Optional<CompletableFuture<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
+        return getAlbum(stack).flatMap(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager));
     }
 
     @Override

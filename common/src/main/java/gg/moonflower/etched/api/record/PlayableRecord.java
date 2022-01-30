@@ -1,5 +1,6 @@
 package gg.moonflower.etched.api.record;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
 import net.fabricmc.api.EnvType;
@@ -7,11 +8,19 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Proxy;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Denotes an item as having the capability of being played as a record item.
@@ -84,11 +93,19 @@ public interface PlayableRecord {
     /**
      * Creates the sound for an entity.
      *
-     * @param stack      The stack to play
-     * @param entity     The entity to play the sound for
-     * @param track The track to play on the disc
+     * @param stack  The stack to play
+     * @param entity The entity to play the sound for
+     * @param track  The track to play on the disc
      * @return The sound to play or nothing to error
      */
     @Environment(EnvType.CLIENT)
     Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track);
+
+    /**
+     * Retrieves the album cover for this item.
+     * @param stack
+     * @return
+     */
+    @Environment(EnvType.CLIENT)
+    Optional<CompletableFuture<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager);
 }

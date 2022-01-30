@@ -112,7 +112,7 @@ public class BandcampSource implements SoundDownloadSource {
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
             String artist = GsonHelper.getAsString(json, "artist");
             String title = GsonHelper.getAsString(current, "title");
-            String type = GsonHelper.getAsString(GsonHelper.getAsJsonObject(json, "current"), "type");
+            String type = GsonHelper.getAsString(current, "type");
             if ("album".equals(type)) {
                 JsonArray trackInfoJson = GsonHelper.getAsJsonArray(json, "trackinfo");
                 List<TrackData> tracks = new ArrayList<>(trackInfoJson.size());
@@ -132,8 +132,14 @@ public class BandcampSource implements SoundDownloadSource {
     }
 
     @Override
-    public Optional<InputStream> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
-        return Optional.empty();
+    public Optional<String> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
+        return this.resolve(url, progressListener, proxy, json -> {
+            JsonObject current = GsonHelper.getAsJsonObject(json, "current");
+            String type = GsonHelper.getAsString(current, "type");
+            if (!"album".equals(type))
+                return Optional.empty();
+            return Optional.of("https://f4.bcbits.com/img/a" + current.get("art_id") + "_2.jpg");
+        });
     }
 
     @Override

@@ -19,5 +19,6 @@ public class EtchedItems {
     public static final Supplier<Item> ETCHED_MUSIC_DISC = ITEMS.register("etched_music_disc", () -> new EtchedMusicDiscItem(new Item.Properties().stacksTo(1)));
     public static final Supplier<Item> JUKEBOX_MINECART = ITEMS.register("jukebox_minecart", () -> new MinecartJukeboxItem(new Item.Properties().tab(CreativeModeTab.TAB_TRANSPORTATION).stacksTo(1)));
     public static final Supplier<Item> BOOMBOX = ITEMS.register("boombox", () -> new BoomboxItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1)));
+    public static final Supplier<Item> ALBUM_COVER = ITEMS.register("album_cover", () -> new AlbumCoverItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1)));
 
 }

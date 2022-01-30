@@ -236,7 +236,8 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
             this.playingIndex--;
             if (this.playingIndex < 0)
                 this.playingIndex = this.getContainerSize() - 1;
-            this.recalculatePlayingIndex(true);
+            this.nextPlayingIndex(true);
+            this.playingStack = ItemStack.EMPTY;
             this.track = Math.max(0, this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 1 : EtchedMusicDiscItem.getTrackCount(this.getItem(this.playingIndex)) - 1);
         }
     }

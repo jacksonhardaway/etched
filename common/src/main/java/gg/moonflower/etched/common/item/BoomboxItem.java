@@ -108,7 +108,7 @@ public class BoomboxItem extends Item {
 
                 @Override
                 public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-                    return new BoomboxMenu(containerId, player.inventory, index);
+                    return new BoomboxMenu(containerId, inventory, index);
                 }
             });
         }

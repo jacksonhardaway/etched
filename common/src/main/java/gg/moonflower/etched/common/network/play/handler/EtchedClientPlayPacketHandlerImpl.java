@@ -181,12 +181,12 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
     }
 
     /**
-     * Plays the records in an album jukebox in order.
+     * Plays the records on an album jukebox in order.
      *
      * @param jukebox The jukebox to play records
      * @param level   The level to play records in
      * @param pos     The position of the jukebox
-     * @param force   Whether or not to force the jukebox to play
+     * @param force   Whether to force the jukebox to play
      */
     public static void playAlbum(AlbumJukeboxBlockEntity jukebox, ClientLevel level, BlockPos pos, boolean force) {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();

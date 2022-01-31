@@ -15,6 +15,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.RecordItem;
 import org.spongepowered.asm.mixin.Mixin;
 
@@ -49,7 +50,8 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
 
     @Override
     public CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
-        ResourceLocation name = ((Object) this).getClass() == RecordItem.class ? new ResourceLocation(Etched.MOD_ID, "vanilla") : Registry.ITEM.getKey(this);
+        ResourceLocation registry = Registry.ITEM.getKey(this);
+        ResourceLocation name = "minecraft".equals(registry.getNamespace()) ? new ResourceLocation(Etched.MOD_ID, "vanilla") : registry;
         ResourceLocation location = new ResourceLocation(name.getNamespace(), "textures/item/" + name.getPath() + "_cover.png");
         return !resourceManager.hasResource(location) ? CompletableFuture.completedFuture(Optional.empty()) : CompletableFuture.supplyAsync(() -> {
             try (Resource resource = resourceManager.getResource(location)) {

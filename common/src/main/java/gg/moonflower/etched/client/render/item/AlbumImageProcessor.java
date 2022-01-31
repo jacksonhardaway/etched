@@ -7,6 +7,7 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 public class AlbumImageProcessor {
 
+    private static final int COLOR_DIVISIONS = 16;
     private static final float[] POW22 = Util.make(new float[256], fs -> {
         for (int i = 0; i < fs.length; ++i) {
             fs[i] = (float) Math.pow((float) i / 255.0F, 2.2);
@@ -20,12 +21,14 @@ public class AlbumImageProcessor {
         int w = overlay.getWidth() / 16;
         int h = overlay.getHeight() / 16;
 
+        float xFactor = (float) image.getWidth() / (float) (overlay.getWidth() * 2);
+        float yFactor = (float) image.getHeight() / (float) (overlay.getHeight() * 2);
         for (int m = border * w; m < k - border * w; ++m) {
             for (int n = border * h; n < l - border * h; ++n) {
-                int x1 = (int) ((float) image.getWidth() / (float) (overlay.getWidth() * 2) * m * 2);
-                int x2 = (int) ((float) image.getWidth() / (float) (overlay.getWidth() * 2) * (m * 2 + 1));
-                int y1 = (int) ((float) image.getHeight() / (float) (overlay.getHeight() * 2) * n * 2);
-                int y2 = (int) ((float) image.getHeight() / (float) (overlay.getHeight() * 2) * (n * 2 + 1));
+                int x1 = (int) (xFactor * m * 2);
+                int x2 = (int) (xFactor * (m * 2 + 1));
+                int y1 = (int) (yFactor * n * 2);
+                int y2 = (int) (yFactor * (n * 2 + 1));
                 int baseColor = alphaBlend(image.getPixelRGBA(x1, y1), image.getPixelRGBA(x2, y1), image.getPixelRGBA(x1, y2), image.getPixelRGBA(x2, y2));
                 int overlayColor = overlay.getPixelRGBA(m, n);
                 nativeImage2.setPixelRGBA(m, n, (baseColor & 0xFF000000) | multiply(baseColor, overlayColor, 16) | multiply(baseColor, overlayColor, 8) | multiply(baseColor, overlayColor, 0));
@@ -42,7 +45,7 @@ public class AlbumImageProcessor {
     }
 
     private static int multiply(int col1, int col2, int bitOffset) {
-        return (int) ((float) ((col1 >> bitOffset) & 0xFF) * ((float) ((col2 >> bitOffset) & 0xFF) / 255.0F)) << bitOffset;
+        return (((int) ((float) ((col1 >> bitOffset) & 0xFF) * ((float) ((col2 >> bitOffset) & 0xFF) / 255.0F) / (float) COLOR_DIVISIONS) * COLOR_DIVISIONS) & 0xFF) << bitOffset;
     }
 
     private static int alphaBlend(int col1, int col2, int col3, int col4) {

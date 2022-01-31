@@ -121,10 +121,10 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
 
     @Override
     protected void apply(CoverData data, ResourceManager resourceManager, ProfilerFiller profiler) {
-        this.close();
         if (this.data != null)
             this.data.close();
         this.data = data;
+        this.close();
     }
 
     @Override

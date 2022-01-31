@@ -135,10 +135,9 @@ public class BandcampSource implements SoundDownloadSource {
     public Optional<String> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
         return this.resolve(url, progressListener, proxy, json -> {
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
-            String type = GsonHelper.getAsString(current, "type");
-            if (!"album".equals(type))
+            if (!current.has("art_id") || current.get("art_id").isJsonNull())
                 return Optional.empty();
-            return Optional.of("https://f4.bcbits.com/img/a" + current.get("art_id") + "_2.jpg");
+            return Optional.of("https://f4.bcbits.com/img/a" + current.get("art_id") + "_1.jpg");
         });
     }
 

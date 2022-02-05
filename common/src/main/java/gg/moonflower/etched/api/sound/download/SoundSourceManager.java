@@ -8,6 +8,7 @@ import gg.moonflower.etched.api.sound.source.StreamingAudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
 import gg.moonflower.etched.client.render.item.AlbumImageProcessor;
+import gg.moonflower.etched.client.render.item.AlbumTextureCache;
 import gg.moonflower.pollen.pinwheel.api.client.FileCache;
 import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
@@ -41,7 +42,7 @@ public final class SoundSourceManager {
 
     private static final Set<SoundDownloadSource> SOURCES = new HashSet<>();
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final FileCache ALBUM_COVER_CACHE = FileCache.timed(HttpUtil.DOWNLOAD_EXECUTOR, 1, TimeUnit.DAYS);
+    private static final FileCache ALBUM_COVER_CACHE = new AlbumTextureCache(HttpUtil.DOWNLOAD_EXECUTOR, 1, TimeUnit.DAYS);
 
     private SoundSourceManager() {
     }
@@ -122,7 +123,7 @@ public final class SoundSourceManager {
             }
         }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
             try (InputStream is = new FileInputStream(path.toFile())) {
-                return Optional.of(AlbumImageProcessor.apply(NativeImage.read(is), AlbumCoverItemRenderer.getOverlayImage(), 1));
+                return Optional.of(NativeImage.read(is));
             } catch (Exception e) {
                 throw new CompletionException("Failed to read album cover from '" + url + "'", e);
             }

@@ -11,6 +11,7 @@ import gg.moonflower.pollen.api.client.render.DynamicItemRenderer;
 import gg.moonflower.pollen.api.event.events.network.ClientNetworkEvents;
 import gg.moonflower.pollen.api.registry.resource.PollinatedPreparableReloadListener;
 import gg.moonflower.pollen.api.registry.resource.ResourceRegistry;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -66,7 +67,10 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
     }
 
     private void close() {
-        this.covers.values().forEach(future -> future.thenAcceptAsync(ModelData::close, Minecraft.getInstance()));
+        this.covers.values().forEach(future -> future.thenAcceptAsync(data -> {
+            if (!this.data.is(data))
+                data.close();
+        }, Minecraft.getInstance()));
         this.covers.clear();
     }
 
@@ -135,7 +139,7 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
         ModelData data = stack.getTagElement("CoverRecord") == null ? this.data.blank : this.covers.computeIfAbsent(stack.getTagElement("CoverRecord"), __ -> {
             ItemStack coverStack = AlbumCoverItem.getCoverStack(stack).orElse(ItemStack.EMPTY);
             if (!coverStack.isEmpty() && coverStack.getItem() instanceof PlayableRecord) {
-                return ((PlayableRecord) coverStack.getItem()).getAlbumCover(coverStack, Minecraft.getInstance().getProxy(), Minecraft.getInstance().getResourceManager()).thenApplyAsync(image -> image.map(ModelData::new).orElseGet(() -> this.data.defaultCover), Minecraft.getInstance()).exceptionally(e -> {
+                return ((PlayableRecord) coverStack.getItem()).getAlbumCover(coverStack, Minecraft.getInstance().getProxy(), Minecraft.getInstance().getResourceManager()).thenApplyAsync(image -> image.map(ModelData::new).orElseGet(() -> this.data.defaultCover), Util.backgroundExecutor()).exceptionally(e -> {
                     e.printStackTrace();
                     return this.data.defaultCover;
                 });
@@ -178,6 +182,10 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
             this.blank.close();
             this.defaultCover.close();
             this.overlay.close();
+        }
+
+        public boolean is(ModelData data) {
+            return this.blank == data || this.defaultCover == data || this.overlay == data;
         }
     }
 

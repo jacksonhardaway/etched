@@ -11,6 +11,7 @@ import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
@@ -116,18 +117,18 @@ public class BandcampSource implements SoundDownloadSource {
             if ("album".equals(type)) {
                 JsonArray trackInfoJson = GsonHelper.getAsJsonArray(json, "trackinfo");
                 List<TrackData> tracks = new ArrayList<>(trackInfoJson.size());
-                tracks.add(new TrackData(url, artist, title));
+                tracks.add(new TrackData(url, artist, new TextComponent(title)));
                 for (int i = 0; i < trackInfoJson.size(); i++) {
                     JsonObject trackJson = GsonHelper.convertToJsonObject(trackInfoJson.get(i), "trackinfo[" + i + "]");
                     String trackUrl = url.substring(0, urlEnd + 4) + GsonHelper.getAsString(trackJson, "title_link");
                     String trackArtist = trackJson.has("artist") && !trackJson.get("artist").isJsonNull() ? GsonHelper.getAsString(trackJson, "artist", artist) : artist;
                     String trackTitle = GsonHelper.getAsString(trackJson, "title");
 
-                    tracks.add(new TrackData(trackUrl, trackArtist, trackTitle));
+                    tracks.add(new TrackData(trackUrl, trackArtist, new TextComponent(trackTitle)));
                 }
                 return Optional.of(tracks.toArray(new TrackData[0]));
             }
-            return Optional.of(new TrackData[]{new TrackData(url, artist, title)});
+            return Optional.of(new TrackData[]{new TrackData(url, artist, new TextComponent(title))});
         });
     }
 

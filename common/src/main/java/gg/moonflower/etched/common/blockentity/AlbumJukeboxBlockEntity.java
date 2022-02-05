@@ -3,7 +3,6 @@ package gg.moonflower.etched.common.blockentity;
 import dev.architectury.injectables.annotations.PlatformOnly;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
-import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
@@ -203,7 +202,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         this.track = track;
 
         if (this.recalculatePlayingIndex(false)) {
-            int tracks = EtchedMusicDiscItem.getTrackCount(this.playingStack);
+            int tracks = PlayableRecord.getStackTrackCount(this.playingStack);
             if (this.track >= tracks)
                 this.track = 0;
             return true;
@@ -233,7 +232,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
                 this.playingIndex = this.getContainerSize() - 1;
             this.nextPlayingIndex(true);
             this.playingStack = ItemStack.EMPTY;
-            this.track = Math.max(0, this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 1 : EtchedMusicDiscItem.getTrackCount(this.getItem(this.playingIndex)) - 1);
+            this.track = Math.max(0, this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 1 : PlayableRecord.getStackTrackCount(this.getItem(this.playingIndex)) - 1);
         }
     }
 
@@ -241,7 +240,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
      * Cycles to the next index to begin playing.
      */
     public void next() {
-        int tracks = this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 1 : EtchedMusicDiscItem.getTrackCount(this.getItem(this.playingIndex));
+        int tracks = this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 1 : PlayableRecord.getStackTrackCount(this.getItem(this.playingIndex));
         if (this.track < tracks - 1) {
             this.track++;
         } else {

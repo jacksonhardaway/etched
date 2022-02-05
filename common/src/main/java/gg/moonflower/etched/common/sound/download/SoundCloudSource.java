@@ -12,6 +12,7 @@ import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
@@ -126,7 +127,7 @@ public class SoundCloudSource implements SoundDownloadSource {
             if ("playlist".equals(kind)) {
                 JsonArray tracksJson = GsonHelper.getAsJsonArray(json, "tracks");
                 List<TrackData> tracks = new ArrayList<>();
-                tracks.add(new TrackData(url, artist, title));
+                tracks.add(new TrackData(url, artist, new TextComponent(title)));
 
                 for (int i = 0; i < tracksJson.size(); i++) {
                     try {
@@ -137,7 +138,7 @@ public class SoundCloudSource implements SoundDownloadSource {
                         String trackUrl = GsonHelper.getAsString(trackJson, "permalink_url");
                         String trackArtist = GsonHelper.getAsString(trackUser, "username");
                         String trackTitle = GsonHelper.getAsString(trackJson, "title");
-                        tracks.add(new TrackData(trackUrl, trackArtist, trackTitle));
+                        tracks.add(new TrackData(trackUrl, trackArtist, new TextComponent(trackTitle)));
                     } catch (JsonParseException e) {
                         LOGGER.error("Failed to parse track: " + url + "[" + i + "]", e);
                     }
@@ -146,7 +147,7 @@ public class SoundCloudSource implements SoundDownloadSource {
                 return Optional.of(tracks.toArray(new TrackData[0]));
             }
 
-            return Optional.of(new TrackData[]{new TrackData(url, artist, title)});
+            return Optional.of(new TrackData[]{new TrackData(url, artist, new TextComponent(title))});
         });
     }
 

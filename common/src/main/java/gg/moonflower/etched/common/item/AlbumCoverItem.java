@@ -1,11 +1,15 @@
 package gg.moonflower.etched.common.item;
 
+import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.api.record.PlayableRecordItem;
+import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.common.menu.AlbumCoverMenu;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.pollen.api.util.NbtConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -13,13 +17,14 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AlbumCoverItem extends Item {
+public class AlbumCoverItem extends PlayableRecordItem {
 
     public static final int MAX_RECORDS = 9;
 
@@ -49,6 +54,35 @@ public class AlbumCoverItem extends Item {
             });
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
+        List<ItemStack> records = getRecords(stack);
+        for (int i = 0; i < records.size(); i++) {
+            ItemStack record = records.get(i);
+            if (record.getItem() instanceof PlayableRecord) {
+                record.getItem().appendHoverText(record, level, list, tooltipFlag);
+                if (i < records.size() - 1)
+                    list.add(TextComponent.EMPTY);
+            }
+        }
+    }
+
+    @Override
+    public Optional<TrackData[]> getMusic(ItemStack stack) {
+        List<ItemStack> records = getRecords(stack);
+        return records.isEmpty() ? Optional.empty() : Optional.of(records.stream().filter(record -> record.getItem() instanceof PlayableRecord).flatMap(record -> Arrays.stream(((PlayableRecord) record.getItem()).getMusic(record).orElseGet(() -> new TrackData[0]))).toArray(TrackData[]::new));
+    }
+
+    @Override
+    public Optional<TrackData> getAlbum(ItemStack stack) {
+        return Optional.empty();
+    }
+
+    @Override
+    public int getTrackCount(ItemStack stack) {
+        return getRecords(stack).stream().filter(record -> record.getItem() instanceof PlayableRecord).mapToInt(record -> ((PlayableRecord) record.getItem()).getTrackCount(record)).sum();
     }
 
     public static Optional<ItemStack> getCoverStack(ItemStack stack) {

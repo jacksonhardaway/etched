@@ -113,7 +113,7 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
                 }
             }
             return InteractionResult.sidedSuccess(this.level.isClientSide());
-        } else if (stack.getItem() instanceof RecordItem || stack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get()) {
+        } else if (stack.getItem() instanceof PlayableRecord) {
             if (!this.level.isClientSide()) {
                 this.setItem(0, stack.copy());
                 stack.shrink(1);

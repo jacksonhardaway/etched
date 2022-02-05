@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
@@ -263,7 +264,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
             if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get() || (!discStack.isEmpty() && !labelStack.isEmpty())) {
                 if (this.url == null && !discStack.isEmpty())
-                    this.url = EtchedMusicDiscItem.getAlbum(discStack).map(TrackData::getUrl).orElse(null);
+                    this.url = PlayableRecord.getStackAlbum(discStack).map(TrackData::getUrl).orElse(null);
                 if (this.url == null || !TrackData.isValidURL(this.url))
                     return;
 
@@ -280,7 +281,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                         discColor = EtchedMusicDiscItem.getDiscColor(discStack);
                         primaryLabelColor = EtchedMusicDiscItem.getLabelPrimaryColor(discStack);
                         secondaryLabelColor = EtchedMusicDiscItem.getLabelSecondaryColor(discStack);
-                        data = EtchedMusicDiscItem.getMusic(discStack).orElse(data);
+                        data = PlayableRecord.getStackMusic(discStack).orElse(data);
                     }
                     if (data.length == 1 && !labelStack.isEmpty())
                         data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack)).withArtist(MusicLabelItem.getAuthor(labelStack));

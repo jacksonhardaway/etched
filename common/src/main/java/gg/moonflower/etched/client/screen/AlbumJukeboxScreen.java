@@ -2,9 +2,9 @@ package gg.moonflower.etched.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
-import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.SetAlbumJukeboxTrackPacket;
@@ -120,8 +120,8 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
             ItemStack stack = this.hoveredSlot.getItem();
             List<Component> tooltip = this.getTooltipFromItem(stack);
             if (this.hoveredSlot.index == this.playingIndex) {
-                if (this.playingTrack >= 0 && EtchedMusicDiscItem.getTrackCount(stack) > 1) {
-                    Optional<TrackData[]> optional = EtchedMusicDiscItem.getMusic(stack).filter(tracks -> this.playingTrack < tracks.length);
+                if (this.playingTrack >= 0 && PlayableRecord.getStackTrackCount(stack) > 0) {
+                    Optional<TrackData[]> optional = PlayableRecord.getStackMusic(stack).filter(tracks -> this.playingTrack < tracks.length);
                     if (optional.isPresent()) {
                         TrackData track = optional.get()[this.playingTrack];
                         tooltip.add(NOW_PLAYING.copy().append(": ").append(track.getDisplayName()).append(" (" + (this.playingTrack + 1) + "/" + optional.get().length + ")"));

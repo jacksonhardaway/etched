@@ -2,11 +2,11 @@ package gg.moonflower.etched.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.common.item.ComplexMusicLabelItem;
 import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;
-import gg.moonflower.etched.common.item.SimpleMusicLabelItem;
 import gg.moonflower.etched.common.menu.EtchingMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ServerboundSetEtchingTableUrlPacket;
@@ -117,7 +117,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         if (slot == 0) {
             if (this.discStack.isEmpty() && !stack.isEmpty())
                 this.url.setValue("");
-            EtchedMusicDiscItem.getAlbum(stack).ifPresent(track -> this.url.setValue(track.getUrl()));
+            PlayableRecord.getStackAlbum(stack).ifPresent(track -> this.url.setValue(track.getUrl()));
             this.discStack = stack;
         }
 

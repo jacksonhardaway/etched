@@ -13,7 +13,6 @@ import gg.moonflower.pollen.api.registry.resource.PollinatedPreparableReloadList
 import gg.moonflower.pollen.api.registry.resource.ResourceRegistry;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -152,11 +151,8 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
         matrixStack.translate(0.5D, 0.5D, 0.5D);
         model.getTransforms().getTransform(transformType).apply(transformType == ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND || transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND, matrixStack);
         matrixStack.translate(-0.5D, -0.5D, -0.5D);
-        if (model.isCustomRenderer()) {
-            BlockEntityWithoutLevelRenderer.instance.renderByItem(stack, transformType, matrixStack, buffer, packedLight, combinedOverlay);
-        } else {
+        if (!model.isCustomRenderer())
             this.renderModelLists(model, packedLight, combinedOverlay, matrixStack, ItemRenderer.getFoilBufferDirect(buffer, RenderType.entityCutout(data.getName()), false, stack.hasFoil()));
-        }
 
         matrixStack.popPose();
     }

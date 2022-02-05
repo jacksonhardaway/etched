@@ -1,11 +1,13 @@
 package gg.moonflower.etched.common.network.play;
 
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandler;
 import gg.moonflower.pollen.api.network.packet.PollinatedPacket;
 import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
 
@@ -14,26 +16,22 @@ import java.io.IOException;
  */
 public class ClientboundPlayMusicPacket implements PollinatedPacket<EtchedClientPlayPacketHandler> {
 
-    private final TrackData[] tracks;
+    private final ItemStack record;
     private final BlockPos pos;
 
-    public ClientboundPlayMusicPacket(TrackData[] tracks, BlockPos pos) {
-        this.tracks = tracks;
+    public ClientboundPlayMusicPacket(ItemStack record, BlockPos pos) {
+        this.record = record;
         this.pos = pos;
     }
 
-    public ClientboundPlayMusicPacket(FriendlyByteBuf buf) throws IOException {
-        this.tracks = new TrackData[buf.readVarInt()];
-        for (int i = 0; i < this.tracks.length; i++)
-            this.tracks[i] = buf.readWithCodec(TrackData.CODEC);
+    public ClientboundPlayMusicPacket(FriendlyByteBuf buf) {
+        this.record = buf.readItem();
         this.pos = buf.readBlockPos();
     }
 
     @Override
-    public void writePacketData(FriendlyByteBuf buf) throws IOException {
-        buf.writeVarInt(this.tracks.length);
-        for (TrackData track : this.tracks)
-            buf.writeWithCodec(TrackData.CODEC, track);
+    public void writePacketData(FriendlyByteBuf buf) {
+        buf.writeItem(this.record);
         buf.writeBlockPos(this.pos);
     }
 
@@ -46,7 +44,7 @@ public class ClientboundPlayMusicPacket implements PollinatedPacket<EtchedClient
      * @return The tracks to play in sequence
      */
     public TrackData[] getTracks() {
-        return tracks;
+        return PlayableRecord.getStackMusic(this.record).orElseGet(() -> new TrackData[0]);
     }
 
     /**

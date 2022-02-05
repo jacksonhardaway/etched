@@ -1,17 +1,22 @@
 package gg.moonflower.etched.api.record;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
+import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 
+import java.net.Proxy;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Denotes an item as having the capability of being played as a record item.
@@ -73,22 +78,77 @@ public interface PlayableRecord {
         EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayEntityMusicPacket(entity));
     }
 
+    static Optional<TrackData[]> getStackMusic(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
+            return Optional.empty();
+        return ((PlayableRecord) stack.getItem()).getMusic(stack);
+    }
+
+    static Optional<TrackData> getStackAlbum(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
+            return Optional.empty();
+        return ((PlayableRecord) stack.getItem()).getAlbum(stack);
+    }
+
+    static int getStackTrackCount(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
+            return 0;
+        return ((PlayableRecord) stack.getItem()).getTrackCount(stack);
+    }
+
     /**
      * Checks to see if this item can be played.
      *
      * @param stack The stack to check
      * @return Whether it can play
      */
-    boolean canPlay(ItemStack stack);
+    default boolean canPlay(ItemStack stack) {
+        return this.getMusic(stack).isPresent();
+    }
 
     /**
      * Creates the sound for an entity.
      *
-     * @param stack      The stack to play
-     * @param entity     The entity to play the sound for
-     * @param track The track to play on the disc
+     * @param stack  The stack to play
+     * @param entity The entity to play the sound for
+     * @param track  The track to play on the disc
      * @return The sound to play or nothing to error
      */
     @Environment(EnvType.CLIENT)
-    Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track);
+    default Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
+        return track < 0 ? Optional.empty() : this.getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity));
+    }
+
+    /**
+     * Retrieves the album cover for this item.
+     *
+     * @param stack The stack to get art for
+     * @return A future for a potential cover
+     */
+    @Environment(EnvType.CLIENT)
+    CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager);
+
+    /**
+     * Retrieves the music URL from the specified stack.
+     *
+     * @param stack The stack to get NBT from
+     * @return The optional URL for that item
+     */
+    Optional<TrackData[]> getMusic(ItemStack stack);
+
+    /**
+     * Retrieves the album data from the specified stack.
+     *
+     * @param stack The stack to get the album for
+     * @return The album data or the first track if not an album
+     */
+    Optional<TrackData> getAlbum(ItemStack stack);
+
+    /**
+     * Retrieves the number of tracks in the specified stack.
+     *
+     * @param stack The stack to get tracks for
+     * @return The number of tracks
+     */
+    int getTrackCount(ItemStack stack);
 }

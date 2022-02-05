@@ -1,5 +1,6 @@
 package gg.moonflower.etched.core.registry;
 
+import gg.moonflower.etched.common.menu.AlbumCoverMenu;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.menu.BoomboxMenu;
 import gg.moonflower.etched.common.menu.EtchingMenu;
@@ -16,6 +17,7 @@ public class EtchedMenus {
 
     public static final Supplier<MenuType<EtchingMenu>> ETCHING_MENU = MENUS.register("etching_table", () -> new MenuType<>(EtchingMenu::new));
     public static final Supplier<MenuType<AlbumJukeboxMenu>> ALBUM_JUKEBOX_MENU = MENUS.register("album_jukebox", () -> new MenuType<>(AlbumJukeboxMenu::new));
-    public static final Supplier<MenuType<BoomboxMenu>> BOOMBOX = MENUS.register("boombox", () -> new MenuType<>(BoomboxMenu::new));
+    public static final Supplier<MenuType<BoomboxMenu>> BOOMBOX_MENU = MENUS.register("boombox", () -> new MenuType<>(BoomboxMenu::new));
+    public static final Supplier<MenuType<AlbumCoverMenu>> ALBUM_COVER_MENU = MENUS.register("album_cover", () -> new MenuType<>(AlbumCoverMenu::new));
 
 }

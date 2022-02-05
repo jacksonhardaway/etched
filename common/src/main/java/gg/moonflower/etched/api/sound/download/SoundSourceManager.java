@@ -1,16 +1,27 @@
 package gg.moonflower.etched.api.sound.download;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.source.RawAudioSource;
 import gg.moonflower.etched.api.sound.source.StreamingAudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
+import gg.moonflower.etched.client.render.item.AlbumImageProcessor;
+import gg.moonflower.etched.client.render.item.AlbumTextureCache;
+import gg.moonflower.pollen.pinwheel.api.client.FileCache;
+import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.HttpUtil;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
@@ -19,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages all sources of sound obtained through sources besides direct downloads.
@@ -29,8 +41,11 @@ import java.util.concurrent.CompletionException;
 public final class SoundSourceManager {
 
     private static final Set<SoundDownloadSource> SOURCES = new HashSet<>();
+    private static final Logger LOGGER = LogManager.getLogger();
+    private static final FileCache ALBUM_COVER_CACHE = new AlbumTextureCache(HttpUtil.DOWNLOAD_EXECUTOR, 1, TimeUnit.DAYS);
 
-    private SoundSourceManager() {}
+    private SoundSourceManager() {
+    }
 
     /**
      * Registers a new source for sound.
@@ -88,6 +103,31 @@ public final class SoundSourceManager {
         } catch (Exception e) {
             throw new IOException("Failed to connect to " + source.getApiName() + " API", e);
         }
+    }
+
+    /**
+     * Resolves the album cover from an external source.
+     *
+     * @param url      The URL to get the cover from
+     * @param listener The listener for events
+     * @param proxy    The connection proxy
+     * @return The album cover found or nothing
+     */
+    public static CompletableFuture<Optional<NativeImage>> resolveAlbumCover(String url, @Nullable DownloadProgressListener listener, Proxy proxy, ResourceManager resourceManager) {
+        return CompletableFuture.supplyAsync(() -> SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().flatMap(source -> {
+            try {
+                return source.resolveAlbumCover(url, listener, proxy, resourceManager);
+            } catch (Exception e) {
+                LOGGER.error("Failed to connect to " + source.getApiName() + " API", e);
+                return Optional.empty();
+            }
+        }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
+            try (InputStream is = new FileInputStream(path.toFile())) {
+                return Optional.of(NativeImage.read(is));
+            } catch (Exception e) {
+                throw new CompletionException("Failed to read album cover from '" + url + "'", e);
+            }
+        }, Util.ioPool())).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())));
     }
 
     /**

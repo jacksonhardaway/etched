@@ -1,62 +1,36 @@
 package gg.moonflower.etched.common.item;
 
-import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.api.record.PlayableRecordItem;
 import gg.moonflower.etched.api.record.TrackData;
-import gg.moonflower.etched.api.sound.download.SoundSourceManager;
-import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.pollen.api.util.NbtConstants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.stats.Stats;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.JukeboxBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 /**
  * @author Ocelot
  */
-public class EtchedMusicDiscItem extends Item implements PlayableRecord {
-
-    private static final Component ALBUM = new TranslatableComponent("item." + Etched.MOD_ID + ".etched_music_disc.album").withStyle(ChatFormatting.BLUE);
+public class EtchedMusicDiscItem extends PlayableRecordItem {
 
     public EtchedMusicDiscItem(Properties properties) {
         super(properties);
     }
 
-    /**
-     * Retrieves the music URL from the specified stack.
-     *
-     * @param stack The stack to get NBT from
-     * @return The optional URL for that item
-     */
-    public static Optional<TrackData[]> getMusic(ItemStack stack) {
+    @Override
+    public Optional<TrackData[]> getMusic(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
         if (nbt == null || (!nbt.contains("Music", NbtConstants.COMPOUND) && !nbt.contains("Music", NbtConstants.LIST)))
             return Optional.empty();
@@ -88,14 +62,17 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
         return TrackData.isValid(nbt.getCompound("Music")) ? TrackData.CODEC.parse(NbtOps.INSTANCE, nbt.getCompound("Music")).result().map(track -> new TrackData[]{track}) : Optional.empty();
     }
 
-    public static Optional<TrackData> getAlbum(ItemStack stack) {
+    @Override
+    public Optional<TrackData> getAlbum(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
-        if (nbt == null || !nbt.contains("Album", NbtConstants.COMPOUND) && !nbt.contains("Music", NbtConstants.LIST))
-            return getMusic(stack).map(tracks -> tracks[0]);
-        return TrackData.isValid(nbt.getCompound("Album")) ? TrackData.CODEC.parse(NbtOps.INSTANCE, nbt.getCompound("Album")).result() : getMusic(stack).map(tracks -> tracks[0]);
+        if (nbt == null || !nbt.contains("Album", NbtConstants.COMPOUND) && !nbt.contains("Music", NbtConstants.LIST)) {
+            return getMusic(stack).filter(data -> data.length > 0).map(data -> data[0]);
+        }
+        return TrackData.isValid(nbt.getCompound("Album")) ? TrackData.CODEC.parse(NbtOps.INSTANCE, nbt.getCompound("Album")).result() : Optional.empty();
     }
 
-    public static int getTrackCount(ItemStack stack) {
+    @Override
+    public int getTrackCount(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
         if (nbt == null || (!nbt.contains("Music", NbtConstants.COMPOUND) && !nbt.contains("Music", NbtConstants.LIST)))
             return 0;
@@ -258,50 +235,14 @@ public class EtchedMusicDiscItem extends Item implements PlayableRecord {
 
     @Override
     public boolean canPlay(ItemStack stack) {
-        return getMusic(stack).isPresent();
+        return this.getMusic(stack).isPresent();
     }
 
     @Override
     @Environment(EnvType.CLIENT)
     public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
-        return track < 0 ? Optional.empty() : getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity));
+        return track < 0 ? Optional.empty() : this.getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity));
     }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
-        getAlbum(stack).ifPresent(track -> {
-            list.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-            SoundSourceManager.getBrandText(track.getUrl()).ifPresent(list::add);
-            if (getTrackCount(stack) > 1)
-                list.add(ALBUM);
-        });
-    }
-
-    @Override
-    public InteractionResult useOn(UseOnContext ctx) {
-        Level level = ctx.getLevel();
-        BlockPos pos = ctx.getClickedPos();
-        BlockState state = level.getBlockState(pos);
-        if (!state.is(Blocks.JUKEBOX) || state.getValue(JukeboxBlock.HAS_RECORD))
-            return InteractionResult.PASS;
-
-        ItemStack stack = ctx.getItemInHand();
-        Optional<TrackData[]> optional = getMusic(stack);
-        if (!optional.isPresent())
-            return InteractionResult.PASS;
-
-        if (!level.isClientSide()) {
-            ((JukeboxBlock) Blocks.JUKEBOX).setRecord(level, pos, state, stack);
-            EtchedMessages.PLAY.sendToNear((ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64, new ClientboundPlayMusicPacket(optional.get(), pos));
-            stack.shrink(1);
-            Player player = ctx.getPlayer();
-            if (player != null)
-                player.awardStat(Stats.PLAY_RECORD);
-        }
-
-        return InteractionResult.sidedSuccess(level.isClientSide());
-    }
-
 
     /**
      * @author Jackson

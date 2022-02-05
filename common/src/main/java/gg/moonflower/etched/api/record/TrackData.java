@@ -1,16 +1,15 @@
 package gg.moonflower.etched.api.record;
 
+import com.google.gson.JsonParseException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.pollen.api.util.NbtConstants;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.regex.Pattern;
@@ -23,20 +22,28 @@ import java.util.regex.Pattern;
  */
 public class TrackData {
 
-    public static final TrackData EMPTY = new TrackData(null, "Unknown", "Custom Music");
+    public static final TrackData EMPTY = new TrackData(null, "Unknown", new TextComponent("Custom Music"));
     public static final Codec<TrackData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("Url").forGetter(TrackData::getUrl),
             Codec.STRING.optionalFieldOf("Author", EMPTY.getArtist()).forGetter(TrackData::getArtist),
-            Codec.STRING.optionalFieldOf("Title", EMPTY.getTitle()).forGetter(TrackData::getTitle)
+            Codec.STRING.optionalFieldOf("Title", Component.Serializer.toJson(EMPTY.getTitle())).<Component>xmap(json -> {
+                if (!json.startsWith("{"))
+                    return new TextComponent(json);
+                try {
+                    return Component.Serializer.fromJson(json);
+                } catch (JsonParseException e) {
+                    return new TextComponent(json);
+                }
+            }, Component.Serializer::toJson).forGetter(TrackData::getTitle)
     ).apply(instance, TrackData::new));
 
     private static final Pattern RESOURCE_LOCATION_PATTERN = Pattern.compile("[a-z0-9_.-]+");
 
     private final String url;
     private final String artist;
-    private final String title;
+    private final Component title;
 
-    public TrackData(String url, String artist, String title) {
+    public TrackData(String url, String artist, Component title) {
         this.url = url;
         this.artist = artist;
         this.title = title;
@@ -83,7 +90,7 @@ public class TrackData {
         if (this.url != null)
             nbt.putString("Url", this.url);
         if (this.title != null)
-            nbt.putString("Title", this.title);
+            nbt.putString("Title", Component.Serializer.toJson(this.title));
         if (this.artist != null)
             nbt.putString("Author", this.artist);
         return nbt;
@@ -106,7 +113,7 @@ public class TrackData {
     /**
      * @return The title of the track
      */
-    public String getTitle() {
+    public Component getTitle() {
         return title;
     }
 
@@ -119,6 +126,10 @@ public class TrackData {
     }
 
     public TrackData withTitle(String title) {
+        return new TrackData(this.url, this.artist, new TextComponent(title));
+    }
+
+    public TrackData withTitle(Component title) {
         return new TrackData(this.url, this.artist, title);
     }
 

@@ -10,12 +10,10 @@ import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.entity.MinecartJukebox;
-import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.network.play.*;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.GuiAccessor;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
-import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import net.fabricmc.api.EnvType;
@@ -212,8 +210,12 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
 
         ItemStack disc = jukebox.getItem(jukebox.getPlayingIndex());
         SoundInstance sound = null;
-        if (disc.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get()) {
-            Optional<TrackData[]> optional = EtchedMusicDiscItem.getMusic(disc);
+        if (disc.getItem() instanceof RecordItem) {
+            if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                PlayableRecord.showMessage(((RecordItem) disc.getItem()).getDisplayName());
+            sound = StopListeningSound.create(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+        } else if (disc.getItem() instanceof PlayableRecord) {
+            Optional<TrackData[]> optional = PlayableRecord.getStackMusic(disc);
             if (optional.isPresent()) {
                 TrackData[] tracks = optional.get();
                 TrackData track = jukebox.getTrack() < 0 || jukebox.getTrack() >= tracks.length ? tracks[0] : tracks[jukebox.getTrack()];
@@ -221,11 +223,6 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                     sound = StopListeningSound.create(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }
-        }
-        if (disc.getItem() instanceof RecordItem) {
-            if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
-                PlayableRecord.showMessage(((RecordItem) disc.getItem()).getDisplayName());
-            sound = StopListeningSound.create(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
         }
 
         if (sound == null)

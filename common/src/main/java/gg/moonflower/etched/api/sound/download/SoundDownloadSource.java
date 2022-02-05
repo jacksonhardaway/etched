@@ -28,7 +28,6 @@ import java.util.Optional;
  */
 public interface SoundDownloadSource {
 
-    ResourceLocation DEFAULT_ART = new ResourceLocation(Etched.MOD_ID, "textures/default_album_cover.png");
     Component RESOLVING_TRACKS = new TranslatableComponent("record." + Etched.MOD_ID + ".resolvingTracks");
 
     /**
@@ -75,7 +74,7 @@ public interface SoundDownloadSource {
      * @return A stream to the track or <code>{@link Optional#empty()}</code> if there is no cover
      * @throws IOException If any error occurs with requests
      */
-    Optional<InputStream> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException;
+    Optional<String> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException;
 
     /**
      * Checks to see if the specified URL is for this source.

@@ -12,6 +12,7 @@ import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
@@ -37,7 +38,7 @@ public class SoundCloudSource implements SoundDownloadSource {
     private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
     private InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
-        HttpURLConnection httpURLConnection = null;
+        HttpURLConnection httpURLConnection;
         if (progressListener != null)
             progressListener.progressStartRequest(new TranslatableComponent("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
 
@@ -126,32 +127,36 @@ public class SoundCloudSource implements SoundDownloadSource {
             if ("playlist".equals(kind)) {
                 JsonArray tracksJson = GsonHelper.getAsJsonArray(json, "tracks");
                 List<TrackData> tracks = new ArrayList<>();
-                tracks.add(new TrackData(url, artist, title));
+                tracks.add(new TrackData(url, artist, new TextComponent(title)));
 
                 for (int i = 0; i < tracksJson.size(); i++) {
-                    JsonObject trackJson = GsonHelper.convertToJsonObject(tracksJson.get(i), "tracks[" + i + "]");
-                    JsonObject trackUser = GsonHelper.getAsJsonObject(trackJson, "user");
-                    String trackUrl = GsonHelper.getAsString(trackJson, "permalink_url");
-                    String trackArtist = GsonHelper.getAsString(trackUser, "username");
-                    String trackTitle = GsonHelper.getAsString(trackJson, "title");
-                    tracks.add(new TrackData(trackUrl, trackArtist, trackTitle));
+                    try {
+                        JsonObject trackJson = GsonHelper.convertToJsonObject(tracksJson.get(i), "tracks[" + i + "]");
+                        if (!trackJson.has("permalink_url")) // Paid song
+                            continue;
+                        JsonObject trackUser = GsonHelper.getAsJsonObject(trackJson, "user", user);
+                        String trackUrl = GsonHelper.getAsString(trackJson, "permalink_url");
+                        String trackArtist = GsonHelper.getAsString(trackUser, "username");
+                        String trackTitle = GsonHelper.getAsString(trackJson, "title");
+                        tracks.add(new TrackData(trackUrl, trackArtist, new TextComponent(trackTitle)));
+                    } catch (JsonParseException e) {
+                        LOGGER.error("Failed to parse track: " + url + "[" + i + "]", e);
+                    }
                 }
 
                 return Optional.of(tracks.toArray(new TrackData[0]));
             }
 
-            return Optional.of(new TrackData[]{new TrackData(url, artist, title)});
+            return Optional.of(new TrackData[]{new TrackData(url, artist, new TextComponent(title))});
         });
     }
 
     @Override
-    public Optional<InputStream> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
+    public Optional<String> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
         return resolve(url, progressListener, proxy, json -> {
-            if (!"playlist".equals(GsonHelper.getAsString(json, "kind")))
+            if (!json.has("artwork_url") || json.get("artwork_url").isJsonNull())
                 return Optional.empty();
-            if (!json.has("artwork_url") || json.get("artwork__url").isJsonNull())
-                return Optional.of(resourceManager.getResource(DEFAULT_ART).getInputStream());
-            return Optional.of(get(GsonHelper.getAsString(json, "artwork_url"), progressListener, proxy, 0, false));
+            return Optional.of(GsonHelper.getAsString(json, "artwork_url"));
         });
     }
 

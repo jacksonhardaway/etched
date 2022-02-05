@@ -2,7 +2,9 @@ package gg.moonflower.etched.core;
 
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
+import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
 import gg.moonflower.etched.client.render.model.EtchedModelLayers;
+import gg.moonflower.etched.client.screen.AlbumCoverScreen;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.BoomboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
@@ -111,6 +113,8 @@ public class Etched {
 
         EntityRendererRegistry.registerLayerDefinition(EtchedModelLayers.JUKEBOX_MINECART, MinecartModel::createBodyLayer);
         EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
+
+        ItemRendererRegistry.registerRenderer(EtchedItems.ALBUM_COVER.get(), AlbumCoverItemRenderer.INSTANCE);
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
@@ -123,7 +127,8 @@ public class Etched {
         ctx.enqueueWork(() -> {
             ScreenRegistry.register(EtchedMenus.ETCHING_MENU.get(), EtchingScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
-            ScreenRegistry.register(EtchedMenus.BOOMBOX.get(), BoomboxScreen::new);
+            ScreenRegistry.register(EtchedMenus.BOOMBOX_MENU.get(), BoomboxScreen::new);
+            ScreenRegistry.register(EtchedMenus.ALBUM_COVER_MENU.get(), AlbumCoverScreen::new);
             ItemPredicateRegistry.register(EtchedItems.BOOMBOX.get(), new ResourceLocation(Etched.MOD_ID, "playing"), (stack, level, entity, i) -> {
                 if (!(entity instanceof Player))
                     return 0;

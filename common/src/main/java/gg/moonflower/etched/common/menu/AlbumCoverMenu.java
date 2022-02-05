@@ -80,8 +80,15 @@ public class AlbumCoverMenu extends AbstractContainerMenu {
         if (this.albumCoverIndex == -1)
             return;
         ItemStack cover = this.inventory.getItem(this.albumCoverIndex);
-        if (!AlbumCoverItem.getCoverStack(cover).isPresent())
-            AlbumCoverItem.setCover(cover, this.albumCoverInventory.getItem(0));
+        if (!AlbumCoverItem.getCoverStack(cover).isPresent()) {
+            for (int i = 0; i < this.albumCoverInventory.getContainerSize(); i++) {
+                ItemStack stack = this.albumCoverInventory.getItem(i);
+                if (!stack.isEmpty()) {
+                    AlbumCoverItem.setCover(cover, stack);
+                    break;
+                }
+            }
+        }
     }
 
     @Override

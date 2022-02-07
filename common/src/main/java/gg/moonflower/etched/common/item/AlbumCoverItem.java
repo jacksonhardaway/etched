@@ -35,7 +35,7 @@ public class AlbumCoverItem extends PlayableRecordItem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        int index = player.inventory.findSlotMatchingItem(stack);
+        int index = player.getInventory().findSlotMatchingItem(stack);
         if (index == -1)
             return InteractionResultHolder.pass(stack);
 

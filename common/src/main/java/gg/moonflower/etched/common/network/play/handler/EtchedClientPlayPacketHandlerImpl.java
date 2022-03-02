@@ -73,6 +73,11 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                         PlayableRecord.showMessage(title);
                 }
             }
+
+            @Override
+            public void onFail() {
+                PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
+            }
         });
     }
 
@@ -90,6 +95,11 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                         for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
                             livingEntity.setRecordPlayingNearby(pos, true);
                 }
+            }
+
+            @Override
+            public void onFail() {
+                PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
             }
         });
     }

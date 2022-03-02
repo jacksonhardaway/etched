@@ -87,7 +87,7 @@ public abstract class SoundEngineMixin {
             }, Util.backgroundExecutor());
         }
 
-        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).thenComposeAsync(AudioSource::openStream).<AudioStream>thenApplyAsync(is -> {
+        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).thenComposeAsync(AudioSource::openStream).thenApplyAsync(is -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
                 // Try loading as OGG

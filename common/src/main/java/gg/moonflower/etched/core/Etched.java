@@ -131,6 +131,7 @@ public class Etched {
             ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity) -> Mth.clamp(EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F, 0, 1));
         });
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
+        RenderTypeRegistry.register(EtchedBlocks.RADIO.get(), RenderType.cutout());
         EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
         ItemRendererRegistry.registerHandModel(EtchedItems.BOOMBOX.get(), new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
     }

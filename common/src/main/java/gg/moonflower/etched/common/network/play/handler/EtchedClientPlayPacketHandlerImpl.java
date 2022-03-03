@@ -9,6 +9,7 @@ import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
+import gg.moonflower.etched.common.block.RadioBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.entity.MinecartJukebox;
 import gg.moonflower.etched.common.network.play.*;
@@ -56,6 +57,7 @@ import java.util.function.DoubleSupplier;
 public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacketHandler {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final Component RADIO = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".radio");
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
 
     @Nullable
@@ -82,7 +84,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
 
-    private static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos) {
+    private static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, boolean stream) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
         return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
             @Override
@@ -102,7 +104,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             public void onFail() {
                 PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
             }
-        }, AudioSource.AudioFileType.FILE);
+        }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
 
     private static void playRecord(BlockPos pos, SoundInstance sound) {
@@ -139,7 +141,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             playJukeboxRecord(pos, tracks, track + 1);
             return;
         }
-        playRecord(pos, StopListeningSound.create(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> {
+        playRecord(pos, StopListeningSound.create(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos, false), () -> Minecraft.getInstance().tell(() -> {
             if (!((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords().containsKey(pos))
                 return;
             playJukeboxRecord(pos, tracks, track + 1);
@@ -192,6 +194,36 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
     /**
      * Plays the records on an album jukebox in order.
      *
+     * @param url   The URL of the stream
+     * @param level The level to play records in
+     * @param pos   The position of the jukebox
+     */
+    public static void playRadio(String url, ClientLevel level, BlockPos pos) {
+        SoundManager soundManager = Minecraft.getInstance().getSoundManager();
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
+
+        BlockState state = level.getBlockState(pos);
+        if (!state.hasProperty(RadioBlock.POWERED)) // Something must already be playing since it would otherwise be -1 and a change would occur
+            return;
+
+        SoundInstance soundInstance = playingRecords.get(pos);
+        if (soundInstance != null) {
+            if (soundInstance instanceof StopListeningSound)
+                ((StopListeningSound) soundInstance).stopListening();
+            soundManager.stop(soundInstance);
+            playingRecords.remove(pos);
+        }
+
+        if (state.getValue(RadioBlock.POWERED))
+            return;
+
+        if (TrackData.isValidURL(url))
+            playRecord(pos, getEtchedRecord(url, RADIO, level, pos, true));
+    }
+
+    /**
+     * Plays the records on an album jukebox in order.
+     *
      * @param jukebox The jukebox to play records
      * @param level   The level to play records in
      * @param pos     The position of the jukebox
@@ -231,7 +263,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 TrackData[] tracks = optional.get();
                 TrackData track = jukebox.getTrack() < 0 || jukebox.getTrack() >= tracks.length ? tracks[0] : tracks[jukebox.getTrack()];
                 if (TrackData.isValidURL(track.getUrl())) {
-                    sound = StopListeningSound.create(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+                    sound = StopListeningSound.create(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos, false), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }
         }

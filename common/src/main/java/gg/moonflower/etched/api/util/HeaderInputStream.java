@@ -13,6 +13,7 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
     private final byte[] header;
     private final InputStream source;
     private int position;
+    private int mark;
 
     public HeaderInputStream(byte[] header, InputStream source) {
         this.header = header;
@@ -21,7 +22,7 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
 
     @Override
     public void beginning() throws IOException {
-        if (this.position >= this.header.length)
+        if (this.position > this.header.length)
             throw new IOException("Stream has already passed header (position: " + this.position + ", length: " + this.header.length + "). Can no longer go to beginning");
         this.position = 0;
     }
@@ -74,6 +75,21 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
         long skipped = this.source.skip(n);
         this.position += skipped;
         return this.source.skip(n);
+    }
+
+    @Override
+    public void mark(int readAheadLimit) {
+        this.mark = this.position;
+    }
+
+    @Override
+    public void reset() {
+        this.position = this.mark;
+    }
+
+    @Override
+    public boolean markSupported() {
+        return this.position < this.header.length;
     }
 
     @Override

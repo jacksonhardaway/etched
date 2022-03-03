@@ -63,7 +63,6 @@ public interface AudioSource {
                     Header cacheControl = response.getFirstHeader("Cache-Control");
                     if (cacheControl != null) {
                         for (HeaderElement element : cacheControl.getElements()) {
-                            System.out.println(element);
                             switch (element.getName()) {
                                 case "max-age": {
                                     if (cachePriority > 0)
@@ -84,8 +83,8 @@ public interface AudioSource {
                                     }
                                     break;
                                 }
-                                // Skip no-cache
                                 // Skip must-revalidate
+                                case "no-cache": // no-cache is considered the same
                                 case "no-store": {
                                     cache = false;
                                     break;

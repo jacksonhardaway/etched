@@ -34,7 +34,6 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -88,7 +87,7 @@ public abstract class SoundEngineMixin {
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenComposeAsync(AudioSource::openStream, Util.backgroundExecutor()).thenApplyAsync(stream -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
-                byte[] readHeader = new byte[16384]; // 16KB starting buffer
+                byte[] readHeader = new byte[8192]; // 8KB starting buffer for OGG
                 int read = IOUtils.read(stream, readHeader);
 
                 InputStream is;
@@ -118,7 +117,7 @@ public abstract class SoundEngineMixin {
 
                         // Try loading as MP3
                         try {
-                            fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(new BufferedInputStream(is));
+                            fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(is);
                             AudioFormat format = sound.getAudioFormat();
                             return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
                         } catch (Exception e2) {

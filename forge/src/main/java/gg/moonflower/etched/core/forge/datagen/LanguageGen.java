@@ -26,6 +26,7 @@ public class LanguageGen extends LanguageProvider {
         this.add("item." + Etched.MOD_ID + ".boombox.paused", "Paused");
         this.add("container." + Etched.MOD_ID + ".etching_table", "Etching Table");
         this.add("container." + Etched.MOD_ID + ".album_jukebox", "Album Jukebox");
+        this.add("container." + Etched.MOD_ID + ".radio", "Radio");
         this.add("record." + Etched.MOD_ID + ".downloadProgress", "Downloading (%s MB / %s MB): %s");
         this.add("record." + Etched.MOD_ID + ".loading", "Loading %s");
         this.add("record." + Etched.MOD_ID + ".downloadFail", "Failed to download %s");

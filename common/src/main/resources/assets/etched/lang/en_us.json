@@ -1,8 +1,10 @@
 {
   "block.etched.album_jukebox": "Album Jukebox",
   "block.etched.etching_table": "Etching Table",
+  "block.etched.radio": "Radio",
   "container.etched.album_jukebox": "Album Jukebox",
   "container.etched.etching_table": "Etching Table",
+  "container.etched.radio": "Radio",
   "entity.etched.jukebox_minecart": "Minecart with Jukebox",
   "entity.minecraft.villager.bard": "Bard",
   "entity.minecraft.villager.etched.bard": "Bard",
@@ -25,6 +27,7 @@
   "screen.etched.album_jukebox.now_playing": "Now Playing",
   "screen.etched.edit_music_label.title": "Title",
   "screen.etched.edit_music_label.author": "Author",
+  "sound_source.etched.radio": "Radio Station",
   "sound_source.etched.requesting": "Requesting from %s...",
   "sound_source.etched.sound_cloud": "Provided by SoundCloud",
   "sound_source.etched.bandcamp": "Provided by Bandcamp",

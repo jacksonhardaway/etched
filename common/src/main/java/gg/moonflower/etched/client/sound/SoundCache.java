@@ -60,7 +60,7 @@ public final class SoundCache {
      * @param url The url to download the sound from
      * @return An input stream to the locally downloaded file
      */
-    public static CompletableFuture<AudioSource> getAudioStream(String url, @Nullable DownloadProgressListener listener) {
+    public static CompletableFuture<AudioSource> getAudioStream(String url, @Nullable DownloadProgressListener listener, AudioSource.AudioFileType type) {
         if (DOWNLOADING.containsKey(url)) {
             CompletableFuture<AudioSource> future = DOWNLOADING.get(url);
             if (!future.isDone())
@@ -70,7 +70,7 @@ public final class SoundCache {
         try {
             LOCK.lock();
 
-            CompletableFuture<AudioSource> future = SoundSourceManager.getAudioSource(url, listener, Minecraft.getInstance().getProxy()).handle((source, e) -> {
+            CompletableFuture<AudioSource> future = SoundSourceManager.getAudioSource(url, listener, Minecraft.getInstance().getProxy(), type).handle((source, e) -> {
                 if (e != null) {
                     if (listener != null)
                         listener.onFail();

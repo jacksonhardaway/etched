@@ -4,6 +4,7 @@ import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.OnlineRecordSoundInstance;
 import gg.moonflower.etched.api.sound.StopListeningSound;
+import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
@@ -62,7 +63,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         return ENTITY_PLAYING_SOUNDS.get(entity);
     }
 
-    public static SoundInstance getEtchedRecord(String url, Component title, Entity entity) {
+    public static SoundInstance getEtchedRecord(String url, Component title, Entity entity, boolean stream) {
         return new OnlineRecordSoundInstance(url, entity, new MusicDownloadListener(title, entity::getX, entity::getY, entity::getZ) {
             @Override
             public void onSuccess() {
@@ -78,7 +79,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             public void onFail() {
                 PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
             }
-        });
+        }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
 
     private static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos) {
@@ -101,7 +102,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             public void onFail() {
                 PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
             }
-        });
+        }, AudioSource.AudioFileType.FILE);
     }
 
     private static void playRecord(BlockPos pos, SoundInstance sound) {

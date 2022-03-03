@@ -15,15 +15,15 @@ import java.util.function.IntFunction;
  *
  * @author Ocelot
  */
-public class StreamingInputStream extends InputStream implements SeekingStream {
+public class StreamingInputStream extends InputStream {
 
     private final URL[] urls;
-    private final List<CompletableFuture<FileChannelInputStream>> queue;
-    private final IntFunction<CompletableFuture<FileChannelInputStream>> source;
+    private final List<CompletableFuture<InputStream>> queue;
+    private final IntFunction<CompletableFuture<InputStream>> source;
     private int index;
     private int position;
 
-    public StreamingInputStream(URL[] urls, IntFunction<CompletableFuture<FileChannelInputStream>> source) {
+    public StreamingInputStream(URL[] urls, IntFunction<CompletableFuture<InputStream>> source) {
         this.urls = urls;
         this.queue = new ArrayList<>(urls.length);
         this.source = source;
@@ -40,20 +40,12 @@ public class StreamingInputStream extends InputStream implements SeekingStream {
     }
 
     private void incrementPosition() throws IOException {
-        this.getCurrentStream().beginning();
         this.position++;
         this.queueBuffers();
     }
 
-    private FileChannelInputStream getCurrentStream() {
+    private InputStream getCurrentStream() {
         return this.queue.get(this.position).join();
-    }
-
-    @Override
-    public void beginning() throws IOException {
-        this.getCurrentStream().beginning();
-        this.position = 0;
-        this.queueBuffers();
     }
 
     @Override
@@ -63,7 +55,7 @@ public class StreamingInputStream extends InputStream implements SeekingStream {
         if (this.position >= this.urls.length)
             return -1;
 
-        FileChannelInputStream currentStream = this.getCurrentStream();
+        InputStream currentStream = this.getCurrentStream();
         int result = currentStream.read();
         if (result == -1) {
             this.incrementPosition();
@@ -80,7 +72,7 @@ public class StreamingInputStream extends InputStream implements SeekingStream {
         if (this.position >= this.urls.length)
             return -1;
 
-        FileChannelInputStream currentStream = this.getCurrentStream();
+        InputStream currentStream = this.getCurrentStream();
         int result = currentStream.read(b, off, len);
 
         if (result == -1) {
@@ -98,7 +90,7 @@ public class StreamingInputStream extends InputStream implements SeekingStream {
         if (this.position >= this.urls.length)
             return 0;
 
-        FileChannelInputStream currentStream = this.getCurrentStream();
+        InputStream currentStream = this.getCurrentStream();
         long result = currentStream.skip(n);
 
         if (result == 0) {
@@ -111,7 +103,7 @@ public class StreamingInputStream extends InputStream implements SeekingStream {
 
     @Override
     public void close() {
-        for (CompletableFuture<FileChannelInputStream> future : this.queue) {
+        for (CompletableFuture<InputStream> future : this.queue) {
             future.thenAcceptAsync(stream -> {
                 try {
                     stream.close();

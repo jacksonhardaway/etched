@@ -116,7 +116,7 @@ public interface PlayableRecord {
      */
     @Environment(EnvType.CLIENT)
     default Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
-        return track < 0 ? Optional.empty() : this.getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity));
+        return track < 0 ? Optional.empty() : this.getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity, false));
     }
 
     /**

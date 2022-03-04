@@ -91,10 +91,9 @@ public final class SoundCloudIdTracker {
     }
 
     private static void findIdFromSite(Proxy proxy) {
-        SoundCloudSource.LOGGER.info("Retrieving sound cloud id");
         if (currentRequest == null || currentRequest.isDone()) {
             currentRequest = CompletableFuture.supplyAsync(() -> {
-
+                SoundCloudSource.LOGGER.info("Retrieving sound cloud id");
                 try {
                     String clientId = findIdFromScript(findScriptUrl(proxy), proxy);
                     if (clientId == null)

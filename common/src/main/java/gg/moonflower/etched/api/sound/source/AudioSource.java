@@ -3,6 +3,8 @@ package gg.moonflower.etched.api.sound.source;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.FileChannelInputStream;
+import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
+import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.http.Header;
@@ -25,6 +27,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Sources of raw audio data to be played.
@@ -115,34 +118,30 @@ public interface AudioSource {
                         return url::openStream;
                     }
 
-                    if (!type.isLimit())
+                    if (!type.isFile())
                         throw new IOException("The provided URL is a file, but that is not supported");
-                    if (progressListener != null)
-                        progressListener.progressStartDownload(contentLength / 1024.0F / 1024.0F);
-
+                    if (SoundCache.isValid(file, url.toString()))
+                        return () -> new FileChannelInputStream(FileChannel.open(file, StandardOpenOption.READ));
                     if (contentLength > 104857600)
                         throw new IOException("Filesize is bigger than maximum allowed (file is " + contentLength + ", limit is 104857600)");
 
-                    try (OutputStream outputStream = new DataOutputStream(new FileOutputStream(file.toFile()))) {
-                        long readBytes = 0;
-                        int k;
-                        byte[] bs = new byte[4096];
-                        while ((k = inputStream.read(bs)) >= 0) {
-                            readBytes += (float) k;
-                            if (progressListener != null)
-                                progressListener.progressStage((float) readBytes / contentLength);
-
-                            if (readBytes > 104857600)
-                                throw new IOException("Filesize was bigger than maximum allowed (got >= " + readBytes + ", limit was 104857600)");
-
-                            if (Thread.interrupted()) {
-                                LOGGER.error("INTERRUPTED");
-                                return () -> new FileChannelInputStream(FileChannel.open(file, StandardOpenOption.READ));
-                            }
-
-                            outputStream.write(bs, 0, k);
+                    SoundCache.updateCache(file, url.toString(), cacheTime, TimeUnit.SECONDS, new ProgressTrackingInputStream(inputStream, contentLength, progressListener) {
+                        @Override
+                        public int read() throws IOException {
+                            int value = super.read();
+                            if (this.getRead() > 104857600)
+                                throw new IOException("Filesize was bigger than maximum allowed (got >= " + this.getRead() + ", limit was 104857600)");
+                            return value;
                         }
-                    }
+
+                        @Override
+                        public int read(byte[] b, int off, int len) throws IOException {
+                            int value = super.read(b, off, len);
+                            if (this.getRead() > 104857600)
+                                throw new IOException("Filesize was bigger than maximum allowed (got >= " + this.getRead() + ", limit was 104857600)");
+                            return value;
+                        }
+                    });
                 }
             }
         } catch (Throwable var22) {
@@ -161,17 +160,17 @@ public interface AudioSource {
         STREAM(false, true),
         BOTH(true, true);
 
-        private final boolean limit;
+        private final boolean file;
         private final boolean stream;
 
 
-        AudioFileType(boolean limit, boolean stream) {
-            this.limit = limit;
+        AudioFileType(boolean file, boolean stream) {
+            this.file = file;
             this.stream = stream;
         }
 
-        public boolean isLimit() {
-            return limit;
+        public boolean isFile() {
+            return file;
         }
 
         public boolean isStream() {

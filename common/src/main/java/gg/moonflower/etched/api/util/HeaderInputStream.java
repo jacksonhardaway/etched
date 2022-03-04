@@ -41,7 +41,7 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (this.position < this.header.length) {
-            int readLength = Math.min(this.header.length - this.position, len);
+            int readLength = Math.min(this.header.length - this.position - 1, len);
             System.arraycopy(this.header, this.position, b, off, readLength);
             this.position += readLength;
             if (len == readLength)
@@ -75,21 +75,6 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
         long skipped = this.source.skip(n);
         this.position += skipped;
         return this.source.skip(n);
-    }
-
-    @Override
-    public void mark(int readAheadLimit) {
-        this.mark = this.position;
-    }
-
-    @Override
-    public void reset() {
-        this.position = this.mark;
-    }
-
-    @Override
-    public boolean markSupported() {
-        return this.position < this.header.length;
     }
 
     @Override

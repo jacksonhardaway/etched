@@ -1,5 +1,7 @@
 package gg.moonflower.etched.api.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -33,6 +35,16 @@ public class ProgressTrackingInputStream extends InputStream {
     }
 
     @Override
+    public int read(@NotNull byte[] b, int off, int len) throws IOException {
+        int read = this.parent.read(b, off, len);
+        if (read != -1) {
+            this.read+=read;
+            this.listener.progressStage((float) this.read / (float) this.size);
+        }
+        return read;
+    }
+
+    @Override
     public int available() throws IOException {
         return this.parent.available();
     }
@@ -55,5 +67,9 @@ public class ProgressTrackingInputStream extends InputStream {
     @Override
     public boolean markSupported() {
         return this.parent.markSupported();
+    }
+
+    public int getRead() {
+        return read;
     }
 }

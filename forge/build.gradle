@@ -44,7 +44,7 @@ dependencies {
 	modRuntimeOnly "curse.maven:configured-457570:3533860"
     modRuntimeOnly "curse.maven:catalogue-459701:3529457"
 
-    shadowCommon(implementation("com.github.kevinstadler:JavaMP3:v1.0.4"))
+    shadowCommon(implementation("javazoom:jlayer:1.0.1"))
 
     implementation(project(path: ":common", configuration: "namedElements")) { transitive false }
     developmentForge(project(path: ":common", configuration: "namedElements")) { transitive false }

@@ -2,7 +2,6 @@ package gg.moonflower.etched.api.sound.source;
 
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
-import gg.moonflower.etched.api.util.FileChannelInputStream;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.client.Minecraft;
@@ -20,10 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -87,7 +84,7 @@ public interface AudioSource {
                                     break;
                                 }
                                 // Skip must-revalidate
-                                case "no-cache": // no-cache is considered the same
+                                // Skip no-cache because "hidden" files are already in the temp directory
                                 case "no-store": {
                                     cache = false;
                                     break;
@@ -121,7 +118,7 @@ public interface AudioSource {
                     if (!type.isFile())
                         throw new IOException("The provided URL is a file, but that is not supported");
                     if (SoundCache.isValid(file, url.toString()))
-                        return () -> new FileChannelInputStream(FileChannel.open(file, StandardOpenOption.READ));
+                        return () -> new FileInputStream(file.toFile());
                     if (contentLength > 104857600)
                         throw new IOException("Filesize is bigger than maximum allowed (file is " + contentLength + ", limit is 104857600)");
 
@@ -147,7 +144,7 @@ public interface AudioSource {
         } catch (Throwable var22) {
             throw new CompletionException(var22);
         }
-        return () -> new FileChannelInputStream(FileChannel.open(file, StandardOpenOption.READ));
+        return () -> new FileInputStream(file.toFile());
     }
 
     /**

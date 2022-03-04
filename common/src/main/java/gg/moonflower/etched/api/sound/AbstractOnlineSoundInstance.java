@@ -75,6 +75,10 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
             return type;
         }
 
+        public boolean isStereo() {
+            return stereo;
+        }
+
         @Override
         public AudioStream modifyStream(AudioStream stream) {
             return this.stereo ? stream : new MonoWrapper(stream);

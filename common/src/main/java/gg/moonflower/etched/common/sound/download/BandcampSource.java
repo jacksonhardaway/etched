@@ -55,7 +55,7 @@ public class BandcampSource implements SoundDownloadSource {
             if (response != 200)
                 throw new IOException(response + " " + httpURLConnection.getResponseMessage());
 
-            return progressListener != null && size != -1 ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
+            return size != -1 ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
         } catch (IOException e) {
             throw e;
         } catch (Throwable e) {

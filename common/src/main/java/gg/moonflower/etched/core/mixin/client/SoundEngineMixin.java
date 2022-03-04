@@ -8,12 +8,12 @@ import gg.moonflower.etched.api.sound.SoundStreamModifier;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
-import gg.moonflower.etched.api.util.HeaderInputStream;
-import gg.moonflower.etched.api.util.OggValidator;
-import gg.moonflower.etched.api.util.SeekingStream;
-import gg.moonflower.etched.api.util.WaveDataReader;
+import gg.moonflower.etched.api.util.*;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
 import gg.moonflower.etched.client.sound.SoundCache;
+import javazoom.jl.converter.Converter;
+import javazoom.jl.decoder.Decoder;
+import javazoom.jl.decoder.OutputChannels;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
@@ -51,6 +51,13 @@ public abstract class SoundEngineMixin {
 
     @Unique
     private Sound sound;
+
+    @Unique
+    private static final Converter CONVERTER = new Converter();
+    @Unique
+    private static final Decoder.Params MONO_MP3_PARAMS = Util.make(new Decoder.Params(), params -> params.setOutputChannels(OutputChannels.DOWNMIX));
+    @Unique
+    private static final Decoder.Params STERO_MP3_PARAMS = Util.make(new Decoder.Params(), params -> params.setOutputChannels(OutputChannels.BOTH));
 
     @Inject(method = "tickNonPaused", at = @At(value = "INVOKE", target = "Ljava/util/Map;remove(Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     public void onSoundRemoved(CallbackInfo ci, Iterator<?> iterator, Map.Entry<?, ?> entry, ChannelAccess.ChannelHandle channelHandle2, SoundInstance soundInstance) {
@@ -119,9 +126,8 @@ public abstract class SoundEngineMixin {
 
                         // Try loading as MP3
                         try {
-                            fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(is);
-                            AudioFormat format = sound.getAudioFormat();
-                            return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
+                            Mp3InputStream mp3InputStream = new Mp3InputStream(is);
+                            return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream::getFormat, input), mp3InputStream) : new RawAudioStream(mp3InputStream::getFormat, mp3InputStream));
                         } catch (Exception e2) {
                             LOGGER.debug("Failed to load as MP3", e2);
                             IOUtils.closeQuietly(is);

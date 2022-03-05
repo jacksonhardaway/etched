@@ -13,7 +13,6 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
     private final byte[] header;
     private final InputStream source;
     private int position;
-    private int mark;
 
     public HeaderInputStream(byte[] header, InputStream source) {
         this.header = header;
@@ -41,7 +40,7 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (this.position < this.header.length) {
-            int readLength = Math.min(this.header.length - this.position - 1, len);
+            int readLength = Math.min(this.header.length - this.position, len);
             System.arraycopy(this.header, this.position, b, off, readLength);
             this.position += readLength;
             if (len == readLength)

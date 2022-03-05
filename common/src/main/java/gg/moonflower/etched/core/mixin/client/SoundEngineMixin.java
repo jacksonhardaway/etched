@@ -8,7 +8,10 @@ import gg.moonflower.etched.api.sound.SoundStreamModifier;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
-import gg.moonflower.etched.api.util.*;
+import gg.moonflower.etched.api.util.HeaderInputStream;
+import gg.moonflower.etched.api.util.Mp3InputStream;
+import gg.moonflower.etched.api.util.SeekingStream;
+import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
 import gg.moonflower.etched.client.sound.SoundCache;
 import javazoom.jl.converter.Converter;
@@ -95,7 +98,7 @@ public abstract class SoundEngineMixin {
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenComposeAsync(AudioSource::openStream, Util.backgroundExecutor()).thenApplyAsync(stream -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
-                byte[] readHeader = new byte[64]; // 64 bytes starting buffer for OGG
+                byte[] readHeader = new byte[8192]; // 8KB starting buffer
                 int read = IOUtils.read(stream, readHeader);
 
                 InputStream is;
@@ -109,7 +112,6 @@ public abstract class SoundEngineMixin {
 
                 // Try loading as OGG
                 try {
-                    OggValidator.validate(is); // Tries to initialize OGG header without loading 8KB
                     return this.getStream(loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is));
                 } catch (Exception e) {
                     LOGGER.debug("Failed to load as OGG", e);

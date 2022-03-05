@@ -1,7 +1,7 @@
 package gg.moonflower.etched.api.util;
 
 import javazoom.jl.decoder.*;
-import org.lwjgl.BufferUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.sound.sampled.AudioFormat;
 import java.io.IOException;
@@ -28,11 +28,17 @@ public class Mp3InputStream extends InputStream {
         this.source = source;
         this.stream = new Bitstream(source);
         this.decoder = new Decoder();
-        this.buffer = BufferUtils.createByteBuffer(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
+        this.buffer = ByteBuffer.allocate(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
         if (this.fillBuffer())
             throw new IOException("Failed to find header");
     }
 
+    /**
+     * Refills the buffer from the mp3 decoder.
+     *
+     * @return Whether the stream has reached EOF (no more headers to read)
+     * @throws IOException If any error occurs while decoding mp3 data
+     */
     private boolean fillBuffer() throws IOException {
         this.buffer.clear();
 
@@ -65,9 +71,23 @@ public class Mp3InputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        if (this.buffer.position() >= this.buffer.limit() && this.fillBuffer())
+        if (!this.buffer.hasRemaining() && this.fillBuffer())
             return -1;
         return ((int) this.buffer.get()) & 0xFF;
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        int readAmount = 0;
+
+        boolean eof = false;
+        while (readAmount < len && (this.buffer.hasRemaining() || !(eof = this.fillBuffer()))) {
+            int readLength = Math.min(this.buffer.remaining(), len - readAmount);
+            this.buffer.get(b, off + readAmount, readLength);
+            readAmount += readLength;
+        }
+
+        return eof ? -1 : readAmount;
     }
 
     @Override

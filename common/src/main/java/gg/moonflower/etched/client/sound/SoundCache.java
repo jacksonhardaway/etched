@@ -57,6 +57,8 @@ public final class SoundCache {
                 files = null;
             }
 
+            theFiles.keySet().forEach(CACHE_METADATA::remove);
+
             List<Path> toBeDeleted = new ArrayList<>(theFiles.values());
             theFiles.clear();
             Collections.reverse(toBeDeleted);
@@ -66,6 +68,8 @@ public final class SoundCache {
                 } catch (Exception ignored) {
                 }
             }
+
+            writeMetadata();
         }));
 
         if (Files.exists(CACHE_METADATA_LOCATION)) {
@@ -146,7 +150,7 @@ public final class SoundCache {
             return false;
 
         if (CACHE_METADATA.has(key) && CACHE_METADATA.get(key).isJsonPrimitive() && CACHE_METADATA.get(key).getAsJsonPrimitive().isNumber()) {
-            long now = System.currentTimeMillis();
+            long now = System.currentTimeMillis() / 1000L;
             long expirationDate = CACHE_METADATA.get(key).getAsLong();
             return expirationDate - now > 0;
         }
@@ -167,7 +171,7 @@ public final class SoundCache {
 
             try {
                 METADATA_LOCK.lock();
-                CACHE_METADATA.addProperty(DigestUtils.md5Hex(url), System.currentTimeMillis() + unit.toMillis(timeout));
+                CACHE_METADATA.addProperty(DigestUtils.md5Hex(url), System.currentTimeMillis() / 1000L + unit.toSeconds(timeout));
                 nextWriteTime = System.currentTimeMillis() + METADATA_WRITE_TIME;
             } finally {
                 METADATA_LOCK.unlock();

@@ -17,7 +17,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -117,12 +119,12 @@ public interface AudioSource {
 
                     if (!type.isFile())
                         throw new IOException("The provided URL is a file, but that is not supported");
-                    if (SoundCache.isValid(file, url.toString()))
+                    if (SoundCache.isValid(file, file.getFileName().toString()))
                         return () -> new FileInputStream(file.toFile());
                     if (contentLength > 104857600)
                         throw new IOException("Filesize is bigger than maximum allowed (file is " + contentLength + ", limit is 104857600)");
 
-                    SoundCache.updateCache(file, url.toString(), cacheTime, TimeUnit.SECONDS, new ProgressTrackingInputStream(inputStream, contentLength, progressListener) {
+                    SoundCache.updateCache(file, file.getFileName().toString(), cacheTime, TimeUnit.SECONDS, new ProgressTrackingInputStream(inputStream, contentLength, progressListener) {
                         @Override
                         public int read() throws IOException {
                             int value = super.read();

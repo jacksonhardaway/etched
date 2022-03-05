@@ -7,6 +7,7 @@ import javax.sound.sampled.AudioFormat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Dynamically converts mp3 data to raw audio as the stream is read.
@@ -27,7 +28,7 @@ public class Mp3InputStream extends InputStream {
         this.source = source;
         this.stream = new Bitstream(source);
         this.decoder = new Decoder();
-        this.buffer = BufferUtils.createByteBuffer(Short.BYTES * Obuffer.OBUFFERSIZE);
+        this.buffer = BufferUtils.createByteBuffer(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
         if (this.fillBuffer())
             throw new IOException("Failed to find header");
     }

@@ -52,6 +52,7 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
             return;
 
         AlbumJukeboxBlockEntity albumJukebox = (AlbumJukeboxBlockEntity) blockEntity;
+        int oldIndex = albumJukebox.getPlayingIndex();
         int oldTrack = albumJukebox.getTrack();
         if (next) {
             albumJukebox.next();
@@ -59,7 +60,7 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
             albumJukebox.previous();
         }
 
-        if ((albumJukebox.getTrack() != oldTrack || albumJukebox.recalculatePlayingIndex(false)) && albumJukebox.getPlayingIndex() != -1) {
+        if (((albumJukebox.getPlayingIndex() == oldIndex && albumJukebox.getTrack() != oldTrack) || albumJukebox.recalculatePlayingIndex(!next)) && albumJukebox.getPlayingIndex() != -1) {
             EtchedClientPlayPacketHandlerImpl.playAlbum(albumJukebox, level, this.menu.getPos(), true);
             EtchedMessages.PLAY.sendToServer(new SetAlbumJukeboxTrackPacket(albumJukebox.getPlayingIndex(), albumJukebox.getTrack()));
         }

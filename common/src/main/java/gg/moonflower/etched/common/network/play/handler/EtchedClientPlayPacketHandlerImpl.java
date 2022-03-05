@@ -202,7 +202,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
         BlockState state = level.getBlockState(pos);
-        if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !jukebox.recalculatePlayingIndex(false) && !force) // Something must already be playing since it would otherwise be -1 and a change would occur
+        if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !force && !jukebox.recalculatePlayingIndex(false)) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
         SoundInstance soundInstance = playingRecords.get(pos);

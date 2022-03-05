@@ -232,6 +232,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
                 this.playingIndex = this.getContainerSize() - 1;
             this.nextPlayingIndex(true);
             this.track = Math.max(0, this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 0 : PlayableRecord.getStackTrackCount(this.getItem(this.playingIndex)) - 1);
+            this.playingStack = ItemStack.EMPTY;
         }
     }
 
@@ -304,7 +305,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         ItemStack oldStack = this.playingStack.copy();
         this.nextPlayingIndex(reverse);
         if (oldIndex != this.playingIndex || !ItemStack.matches(oldStack, this.playingStack)) {
-            this.track = 0;
+            this.track = reverse ? Math.max(0, this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 0 : PlayableRecord.getStackTrackCount(this.getItem(this.playingIndex)) - 1) : 0;
             return true;
         }
         return false;

@@ -5,7 +5,6 @@ import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.client.sound.EntityRecordSoundInstance;
-import gg.moonflower.etched.core.Etched;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.Util;
@@ -75,7 +74,7 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
     @Override
     public CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
         ResourceLocation registry = Registry.ITEM.getKey(this);
-        ResourceLocation name = "minecraft".equals(registry.getNamespace()) ? new ResourceLocation(Etched.MOD_ID, "vanilla") : registry;
+        ResourceLocation name = "minecraft".equals(registry.getNamespace()) ? VANILLA_COVER_LOCATION : registry;
         ResourceLocation location = new ResourceLocation(name.getNamespace(), "textures/item/" + name.getPath() + "_cover.png");
         return !resourceManager.hasResource(location) ? CompletableFuture.completedFuture(Optional.empty()) : CompletableFuture.supplyAsync(() -> {
             try (Resource resource = resourceManager.getResource(location)) {

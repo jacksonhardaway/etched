@@ -4,12 +4,14 @@ import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
+import gg.moonflower.etched.core.Etched;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +27,8 @@ import java.util.concurrent.CompletableFuture;
  * @since 2.0.0
  */
 public interface PlayableRecord {
+
+    ResourceLocation VANILLA_COVER_LOCATION = new ResourceLocation(Etched.MOD_ID, "vanilla");
 
     /**
      * Checks to see if the specified stack can be played.

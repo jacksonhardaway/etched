@@ -23,7 +23,7 @@
 	"record.etched.downloadProgress": "Baixando (%s MB / %s MB): %s",
 	"record.etched.loading": "Carregando %s",
 	"record.etched.resolvingTracks": "Buscando faixas...",
-	"screen.etched.album_jukebox.now_playing": "Tocando agora",
+	"screen.etched.album_jukebox.now_playing": "Tocando",
 	"screen.etched.edit_music_label.author": "Autor",
 	"screen.etched.edit_music_label.title": "Título",
 	"screen.etched.etching_table.error.invalid_url": "A URL é inválida para gravura",

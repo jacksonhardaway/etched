@@ -18,7 +18,8 @@ public class EtchedMessages {
         PLAY.register(ClientboundInvalidEtchUrlPacket.class, ClientboundInvalidEtchUrlPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
         PLAY.register(ClientboundPlayEntityMusicPacket.class, ClientboundPlayEntityMusicPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
         PLAY.register(ClientboundPlayMusicPacket.class, ClientboundPlayMusicPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
-        PLAY.register(ServerboundSetEtchingTableUrlPacket.class, ServerboundSetEtchingTableUrlPacket::new, PollinatedPacketDirection.PLAY_SERVERBOUND);
+        PLAY.register(ClientboundSetUrlPacket.class, ClientboundSetUrlPacket::new, PollinatedPacketDirection.PLAY_CLIENTBOUND);
+        PLAY.register(ServerboundSetUrlPacket.class, ServerboundSetUrlPacket::new, PollinatedPacketDirection.PLAY_SERVERBOUND);
         PLAY.register(ServerboundEditMusicLabelPacket.class, ServerboundEditMusicLabelPacket::new, PollinatedPacketDirection.PLAY_SERVERBOUND);
         PLAY.register(SetAlbumJukeboxTrackPacket.class, SetAlbumJukeboxTrackPacket::new, null); // Bidirectional
     }

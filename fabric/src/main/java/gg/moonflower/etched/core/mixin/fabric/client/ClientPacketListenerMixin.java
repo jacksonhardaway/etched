@@ -1,6 +1,7 @@
 package gg.moonflower.etched.core.mixin.fabric.client;
 
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.blockentity.RadioBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.BlockPos;
@@ -25,7 +26,7 @@ public class ClientPacketListenerMixin {
         BlockPos blockpos = pkt.getPos();
         BlockEntity blockEntity = Objects.requireNonNull(this.minecraft.level).getBlockEntity(blockpos);
 
-        if (blockEntity instanceof AlbumJukeboxBlockEntity)
+        if (blockEntity instanceof AlbumJukeboxBlockEntity || blockEntity instanceof RadioBlockEntity)
             blockEntity.load(this.minecraft.level.getBlockState(blockpos), pkt.getTag());
     }
 }

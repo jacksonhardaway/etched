@@ -10,14 +10,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.StringUtil;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * @author Ocelot
  */
-public class RadioBlockEntity extends BlockEntity {
+public class RadioBlockEntity extends BlockEntity implements Clearable {
 
     private String url;
 
@@ -30,7 +33,7 @@ public class RadioBlockEntity extends BlockEntity {
         super.load(state, nbt);
         this.url = nbt.contains("Url", NbtConstants.STRING) ? nbt.getString("Url") : null;
 
-        if (this.level != null && this.level.isClientSide() && this.url != null)
+        if (this.level != null && this.level.isClientSide())
             EtchedClientPlayPacketHandlerImpl.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
     }
 
@@ -58,13 +61,27 @@ public class RadioBlockEntity extends BlockEntity {
         return new ClientboundBlockEntityDataPacket(this.getBlockPos(), 0, this.getUpdateTag());
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-        this.setChanged();
+    @Override
+    public void clearContent() {
+        if (this.level != null && this.level.isClientSide())
+            EtchedClientPlayPacketHandlerImpl.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     public boolean isPlaying() {
         BlockState state = this.getBlockState();
         return (!state.hasProperty(RadioBlock.POWERED) || !state.getValue(RadioBlock.POWERED)) && !StringUtil.isNullOrEmpty(this.url);
+    }
+
+    public void setUrl(String url) {
+        if (!Objects.equals(this.url, url)) {
+            this.url = url;
+            this.setChanged();
+            if (this.level != null)
+                this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
     }
 }

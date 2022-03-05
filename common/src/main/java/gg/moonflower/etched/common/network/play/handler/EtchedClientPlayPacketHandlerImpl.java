@@ -8,6 +8,7 @@ import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
+import gg.moonflower.etched.client.screen.RadioScreen;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.block.RadioBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
@@ -198,7 +199,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
      * @param level The level to play records in
      * @param pos   The position of the jukebox
      */
-    public static void playRadio(String url, ClientLevel level, BlockPos pos) {
+    public static void playRadio(@Nullable String url, ClientLevel level, BlockPos pos) {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
@@ -217,7 +218,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         if (state.getValue(RadioBlock.POWERED))
             return;
 
-        if (TrackData.isValidURL(url))
+        if (url != null && TrackData.isValidURL(url))
             playRecord(pos, getEtchedRecord(url, RADIO, level, pos, true));
     }
 
@@ -378,6 +379,16 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             if (Minecraft.getInstance().screen instanceof EtchingScreen) {
                 EtchingScreen screen = (EtchingScreen) Minecraft.getInstance().screen;
                 screen.setReason(pkt.getException());
+            }
+        });
+    }
+
+    @Override
+    public void handleSetUrl(ClientboundSetUrlPacket pkt, PollinatedPacketContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (Minecraft.getInstance().screen instanceof RadioScreen) {
+                RadioScreen screen = (RadioScreen) Minecraft.getInstance().screen;
+                screen.receiveUrl(pkt.getUrl());
             }
         });
     }

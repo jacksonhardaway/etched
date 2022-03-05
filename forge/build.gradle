@@ -16,9 +16,18 @@ loom {
 
 //        convertAccessWideners.set(true)
 //        extraAccessWideners.add("${project.mod_id}.accesswidener")
+
+        dataGen {
+            mod project.mod_id
+        }
     }
     mixin {
         defaultRefmapName = "${project.mod_id}-refmap.json"
+    }
+    launches {
+        data {
+            arg "--existing", file("src/main/resources").absolutePath
+        }
     }
 }
 

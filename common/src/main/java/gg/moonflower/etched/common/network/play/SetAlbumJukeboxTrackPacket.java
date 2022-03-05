@@ -1,6 +1,6 @@
 package gg.moonflower.etched.common.network.play;
 
-import gg.moonflower.etched.common.network.play.handler.EtchedServerPlayPacketHandler;
+import gg.moonflower.etched.common.network.play.handler.EtchedPlayPacketHandler;
 import gg.moonflower.pollen.api.network.packet.PollinatedPacket;
 import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
 import net.minecraft.network.FriendlyByteBuf;
@@ -8,7 +8,7 @@ import net.minecraft.network.FriendlyByteBuf;
 /**
  * @author Ocelot
  */
-public class SetAlbumJukeboxTrackPacket implements PollinatedPacket<EtchedServerPlayPacketHandler> {
+public class SetAlbumJukeboxTrackPacket implements PollinatedPacket<EtchedPlayPacketHandler> {
 
     private final int playingIndex;
     private final int track;
@@ -30,7 +30,7 @@ public class SetAlbumJukeboxTrackPacket implements PollinatedPacket<EtchedServer
     }
 
     @Override
-    public void processPacket(EtchedServerPlayPacketHandler handler, PollinatedPacketContext ctx) {
+    public void processPacket(EtchedPlayPacketHandler handler, PollinatedPacketContext ctx) {
         handler.handleSetAlbumJukeboxTrack(this, ctx);
     }
 

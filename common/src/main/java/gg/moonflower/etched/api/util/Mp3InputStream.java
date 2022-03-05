@@ -1,7 +1,6 @@
 package gg.moonflower.etched.api.util;
 
 import javazoom.jl.decoder.*;
-import org.jetbrains.annotations.NotNull;
 
 import javax.sound.sampled.AudioFormat;
 import java.io.IOException;
@@ -91,8 +90,17 @@ public class Mp3InputStream extends InputStream {
     }
 
     @Override
+    public int available() throws IOException {
+        return this.source.available();
+    }
+
+    @Override
     public void close() throws IOException {
-        this.source.close();
+        try {
+            this.stream.close();
+        } catch (JavaLayerException e) {
+            throw new IOException(e);
+        }
     }
 
     public AudioFormat getFormat() {

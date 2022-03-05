@@ -8,21 +8,16 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
-import java.util.function.Supplier;
 
 /**
  * @author Ocelot
  */
 public class RawAudioStream implements AudioStream {
 
-    private final Supplier<AudioFormat> format;
+    private final AudioFormat format;
     private final InputStream input;
 
     public RawAudioStream(AudioFormat format, InputStream input) {
-        this(() -> format, input);
-    }
-
-    public RawAudioStream(Supplier<AudioFormat> format, InputStream input) {
         this.format = format;
         this.input = input;
     }
@@ -47,7 +42,7 @@ public class RawAudioStream implements AudioStream {
 
     @Override
     public AudioFormat getFormat() {
-        return this.format.get();
+        return this.format;
     }
 
     @Override
@@ -55,15 +50,17 @@ public class RawAudioStream implements AudioStream {
         byte[] buf = new byte[amount];
         int read, total = 0;
 
-        while ((read = this.input.read(buf, total, buf.length - total)) != -1 && total < buf.length) {
+        while (total < buf.length && (read = this.input.read(buf, total, buf.length - total)) != -1) {
             total += read;
         }
 
-        byte[] result = new byte[total];
-        System.arraycopy(buf, 0, result, 0, result.length);
+        byte[] result = buf;
+        if (buf.length != total) {
+            result = new byte[total];
+            System.arraycopy(buf, 0, result, 0, result.length);
+        }
 
-        AudioFormat format = this.format.get();
-        return convertAudioBytes(result, format.getSampleSizeInBits() == 16, format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
+        return convertAudioBytes(result, this.format.getSampleSizeInBits() == 16, this.format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
     }
 
     @Override

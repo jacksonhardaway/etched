@@ -14,9 +14,6 @@ import gg.moonflower.etched.api.util.SeekingStream;
 import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
 import gg.moonflower.etched.client.sound.SoundCache;
-import javazoom.jl.converter.Converter;
-import javazoom.jl.decoder.Decoder;
-import javazoom.jl.decoder.OutputChannels;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
@@ -51,16 +48,8 @@ public abstract class SoundEngineMixin {
     @Shadow
     @Final
     private static Logger LOGGER;
-
     @Unique
     private Sound sound;
-
-    @Unique
-    private static final Converter CONVERTER = new Converter();
-    @Unique
-    private static final Decoder.Params MONO_MP3_PARAMS = Util.make(new Decoder.Params(), params -> params.setOutputChannels(OutputChannels.DOWNMIX));
-    @Unique
-    private static final Decoder.Params STERO_MP3_PARAMS = Util.make(new Decoder.Params(), params -> params.setOutputChannels(OutputChannels.BOTH));
 
     @Inject(method = "tickNonPaused", at = @At(value = "INVOKE", target = "Ljava/util/Map;remove(Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     public void onSoundRemoved(CallbackInfo ci, Iterator<?> iterator, Map.Entry<?, ?> entry, ChannelAccess.ChannelHandle channelHandle2, SoundInstance soundInstance) {
@@ -84,7 +73,7 @@ public abstract class SoundEngineMixin {
             if (weighedSoundEvents == null)
                 throw new CompletionException(new FileNotFoundException("Unable to play unknown soundEvent: " + resourceLocation));
 
-            return soundBufferLibrary.getStream(weighedSoundEvents.getSound().getPath(), loop).thenApplyAsync(MonoWrapper::new, Util.backgroundExecutor()).handleAsync((stream, e) -> {
+            return soundBufferLibrary.getStream(weighedSoundEvents.getSound().getPath(), loop).thenApply(MonoWrapper::new).handleAsync((stream, e) -> {
                 if (e != null) {
                     e.printStackTrace();
                     onlineSound.getProgressListener().onFail();
@@ -95,7 +84,7 @@ public abstract class SoundEngineMixin {
             }, Util.backgroundExecutor());
         }
 
-        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenComposeAsync(AudioSource::openStream, Util.backgroundExecutor()).thenApplyAsync(stream -> {
+        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenCompose(AudioSource::openStream).thenApplyAsync(stream -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
                 byte[] readHeader = new byte[8192]; // 8KB starting buffer
@@ -129,7 +118,7 @@ public abstract class SoundEngineMixin {
                         // Try loading as MP3
                         try {
                             Mp3InputStream mp3InputStream = new Mp3InputStream(is);
-                            return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream::getFormat, input), mp3InputStream) : new RawAudioStream(mp3InputStream::getFormat, mp3InputStream));
+                            return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream.getFormat(), input), mp3InputStream) : new RawAudioStream(mp3InputStream.getFormat(), mp3InputStream));
                         } catch (Exception e2) {
                             LOGGER.debug("Failed to load as MP3", e2);
                             IOUtils.closeQuietly(is);

@@ -1,6 +1,7 @@
 package gg.moonflower.etched.common.block;
 
 import gg.moonflower.etched.common.menu.EtchingMenu;
+import gg.moonflower.etched.core.Etched;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -25,13 +26,12 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Nullable;
 
 public class EtchingTableBlock extends Block {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 6.0D, 14.0D);
-    private static final Component CONTAINER_TITLE = new TranslatableComponent("container.etched.etching_table");
+    private static final Component CONTAINER_TITLE = new TranslatableComponent("container." + Etched.MOD_ID + ".etching_table");
 
     public EtchingTableBlock(Properties properties) {
         super(properties);
@@ -52,10 +52,9 @@ public class EtchingTableBlock extends Block {
         return InteractionResult.CONSUME;
     }
 
-    @Nullable
     @Override
     public MenuProvider getMenuProvider(BlockState blockState, Level level, BlockPos blockPos) {
-        return new SimpleMenuProvider((i, arg3x, arg4) -> new EtchingMenu(i, arg3x, ContainerLevelAccess.create(level, blockPos)), CONTAINER_TITLE);
+        return new SimpleMenuProvider((menuId, playerInventory, player) -> new EtchingMenu(menuId, playerInventory, ContainerLevelAccess.create(level, blockPos)), CONTAINER_TITLE);
     }
 
     @Override

@@ -21,7 +21,7 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
 
     @Override
     public void beginning() throws IOException {
-        if (this.position >= this.header.length)
+        if (this.position > this.header.length)
             throw new IOException("Stream has already passed header (position: " + this.position + ", length: " + this.header.length + "). Can no longer go to beginning");
         this.position = 0;
     }

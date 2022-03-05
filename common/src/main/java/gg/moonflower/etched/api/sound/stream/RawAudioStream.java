@@ -8,16 +8,21 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
+import java.util.function.Supplier;
 
 /**
  * @author Ocelot
  */
 public class RawAudioStream implements AudioStream {
 
-    private final AudioFormat format;
+    private final Supplier<AudioFormat> format;
     private final InputStream input;
 
     public RawAudioStream(AudioFormat format, InputStream input) {
+        this(() -> format, input);
+    }
+
+    public RawAudioStream(Supplier<AudioFormat> format, InputStream input) {
         this.format = format;
         this.input = input;
     }
@@ -42,30 +47,23 @@ public class RawAudioStream implements AudioStream {
 
     @Override
     public AudioFormat getFormat() {
-        return format;
+        return this.format.get();
     }
 
     @Override
     public ByteBuffer read(int amount) throws IOException {
         byte[] buf = new byte[amount];
         int read, total = 0;
-        int fails = 0;
-        while (total < buf.length && fails < 10) {
-            try {
-                while ((read = this.input.read(buf, total, buf.length - total)) != -1 && total < buf.length) {
-                    fails = 0;
-                    total += read;
-                }
-                break; // EOF
-            } catch (ArrayIndexOutOfBoundsException ignored) { // Ignore because the mp3 parser sometimes doesn't allocate properly
-                fails++;
-            }
+
+        while ((read = this.input.read(buf, total, buf.length - total)) != -1 && total < buf.length) {
+            total += read;
         }
 
         byte[] result = new byte[total];
         System.arraycopy(buf, 0, result, 0, result.length);
 
-        return convertAudioBytes(result, this.format.getSampleSizeInBits() == 16, this.format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
+        AudioFormat format = this.format.get();
+        return convertAudioBytes(result, format.getSampleSizeInBits() == 16, format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
     }
 
     @Override

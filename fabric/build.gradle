@@ -39,7 +39,7 @@ dependencies {
 
     modRuntimeOnly "com.terraformersmc:modmenu:${rootProject.mod_menu_version}"
 
-    include(implementation("com.github.kevinstadler:JavaMP3:v1.0.4"))
+    include(implementation("javazoom:jlayer:1.0.1"))
 
     implementation(project(path: ":common", configuration: "namedElements")) { transitive false }
     developmentFabric(project(path: ":common", configuration: "namedElements")) { transitive false }

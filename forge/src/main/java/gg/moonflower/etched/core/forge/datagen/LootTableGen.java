@@ -69,6 +69,7 @@ public class LootTableGen extends ForgeLootTableProvider {
         protected void addTables() {
             this.dropSelf(EtchedBlocks.ETCHING_TABLE.get());
             this.dropSelf(EtchedBlocks.ALBUM_JUKEBOX.get());
+            this.dropSelf(EtchedBlocks.RADIO.get());
         }
 
         @Override

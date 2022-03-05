@@ -1,23 +1,31 @@
 package gg.moonflower.etched.client.sound;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.core.Etched;
+import gg.moonflower.pollen.api.event.events.lifecycle.TickEvents;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -25,8 +33,18 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class SoundCache {
 
-    private static final Path SOUND_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
-    private static final ReentrantLock LOCK = new ReentrantLock();
+    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Gson GSON = new Gson();
+    private static final Path CACHE_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
+    private static final ReentrantLock DOWNLOAD_LOCK = new ReentrantLock();
+    private static final ReentrantLock METADATA_LOCK = new ReentrantLock();
+    private static final ReentrantLock IO_LOCK = new ReentrantLock();
+
+    private static final Path CACHE_METADATA_LOCATION = CACHE_FOLDER.resolve("cache.json");
+    private static final int METADATA_WRITE_TIME = 5000;
+    private static volatile JsonObject CACHE_METADATA = new JsonObject();
+    private static volatile long nextWriteTime = Long.MAX_VALUE;
+
     private static final Map<String, CompletableFuture<AudioSource>> DOWNLOADING = new HashMap<>();
     private static Map<String, Path> files = new ConcurrentHashMap<>();
 
@@ -39,6 +57,8 @@ public final class SoundCache {
                 files = null;
             }
 
+            theFiles.keySet().forEach(CACHE_METADATA::remove);
+
             List<Path> toBeDeleted = new ArrayList<>(theFiles.values());
             theFiles.clear();
             Collections.reverse(toBeDeleted);
@@ -48,10 +68,41 @@ public final class SoundCache {
                 } catch (Exception ignored) {
                 }
             }
+
+            writeMetadata();
         }));
+
+        if (Files.exists(CACHE_METADATA_LOCATION)) {
+            LOGGER.debug("Reading cache metadata from file.");
+            try (InputStreamReader reader = new InputStreamReader(new FileInputStream(CACHE_METADATA_LOCATION.toFile()))) {
+                CACHE_METADATA = new JsonParser().parse(reader).getAsJsonObject();
+            } catch (Exception e) {
+                LOGGER.error("Failed to load cache metadata", e);
+            }
+        }
+        TickEvents.CLIENT_POST.register(() -> {
+            if (nextWriteTime == Long.MAX_VALUE)
+                return;
+
+            if (System.currentTimeMillis() - nextWriteTime > 0) {
+                nextWriteTime = Long.MAX_VALUE;
+                Util.ioPool().execute(SoundCache::writeMetadata);
+            }
+        });
     }
 
     private SoundCache() {
+    }
+
+    private static synchronized void writeMetadata() {
+        LOGGER.debug("Writing cache metadata to file.");
+        try (FileOutputStream os = new FileOutputStream(CACHE_METADATA_LOCATION.toFile())) {
+            if (!Files.exists(CACHE_FOLDER))
+                Files.createDirectory(CACHE_FOLDER);
+            IOUtils.write(GSON.toJson(CACHE_METADATA), os, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            LOGGER.error("Failed to write cache metadata", e);
+        }
     }
 
     /**
@@ -68,7 +119,7 @@ public final class SoundCache {
         }
 
         try {
-            LOCK.lock();
+            DOWNLOAD_LOCK.lock();
 
             CompletableFuture<AudioSource> future = SoundSourceManager.getAudioSource(url, listener, Minecraft.getInstance().getProxy(), type).handle((source, e) -> {
                 if (e != null) {
@@ -89,19 +140,58 @@ public final class SoundCache {
                 listener.onFail();
             throw new CompletionException("Failed to load audio into cache", e);
         } finally {
-            LOCK.unlock();
+            DOWNLOAD_LOCK.unlock();
         }
     }
 
-    public static synchronized Path resolveFilePath(String hash, boolean temporary) throws IOException {
-        if (temporary)
-            return getTemporaryFile(hash);
-        if (!Files.exists(SOUND_FOLDER))
-            Files.createDirectories(SOUND_FOLDER);
-        return SOUND_FOLDER.resolve(hash);
+    public static boolean isValid(Path soundFile, String url) {
+        String key = DigestUtils.md5Hex(url);
+        if (!Files.exists(soundFile))
+            return false;
+
+        if (CACHE_METADATA.has(key) && CACHE_METADATA.get(key).isJsonPrimitive() && CACHE_METADATA.get(key).getAsJsonPrimitive().isNumber()) {
+            long now = System.currentTimeMillis() / 1000L;
+            long expirationDate = CACHE_METADATA.get(key).getAsLong();
+            return expirationDate - now > 0;
+        }
+
+        return false;
     }
 
-    private static synchronized Path getTemporaryFile(String hash) throws IOException {
+    public static void updateCache(Path soundFile, String url, long timeout, TimeUnit unit, InputStream stream) {
+        try {
+            try {
+                IO_LOCK.lock();
+                if (!Files.exists(CACHE_FOLDER))
+                    Files.createDirectory(CACHE_FOLDER);
+                Files.copy(stream, soundFile, StandardCopyOption.REPLACE_EXISTING);
+            } finally {
+                IO_LOCK.unlock();
+            }
+
+            try {
+                METADATA_LOCK.lock();
+                CACHE_METADATA.addProperty(DigestUtils.md5Hex(url), System.currentTimeMillis() / 1000L + unit.toSeconds(timeout));
+                nextWriteTime = System.currentTimeMillis() + METADATA_WRITE_TIME;
+            } finally {
+                METADATA_LOCK.unlock();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to write sound: " + url, e);
+        } finally {
+            IOUtils.closeQuietly(stream);
+        }
+    }
+
+    public static Path resolveFilePath(String hash, boolean temporary) throws IOException {
+        if (temporary)
+            return getTemporaryFile(hash);
+        if (!Files.exists(CACHE_FOLDER))
+            Files.createDirectories(CACHE_FOLDER);
+        return CACHE_FOLDER.resolve(hash);
+    }
+
+    private static Path getTemporaryFile(String hash) throws IOException {
         if (files == null)
             throw new IllegalStateException("Shutdown in progress");
         if (!files.containsKey(hash))

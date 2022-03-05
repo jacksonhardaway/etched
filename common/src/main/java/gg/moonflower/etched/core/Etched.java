@@ -3,10 +3,7 @@ package gg.moonflower.etched.core;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
 import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
-import gg.moonflower.etched.client.screen.AlbumCoverScreen;
-import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
-import gg.moonflower.etched.client.screen.BoomboxScreen;
-import gg.moonflower.etched.client.screen.EtchingScreen;
+import gg.moonflower.etched.client.screen.*;
 import gg.moonflower.etched.common.item.*;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.sound.download.BandcampSource;
@@ -106,8 +103,6 @@ public class Etched {
 
         ColorRegistry.register((stack, index) -> index > 0 ? -1 : ((BlankMusicDiscItem) stack.getItem()).getColor(stack), EtchedItems.BLANK_MUSIC_DISC);
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getDiscColor(stack) : EtchedMusicDiscItem.getPattern(stack).isColorable() ? index == 1 ? EtchedMusicDiscItem.getLabelPrimaryColor(stack) : index == 2 ? EtchedMusicDiscItem.getLabelSecondaryColor(stack) : -1 : -1, EtchedItems.ETCHED_MUSIC_DISC);
-
-        ItemRendererRegistry.registerRenderer(EtchedItems.ALBUM_COVER.get(), AlbumCoverItemRenderer.INSTANCE);
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
@@ -122,6 +117,7 @@ public class Etched {
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
             ScreenRegistry.register(EtchedMenus.BOOMBOX_MENU.get(), BoomboxScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_COVER_MENU.get(), AlbumCoverScreen::new);
+            ScreenRegistry.register(EtchedMenus.RADIO_MENU.get(), RadioScreen::new);
             ItemPredicateRegistry.register(EtchedItems.BOOMBOX.get(), new ResourceLocation(Etched.MOD_ID, "playing"), (stack, level, entity) -> {
                 if (!(entity instanceof Player))
                     return 0;
@@ -131,7 +127,9 @@ public class Etched {
             ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity) -> Mth.clamp(EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F, 0, 1));
         });
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
+        RenderTypeRegistry.register(EtchedBlocks.RADIO.get(), RenderType.cutout());
         EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
         ItemRendererRegistry.registerHandModel(EtchedItems.BOOMBOX.get(), new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
+        ItemRendererRegistry.registerRenderer(EtchedItems.ALBUM_COVER.get(), AlbumCoverItemRenderer.INSTANCE);
     }
 }

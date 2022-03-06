@@ -54,6 +54,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
 
     @Override
     public void clearContent() {
+        this.url = null;
         if (this.level != null && this.level.isClientSide())
             EtchedClientPlayPacketHandlerImpl.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
     }

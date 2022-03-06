@@ -19,22 +19,27 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class AsyncInputStream extends InputStream {
 
+    private static final int MAX_DATA = 32768; // A maximum of 32KB can be loaded into memory
+
     private final List<byte[]> readBytes;
+    private final CompletableFuture<?> readFuture;
     private final Lock lock;
+    private final int maxBuffers;
     private int pointer;
     private byte[] currentData;
     private volatile boolean closed;
-    private final CompletableFuture<?> readFuture;
+    private CompletableFuture<?> waitFuture;
 
     public AsyncInputStream(AudioSource.InputStreamSupplier source, int bufferSize, int buffers, Executor readExecutor) throws IOException {
         this.readBytes = new LinkedList<>();
         this.lock = new ReentrantLock();
+        this.maxBuffers = Math.max(4, MAX_DATA / bufferSize); // At least 4 buffers, even if it exceeds the data limit
 
         CompletableFuture<?> initialWait = new CompletableFuture<>();
+        this.waitFuture = CompletableFuture.completedFuture(null); // Nothing to wait for initially
         this.readFuture = CompletableFuture.runAsync(() -> {
             try (InputStream stream = source.get()) { // Create stream off-thread to prevent threaded stream issues
                 while (!this.closed) {
-
                     byte[] buffer = new byte[bufferSize];
                     int read, byteCount = 0;
                     while (!this.closed && byteCount < buffer.length && (read = stream.read(buffer, byteCount, buffer.length - byteCount)) != -1) { // Read from stream until closed
@@ -73,11 +78,17 @@ public class AsyncInputStream extends InputStream {
     }
 
     private void appendBuffer(byte[] data) {
-        if (this.closed)
+        if (this.closed) // If closed, no point in adding new buffers
+            return;
+        this.waitFuture.join();
+        if (this.closed) // close() unlocks this thread after closed has been set
             return;
         try {
             this.lock.lock();
             this.readBytes.add(data);
+            if (this.readBytes.size() >= this.maxBuffers)
+                this.waitFuture = new CompletableFuture<>(); // Enough data has been read, wait until some is read
+            System.out.println("Buffers: " + this.readBytes.size());
         } finally {
             this.lock.unlock();
         }
@@ -90,6 +101,8 @@ public class AsyncInputStream extends InputStream {
         try {
             this.lock.lock();
             this.pointer = 0;
+            if (!this.waitFuture.isDone() && this.readBytes.size() < this.maxBuffers)
+                this.waitFuture.complete(null); // Unlock read thread after enough data is read
             if (this.readBytes.isEmpty()) {
                 this.currentData = null;
                 return true;
@@ -164,6 +177,7 @@ public class AsyncInputStream extends InputStream {
     @Override
     public void close() throws IOException {
         this.closed = true;
+        this.waitFuture.complete(null); // Force read thread to stop waiting
         this.readFuture.join();
     }
 }

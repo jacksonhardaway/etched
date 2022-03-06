@@ -24,6 +24,6 @@
   },
   "depends": {
     "minecraft": "1.18.x",
-    "pollen": ">=1.2.0"
+    "pollen": ">=1.2 <2.0.0"
   }
 }

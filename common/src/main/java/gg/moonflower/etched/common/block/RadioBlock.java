@@ -28,6 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
 public class RadioBlock extends BaseEntityBlock {
 
@@ -124,9 +125,10 @@ public class RadioBlock extends BaseEntityBlock {
         return blockState.rotate(mirror.getRotation(blockState.getValue(FACING)));
     }
 
+    @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockGetter level) {
-        return new RadioBlockEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new RadioBlockEntity(pos, state);
     }
 
     @Override

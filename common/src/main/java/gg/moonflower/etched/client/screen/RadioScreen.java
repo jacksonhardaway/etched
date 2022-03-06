@@ -1,5 +1,6 @@
 package gg.moonflower.etched.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.etched.common.menu.RadioMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
@@ -38,7 +39,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> {
         this.url.setMaxLength(32500);
         this.url.setVisible(this.canEdit);
         this.url.setCanLoseFocus(false);
-        this.addButton(this.url);
+        this.addRenderableWidget(this.url);
     }
 
     @Override
@@ -48,8 +49,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> {
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void containerTick() {
         this.url.tick();
     }
 
@@ -61,7 +61,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> {
 
     @Override
     protected void renderBg(PoseStack poseStack, float f, int mouseX, int mouseY) {
-        this.minecraft.getTextureManager().bind(TEXTURE);
+        RenderSystem.setShaderTexture(0, TEXTURE);
         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
         this.blit(poseStack, this.leftPos + 8, this.topPos + 18, 0, this.canEdit ? 39 : 53, 160, 14);
     }

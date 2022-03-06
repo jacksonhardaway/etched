@@ -94,11 +94,6 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
             ContainerHelper.saveAllItems(nbt, this.items);
     }
 
-    @PlatformOnly(PlatformOnly.FORGE)
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        this.load(pkt.getTag());
-    }
-
     @Override
     public CompoundTag getUpdateTag() {
         return this.saveWithoutMetadata();

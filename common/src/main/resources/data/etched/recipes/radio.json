@@ -13,13 +13,13 @@
             "item": "minecraft:iron_ingot"
         },
         "c": {
-            "item": "minecraft:copper_ingot"
+            "item": "minecraft:iron_ingot"
         },
         "N": {
             "item": "minecraft:note_block"
         },
         "O": {
-            "tag": "#minecraft:planks"
+            "tag": "minecraft:planks"
         }
     },
     "result": {

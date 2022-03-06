@@ -33,7 +33,7 @@ public class AsyncInputStream extends InputStream {
     public AsyncInputStream(AudioSource.InputStreamSupplier source, int bufferSize, int buffers, Executor readExecutor) throws IOException {
         this.readBytes = new LinkedList<>();
         this.lock = new ReentrantLock();
-        this.maxBuffers = Math.max(4, MAX_DATA / bufferSize); // At least 4 buffers, even if it exceeds the data limit
+        this.maxBuffers = Math.max(buffers, MAX_DATA / bufferSize); // At least X buffers, even if it exceeds the data limit
 
         CompletableFuture<?> initialWait = new CompletableFuture<>();
         this.waitFuture = CompletableFuture.completedFuture(null); // Nothing to wait for initially
@@ -88,7 +88,6 @@ public class AsyncInputStream extends InputStream {
             this.readBytes.add(data);
             if (this.readBytes.size() >= this.maxBuffers)
                 this.waitFuture = new CompletableFuture<>(); // Enough data has been read, wait until some is read
-            System.out.println("Buffers: " + this.readBytes.size());
         } finally {
             this.lock.unlock();
         }

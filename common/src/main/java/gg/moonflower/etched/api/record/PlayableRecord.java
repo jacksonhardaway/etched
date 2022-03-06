@@ -1,17 +1,14 @@
 package gg.moonflower.etched.api.record;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
-import gg.moonflower.etched.core.Etched;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -27,9 +24,7 @@ import java.util.concurrent.CompletableFuture;
  * @since 2.0.0
  */
 public interface PlayableRecord {
-
-    ResourceLocation VANILLA_COVER_LOCATION = new ResourceLocation(Etched.MOD_ID, "vanilla");
-
+    
     /**
      * Checks to see if the specified stack can be played.
      *
@@ -82,18 +77,36 @@ public interface PlayableRecord {
         EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayEntityMusicPacket(entity));
     }
 
+    /**
+     * Retrieves the music for the specified stack.
+     *
+     * @param stack The stack to check
+     * @return The tracks on that record
+     */
     static Optional<TrackData[]> getStackMusic(ItemStack stack) {
         if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
             return Optional.empty();
         return ((PlayableRecord) stack.getItem()).getMusic(stack);
     }
 
+    /**
+     * Retrieves the album music for the specified stack.
+     *
+     * @param stack The stack to check
+     * @return The album track on that record
+     */
     static Optional<TrackData> getStackAlbum(ItemStack stack) {
         if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
             return Optional.empty();
         return ((PlayableRecord) stack.getItem()).getAlbum(stack);
     }
 
+    /**
+     * Retrieves the number of tracks on the specified stack.
+     *
+     * @param stack The stack to check
+     * @return The number of tracks on the record
+     */
     static int getStackTrackCount(ItemStack stack) {
         if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
             return 0;
@@ -130,7 +143,7 @@ public interface PlayableRecord {
      * @return A future for a potential cover
      */
     @Environment(EnvType.CLIENT)
-    CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager);
+    CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager);
 
     /**
      * Retrieves the music URL from the specified stack.

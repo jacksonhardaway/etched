@@ -97,6 +97,11 @@ public class Etched {
         });
 
         ModelRegistry.registerSpecial(new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
+        ModelRegistry.registerFactory((resourceManager, out) -> {
+            String folder = "models/item/" + AlbumCoverItemRenderer.FOLDER_NAME + "/";
+            for (ResourceLocation animationLocation : resourceManager.listResources(folder, name -> name.endsWith(".json")))
+                out.accept(new ModelResourceLocation(new ResourceLocation(animationLocation.getNamespace(), animationLocation.getPath().substring(12, animationLocation.getPath().length() - 5)), "inventory"));
+        });
 
         ColorRegistry.register((stack, index) -> index == 0 || index == 1 ? MusicLabelItem.getLabelColor(stack) : -1, EtchedItems.MUSIC_LABEL);
         ColorRegistry.register((stack, index) -> index == 0 ? ComplexMusicLabelItem.getPrimaryColor(stack) : index == 1 ? ComplexMusicLabelItem.getSecondaryColor(stack) : -1, EtchedItems.COMPLEX_MUSIC_LABEL);

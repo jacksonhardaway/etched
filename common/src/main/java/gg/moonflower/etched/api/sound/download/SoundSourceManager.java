@@ -1,6 +1,8 @@
 package gg.moonflower.etched.api.sound.download;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import gg.moonflower.etched.api.record.AlbumCover;
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.source.RawAudioSource;
@@ -111,7 +113,7 @@ public final class SoundSourceManager {
      * @param proxy    The connection proxy
      * @return The album cover found or nothing
      */
-    public static CompletableFuture<Optional<NativeImage>> resolveAlbumCover(String url, @Nullable DownloadProgressListener listener, Proxy proxy, ResourceManager resourceManager) {
+    public static CompletableFuture<AlbumCover> resolveAlbumCover(String url, @Nullable DownloadProgressListener listener, Proxy proxy, ResourceManager resourceManager) {
         return CompletableFuture.supplyAsync(() -> SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().flatMap(source -> {
             try {
                 return source.resolveAlbumCover(url, listener, proxy, resourceManager);
@@ -121,11 +123,11 @@ public final class SoundSourceManager {
             }
         }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
             try (InputStream is = new FileInputStream(path.toFile())) {
-                return Optional.of(NativeImage.read(is));
+                return AlbumCover.of(NativeImage.read(is));
             } catch (Exception e) {
                 throw new CompletionException("Failed to read album cover from '" + url + "'", e);
             }
-        }, Util.ioPool())).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())));
+        }, Util.ioPool())).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY)));
     }
 
     /**

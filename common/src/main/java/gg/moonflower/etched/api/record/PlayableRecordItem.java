@@ -72,7 +72,7 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
     }
 
     @Override
-    public CompletableFuture<Optional<NativeImage>> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
-        return this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
+    public CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
+        return this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY));
     }
 }

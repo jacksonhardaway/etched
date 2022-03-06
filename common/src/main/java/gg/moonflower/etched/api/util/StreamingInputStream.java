@@ -39,7 +39,7 @@ public class StreamingInputStream extends InputStream {
         }
     }
 
-    private void incrementPosition() throws IOException {
+    private void incrementPosition() {
         this.position++;
         this.queueBuffers();
     }
@@ -93,9 +93,9 @@ public class StreamingInputStream extends InputStream {
         InputStream currentStream = this.getCurrentStream();
         long result = currentStream.skip(n);
 
-        if (result == 0) {
+        if (result < n) {
             this.incrementPosition();
-            return this.skip(n);
+            return this.skip(n - result);
         }
 
         return result;

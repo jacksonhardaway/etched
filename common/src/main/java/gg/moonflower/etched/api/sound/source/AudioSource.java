@@ -1,11 +1,13 @@
 package gg.moonflower.etched.api.sound.source;
 
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
+import gg.moonflower.etched.api.util.AsyncInputStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.HttpUtil;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -114,7 +116,7 @@ public interface AudioSource {
                         if (!type.isStream())
                             throw new IOException("The provided URL is a stream, but that is not supported");
                         Files.deleteIfExists(file);
-                        return url::openStream;
+                        return () -> new AsyncInputStream(url::openStream, 8192, 4, HttpUtil.DOWNLOAD_EXECUTOR);
                     }
 
                     if (!type.isFile())

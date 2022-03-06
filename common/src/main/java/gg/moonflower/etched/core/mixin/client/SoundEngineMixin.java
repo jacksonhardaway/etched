@@ -2,10 +2,14 @@ package gg.moonflower.etched.core.mixin.client;
 
 import com.mojang.blaze3d.audio.OggAudioStream;
 import gg.moonflower.etched.api.record.TrackData;
-import gg.moonflower.etched.api.sound.*;
+import gg.moonflower.etched.api.sound.AbstractOnlineSoundInstance;
+import gg.moonflower.etched.api.sound.SoundStopListener;
+import gg.moonflower.etched.api.sound.SoundStreamModifier;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
+import gg.moonflower.etched.api.util.HeaderInputStream;
+import gg.moonflower.etched.api.util.Mp3InputStream;
 import gg.moonflower.etched.api.util.SeekingStream;
 import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
@@ -14,12 +18,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.client.sounds.AudioStream;
-import net.minecraft.client.sounds.ChannelAccess;
-import net.minecraft.client.sounds.LoopingAudioStream;
-import net.minecraft.client.sounds.SoundBufferLibrary;
-import net.minecraft.client.sounds.SoundEngine;
-import net.minecraft.client.sounds.WeighedSoundEvents;
+import net.minecraft.client.sounds.*;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
@@ -36,9 +35,8 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -50,7 +48,6 @@ public abstract class SoundEngineMixin {
     @Shadow
     @Final
     private static Logger LOGGER;
-
     @Unique
     private Sound sound;
 
@@ -76,7 +73,7 @@ public abstract class SoundEngineMixin {
             if (weighedSoundEvents == null)
                 throw new CompletionException(new FileNotFoundException("Unable to play unknown soundEvent: " + resourceLocation));
 
-            return soundBufferLibrary.getStream(weighedSoundEvents.getSound().getPath(), loop).thenApplyAsync(MonoWrapper::new, Util.backgroundExecutor()).handleAsync((stream, e) -> {
+            return soundBufferLibrary.getStream(weighedSoundEvents.getSound().getPath(), loop).thenApply(MonoWrapper::new).handleAsync((stream, e) -> {
                 if (e != null) {
                     e.printStackTrace();
                     onlineSound.getProgressListener().onFail();
@@ -87,9 +84,21 @@ public abstract class SoundEngineMixin {
             }, Util.backgroundExecutor());
         }
 
-        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener()).thenComposeAsync(AudioSource::openStream).<AudioStream>thenApplyAsync(is -> {
+        return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenCompose(AudioSource::openStream).thenApplyAsync(stream -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
+                byte[] readHeader = new byte[8192]; // 8KB starting buffer
+                int read = IOUtils.read(stream, readHeader);
+
+                InputStream is;
+                if (read < readHeader.length) {
+                    byte[] header = new byte[read];
+                    System.arraycopy(readHeader, 0, header, 0, header.length);
+                    is = new HeaderInputStream(header, stream);
+                } else {
+                    is = new HeaderInputStream(readHeader, stream);
+                }
+
                 // Try loading as OGG
                 try {
                     return this.getStream(loop ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is));
@@ -108,9 +117,8 @@ public abstract class SoundEngineMixin {
 
                         // Try loading as MP3
                         try {
-                            fr.delthas.javamp3.Sound sound = new fr.delthas.javamp3.Sound(new BufferedInputStream(is));
-                            AudioFormat format = sound.getAudioFormat();
-                            return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(format, input), sound) : new RawAudioStream(format, sound));
+                            Mp3InputStream mp3InputStream = new Mp3InputStream(is);
+                            return this.getStream(loop ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream.getFormat(), input), mp3InputStream) : new RawAudioStream(mp3InputStream.getFormat(), mp3InputStream));
                         } catch (Exception e2) {
                             LOGGER.debug("Failed to load as MP3", e2);
                             IOUtils.closeQuietly(is);
@@ -121,7 +129,7 @@ public abstract class SoundEngineMixin {
                         }
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new CompletionException(e);
             }
         }, Util.backgroundExecutor()).handleAsync((stream, e) -> {

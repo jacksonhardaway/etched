@@ -1,5 +1,8 @@
 package gg.moonflower.etched.api.util;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -15,11 +18,12 @@ public class ProgressTrackingInputStream extends InputStream {
     private final DownloadProgressListener listener;
     private int read;
 
-    public ProgressTrackingInputStream(InputStream parent, long size, DownloadProgressListener listener) {
+    public ProgressTrackingInputStream(InputStream parent, long size, @Nullable DownloadProgressListener listener) {
         this.parent = parent;
         this.size = size;
         this.listener = listener;
-        this.listener.progressStartDownload(size / 1024.0F / 1024.0F);
+        if (this.listener != null)
+            this.listener.progressStartDownload(size / 1024.0F / 1024.0F);
     }
 
     @Override
@@ -27,9 +31,21 @@ public class ProgressTrackingInputStream extends InputStream {
         int result = this.parent.read();
         if (result != -1) {
             this.read++;
-            this.listener.progressStage((float) this.read / (float) this.size);
+            if (this.listener != null)
+                this.listener.progressStage((float) this.read / (float) this.size);
         }
         return result;
+    }
+
+    @Override
+    public int read(@NotNull byte[] b, int off, int len) throws IOException {
+        int read = this.parent.read(b, off, len);
+        if (read != -1) {
+            this.read += read;
+            if (this.listener != null)
+                this.listener.progressStage((float) this.read / (float) this.size);
+        }
+        return read;
     }
 
     @Override
@@ -55,5 +71,9 @@ public class ProgressTrackingInputStream extends InputStream {
     @Override
     public boolean markSupported() {
         return this.parent.markSupported();
+    }
+
+    public int getRead() {
+        return read;
     }
 }

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "etched:block/radio",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "etched:block/radio"
+    },
+    "facing=south": {
+      "model": "etched:block/radio",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "etched:block/radio",
+      "y": 270
+    }
+  }
+}

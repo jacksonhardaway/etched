@@ -4,10 +4,7 @@ import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.client.render.entity.JukeboxMinecartRenderer;
 import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
 import gg.moonflower.etched.client.render.model.EtchedModelLayers;
-import gg.moonflower.etched.client.screen.AlbumCoverScreen;
-import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
-import gg.moonflower.etched.client.screen.BoomboxScreen;
-import gg.moonflower.etched.client.screen.EtchingScreen;
+import gg.moonflower.etched.client.screen.*;
 import gg.moonflower.etched.common.item.*;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.sound.download.BandcampSource;
@@ -104,6 +101,11 @@ public class Etched {
         });
 
         ModelRegistry.registerSpecial(new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
+        ModelRegistry.registerFactory((resourceManager, out) -> {
+            String folder = "models/item/" + AlbumCoverItemRenderer.FOLDER_NAME + "/";
+            for (ResourceLocation animationLocation : resourceManager.listResources(folder, name -> name.endsWith(".json")))
+                out.accept(new ModelResourceLocation(new ResourceLocation(animationLocation.getNamespace(), animationLocation.getPath().substring(12, animationLocation.getPath().length() - 5)), "inventory"));
+        });
 
         ColorRegistry.register((stack, index) -> index == 0 || index == 1 ? MusicLabelItem.getLabelColor(stack) : -1, EtchedItems.MUSIC_LABEL);
         ColorRegistry.register((stack, index) -> index == 0 ? ComplexMusicLabelItem.getPrimaryColor(stack) : index == 1 ? ComplexMusicLabelItem.getSecondaryColor(stack) : -1, EtchedItems.COMPLEX_MUSIC_LABEL);
@@ -112,9 +114,6 @@ public class Etched {
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getDiscColor(stack) : EtchedMusicDiscItem.getPattern(stack).isColorable() ? index == 1 ? EtchedMusicDiscItem.getLabelPrimaryColor(stack) : index == 2 ? EtchedMusicDiscItem.getLabelSecondaryColor(stack) : -1 : -1, EtchedItems.ETCHED_MUSIC_DISC);
 
         EntityRendererRegistry.registerLayerDefinition(EtchedModelLayers.JUKEBOX_MINECART, MinecartModel::createBodyLayer);
-        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
-
-        ItemRendererRegistry.registerRenderer(EtchedItems.ALBUM_COVER.get(), AlbumCoverItemRenderer.INSTANCE);
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {
@@ -129,6 +128,7 @@ public class Etched {
             ScreenRegistry.register(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), AlbumJukeboxScreen::new);
             ScreenRegistry.register(EtchedMenus.BOOMBOX_MENU.get(), BoomboxScreen::new);
             ScreenRegistry.register(EtchedMenus.ALBUM_COVER_MENU.get(), AlbumCoverScreen::new);
+            ScreenRegistry.register(EtchedMenus.RADIO_MENU.get(), RadioScreen::new);
             ItemPredicateRegistry.register(EtchedItems.BOOMBOX.get(), new ResourceLocation(Etched.MOD_ID, "playing"), (stack, level, entity, i) -> {
                 if (!(entity instanceof Player))
                     return 0;
@@ -138,6 +138,11 @@ public class Etched {
             ItemPredicateRegistry.register(EtchedItems.ETCHED_MUSIC_DISC.get(), new ResourceLocation(Etched.MOD_ID, "pattern"), (stack, level, entity, i) -> EtchedMusicDiscItem.getPattern(stack).ordinal() / 10F);
         });
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
+
+        RenderTypeRegistry.register(EtchedBlocks.RADIO.get(), RenderType.cutout());
+        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
+
         ItemRendererRegistry.registerHandModel(EtchedItems.BOOMBOX.get(), new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
+        ItemRendererRegistry.registerRenderer(EtchedItems.ALBUM_COVER.get(), AlbumCoverItemRenderer.INSTANCE);
     }
 }

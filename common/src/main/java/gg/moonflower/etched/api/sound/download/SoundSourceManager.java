@@ -1,13 +1,13 @@
 package gg.moonflower.etched.api.sound.download;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import gg.moonflower.etched.api.record.AlbumCover;
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.source.RawAudioSource;
 import gg.moonflower.etched.api.sound.source.StreamingAudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
-import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
-import gg.moonflower.etched.client.render.item.AlbumImageProcessor;
 import gg.moonflower.etched.client.render.item.AlbumTextureCache;
 import gg.moonflower.pollen.pinwheel.api.client.FileCache;
 import net.minecraft.Util;
@@ -65,7 +65,7 @@ public final class SoundSourceManager {
      * @return A future for the source
      * @throws MalformedURLException If any error occurs when resolving URLs
      */
-    public static CompletableFuture<AudioSource> getAudioSource(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws MalformedURLException {
+    public static CompletableFuture<AudioSource> getAudioSource(String url, @Nullable DownloadProgressListener listener, Proxy proxy, AudioSource.AudioFileType type) throws MalformedURLException {
         Optional<SoundDownloadSource> source = SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst();
 
         return (source.isPresent() ? CompletableFuture.supplyAsync(() -> {
@@ -79,8 +79,8 @@ public final class SoundSourceManager {
                 if (urls.length == 0)
                     throw new IOException("No audio data was found at the source!");
                 if (urls.length == 1)
-                    return new RawAudioSource(proxy, DigestUtils.sha1Hex(url), urls[0], listener, source.map(s -> s.isTemporary(url)).orElse(false));
-                return new StreamingAudioSource(proxy, DigestUtils.sha1Hex(url), urls, listener, source.map(s -> s.isTemporary(url)).orElse(false));
+                    return new RawAudioSource(DigestUtils.sha1Hex(url), urls[0], listener, source.map(s -> s.isTemporary(url)).orElse(false),type);
+                return new StreamingAudioSource(DigestUtils.sha1Hex(url), urls, listener, source.map(s -> s.isTemporary(url)).orElse(false),type);
             } catch (Exception e) {
                 throw new CompletionException(e);
             }
@@ -113,7 +113,7 @@ public final class SoundSourceManager {
      * @param proxy    The connection proxy
      * @return The album cover found or nothing
      */
-    public static CompletableFuture<Optional<NativeImage>> resolveAlbumCover(String url, @Nullable DownloadProgressListener listener, Proxy proxy, ResourceManager resourceManager) {
+    public static CompletableFuture<AlbumCover> resolveAlbumCover(String url, @Nullable DownloadProgressListener listener, Proxy proxy, ResourceManager resourceManager) {
         return CompletableFuture.supplyAsync(() -> SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().flatMap(source -> {
             try {
                 return source.resolveAlbumCover(url, listener, proxy, resourceManager);
@@ -123,11 +123,11 @@ public final class SoundSourceManager {
             }
         }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
             try (InputStream is = new FileInputStream(path.toFile())) {
-                return Optional.of(NativeImage.read(is));
+                return AlbumCover.of(NativeImage.read(is));
             } catch (Exception e) {
                 throw new CompletionException("Failed to read album cover from '" + url + "'", e);
             }
-        }, Util.ioPool())).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())));
+        }, Util.ioPool())).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY)));
     }
 
     /**

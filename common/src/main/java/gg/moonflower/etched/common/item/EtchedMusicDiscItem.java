@@ -233,17 +233,6 @@ public class EtchedMusicDiscItem extends PlayableRecordItem {
         tag.put("LabelColor", labelTag);
     }
 
-    @Override
-    public boolean canPlay(ItemStack stack) {
-        return this.getMusic(stack).isPresent();
-    }
-
-    @Override
-    @Environment(EnvType.CLIENT)
-    public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
-        return track < 0 ? Optional.empty() : this.getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> EtchedClientPlayPacketHandlerImpl.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity));
-    }
-
     /**
      * @author Jackson
      */

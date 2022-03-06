@@ -42,28 +42,23 @@ public class RawAudioStream implements AudioStream {
 
     @Override
     public AudioFormat getFormat() {
-        return format;
+        return this.format;
     }
 
     @Override
     public ByteBuffer read(int amount) throws IOException {
         byte[] buf = new byte[amount];
         int read, total = 0;
-        int fails = 0;
-        while (total < buf.length && fails < 10) {
-            try {
-                while ((read = this.input.read(buf, total, buf.length - total)) != -1 && total < buf.length) {
-                    fails = 0;
-                    total += read;
-                }
-                break; // EOF
-            } catch (ArrayIndexOutOfBoundsException ignored) { // Ignore because the mp3 parser sometimes doesn't allocate properly
-                fails++;
-            }
+
+        while (total < buf.length && (read = this.input.read(buf, total, buf.length - total)) != -1) {
+            total += read;
         }
 
-        byte[] result = new byte[total];
-        System.arraycopy(buf, 0, result, 0, result.length);
+        byte[] result = buf;
+        if (buf.length != total) {
+            result = new byte[total];
+            System.arraycopy(buf, 0, result, 0, result.length);
+        }
 
         return convertAudioBytes(result, this.format.getSampleSizeInBits() == 16, this.format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
     }

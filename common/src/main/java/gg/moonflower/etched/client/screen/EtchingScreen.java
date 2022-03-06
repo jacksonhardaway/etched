@@ -9,7 +9,7 @@ import gg.moonflower.etched.common.item.EtchedMusicDiscItem;
 import gg.moonflower.etched.common.item.MusicLabelItem;
 import gg.moonflower.etched.common.menu.EtchingMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.common.network.play.ServerboundSetEtchingTableUrlPacket;
+import gg.moonflower.etched.common.network.play.ServerboundSetUrlPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.pollen.api.client.render.ShapeRenderer;
@@ -65,26 +65,19 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     protected void init() {
         super.init();
         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        this.url = new EditBox(this.font, this.leftPos + 11, this.topPos + 25, 154, 16, new TranslatableComponent("container.etched.etching_table"));
+        this.url = new EditBox(this.font, this.leftPos + 11, this.topPos + 25, 154, 16,this.url, new TranslatableComponent("container."+Etched.MOD_ID+".etching_table.url"));
         this.url.setTextColor(-1);
         this.url.setTextColorUneditable(-1);
         this.url.setBordered(false);
         this.url.setMaxLength(32500);
         this.url.setResponder(s -> {
             if (!Objects.equals(this.oldUrl, s) && this.urlTicks <= 0)
-                EtchedMessages.PLAY.sendToServer(new ServerboundSetEtchingTableUrlPacket(""));
+                EtchedMessages.PLAY.sendToServer(new ServerboundSetUrlPacket(""));
             this.urlTicks = 8;
         });
         this.url.setCanLoseFocus(true);
         this.addWidget(this.url);
         this.menu.addSlotListener(this);
-    }
-
-    @Override
-    public void resize(Minecraft minecraft, int i, int j) {
-        String string = this.url.getValue();
-        this.init(minecraft, i, j);
-        this.url.setValue(string);
     }
 
     @Override
@@ -100,7 +93,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             this.urlTicks--;
             if (this.urlTicks <= 0 && !Objects.equals(this.oldUrl, this.url.getValue())) {
                 this.oldUrl = this.url.getValue();
-                EtchedMessages.PLAY.sendToServer(new ServerboundSetEtchingTableUrlPacket(this.url.getValue()));
+                EtchedMessages.PLAY.sendToServer(new ServerboundSetUrlPacket(this.url.getValue()));
             }
         }
     }

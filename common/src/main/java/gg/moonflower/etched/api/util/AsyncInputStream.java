@@ -1,7 +1,5 @@
 package gg.moonflower.etched.api.util;
 
-import gg.moonflower.etched.api.sound.source.AudioSource;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -30,7 +28,7 @@ public class AsyncInputStream extends InputStream {
     private volatile boolean closed;
     private CompletableFuture<?> waitFuture;
 
-    public AsyncInputStream(AudioSource.InputStreamSupplier source, int bufferSize, int buffers, Executor readExecutor) throws IOException {
+    public AsyncInputStream(InputStreamSupplier source, int bufferSize, int buffers, Executor readExecutor) throws IOException {
         this.readBytes = new LinkedList<>();
         this.lock = new ReentrantLock();
         this.maxBuffers = Math.max(buffers, MAX_DATA / bufferSize); // At least X buffers, even if it exceeds the data limit
@@ -178,5 +176,20 @@ public class AsyncInputStream extends InputStream {
         this.closed = true;
         this.waitFuture.complete(null); // Force read thread to stop waiting
         this.readFuture.join();
+    }
+
+    /**
+     * Provides an {@link AsyncInputStream} with a new stream on the correct thread.
+     *
+     * @author Ocelot
+     */
+    @FunctionalInterface
+    public interface InputStreamSupplier {
+
+        /**
+         * @return A newly opened stream
+         * @throws IOException If any error occurs
+         */
+        InputStream get() throws IOException;
     }
 }

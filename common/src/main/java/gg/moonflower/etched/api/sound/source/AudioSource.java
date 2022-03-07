@@ -46,7 +46,7 @@ public interface AudioSource {
         return map;
     }
 
-    static InputStreamSupplier downloadTo(Path file, URL url, @Nullable DownloadProgressListener progressListener, AudioFileType type) {
+    static AsyncInputStream.InputStreamSupplier downloadTo(Path file, URL url, @Nullable DownloadProgressListener progressListener, AudioFileType type) {
         if (progressListener != null)
             progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
 
@@ -177,10 +177,5 @@ public interface AudioSource {
         public boolean isStream() {
             return stream;
         }
-    }
-
-    @FunctionalInterface
-    interface InputStreamSupplier {
-        InputStream get() throws IOException;
     }
 }

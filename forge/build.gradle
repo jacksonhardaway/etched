@@ -50,8 +50,8 @@ dependencies {
 
     modApi("gg.moonflower:pollen-forge:${rootProject.pollen_version}") { transitive = false }
 	
-	modRuntimeOnly "curse.maven:configured-457570:3533860"
-    modRuntimeOnly "curse.maven:catalogue-459701:3529457"
+	modRuntimeOnly "curse.maven:configured-457570:3640884"
+    modRuntimeOnly "curse.maven:catalogue-459701:3559402"
 
     shadowCommon(implementation("javazoom:jlayer:1.0.1"))
 

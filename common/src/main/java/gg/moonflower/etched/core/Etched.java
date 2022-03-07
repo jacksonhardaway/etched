@@ -114,6 +114,7 @@ public class Etched {
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getDiscColor(stack) : EtchedMusicDiscItem.getPattern(stack).isColorable() ? index == 1 ? EtchedMusicDiscItem.getLabelPrimaryColor(stack) : index == 2 ? EtchedMusicDiscItem.getLabelSecondaryColor(stack) : -1 : -1, EtchedItems.ETCHED_MUSIC_DISC);
 
         EntityRendererRegistry.registerLayerDefinition(EtchedModelLayers.JUKEBOX_MINECART, MinecartModel::createBodyLayer);
+        AlbumCoverItemRenderer.init();
     }
 
     public static void commonPostInit(Platform.ModSetupContext ctx) {

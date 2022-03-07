@@ -97,6 +97,6 @@ public class AlbumCoverMenu extends AbstractContainerMenu {
     }
 
     public static boolean isValid(ItemStack stack) {
-        return PlayableRecord.isPlayableRecord(stack) && stack.getItem() != EtchedItems.ALBUM_COVER.get();
+        return PlayableRecord.isPlayableRecord(stack) && !stack.is(EtchedItems.ALBUM_COVER.get());
     }
 }

@@ -181,7 +181,7 @@ public class AlbumCoverItem extends PlayableRecordItem {
     }
 
     private static void add(ItemStack albumCover, ItemStack record) {
-        if (!albumCover.is(EtchedItems.ALBUM_COVER.get()) || !PlayableRecord.isPlayableRecord(record))
+        if (!albumCover.is(EtchedItems.ALBUM_COVER.get()) || !AlbumCoverMenu.isValid(record))
             return;
 
         CompoundTag tag = albumCover.getOrCreateTag();
@@ -200,7 +200,7 @@ public class AlbumCoverItem extends PlayableRecordItem {
     }
 
     private static boolean canAdd(ItemStack albumCover, ItemStack record) {
-        if (!albumCover.is(EtchedItems.ALBUM_COVER.get()) || !PlayableRecord.isPlayableRecord(record))
+        if (!albumCover.is(EtchedItems.ALBUM_COVER.get()) || !AlbumCoverMenu.isValid(record))
             return false;
         return albumCover.getTag() == null || (albumCover.getTag().contains("Records", NbtConstants.LIST) && albumCover.getTag().getList("Records", NbtConstants.COMPOUND).size() < MAX_RECORDS);
     }

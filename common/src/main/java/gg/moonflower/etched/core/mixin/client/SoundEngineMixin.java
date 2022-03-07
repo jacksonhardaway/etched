@@ -70,8 +70,11 @@ public abstract class SoundEngineMixin {
         AbstractOnlineSoundInstance.OnlineSound onlineSound = (AbstractOnlineSoundInstance.OnlineSound) this.sound;
         if (TrackData.isLocalSound(onlineSound.getURL())) {
             WeighedSoundEvents weighedSoundEvents = Minecraft.getInstance().getSoundManager().getSoundEvent(new ResourceLocation(onlineSound.getURL()));
-            if (weighedSoundEvents == null)
-                throw new CompletionException(new FileNotFoundException("Unable to play unknown soundEvent: " + resourceLocation));
+            if (weighedSoundEvents == null) {
+                CompletableFuture<AudioStream> future = new CompletableFuture<>();
+                future.completeExceptionally(new FileNotFoundException("Unable to play unknown soundEvent: " + resourceLocation));
+                return future;
+            }
 
             return soundBufferLibrary.getStream(weighedSoundEvents.getSound().getPath(), loop).thenApply(MonoWrapper::new).handleAsync((stream, e) -> {
                 if (e != null) {

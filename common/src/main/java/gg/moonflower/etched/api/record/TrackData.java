@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -59,7 +60,9 @@ public class TrackData {
      * @param url The text to check
      * @return Whether the data is valid
      */
-    public static boolean isValidURL(String url) {
+    public static boolean isValidURL(@Nullable String url) {
+        if (url == null)
+            return false;
         if (isLocalSound(url))
             return true;
         try {
@@ -76,7 +79,9 @@ public class TrackData {
      * @param url The url to check
      * @return Whether that sound can be played as a local sound event
      */
-    public static boolean isLocalSound(String url) {
+    public static boolean isLocalSound(@Nullable String url) {
+        if (url == null)
+            return false;
         String[] parts = url.split(":");
         if (parts.length > 2)
             return false;

@@ -64,8 +64,11 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
     private AlbumCoverItemRenderer() {
         this.covers = new HashMap<>();
         this.data = null;
-        ResourceRegistry.registerReloadListener(PackType.CLIENT_RESOURCES, this);
-        ClientNetworkEvents.LOGOUT.register((controller, player, connection) -> this.close());
+    }
+
+    public static void init() {
+        ResourceRegistry.registerReloadListener(PackType.CLIENT_RESOURCES, INSTANCE);
+        ClientNetworkEvents.LOGOUT.register((controller, player, connection) -> INSTANCE.close());
     }
 
     public static NativeImage getOverlayImage() {

@@ -41,7 +41,7 @@ public class AlbumCoverMenu extends AbstractContainerMenu {
                 this.addSlot(new Slot(this.albumCoverInventory, m + n * 3, 62 + m * 18, 17 + n * 18) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
-                        return PlayableRecord.isPlayableRecord(stack);
+                        return PlayableRecord.isPlayableRecord(stack) && stack.getItem() != EtchedItems.ALBUM_COVER.get();
                     }
                 });
             }

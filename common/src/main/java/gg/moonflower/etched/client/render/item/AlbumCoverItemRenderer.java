@@ -234,7 +234,7 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
                 this.model = ITEM_MODEL_GENERATOR.generateBlockModel(material -> this, MODEL).bake(null, MODEL, material -> this, BlockModelRotation.X0_Y0, this.getName(), false);
                 profiler.pop();
             }
-            if (Minecraft.getInstance().getTextureManager().getTexture(this.getName()) == null)
+            if (Minecraft.getInstance().getTextureManager().getTexture(this.getName(), null) == null)
                 Minecraft.getInstance().getTextureManager().register(this.getName(), new DynamicTexture(this.mainImage[0]));
             return this.model;
         }

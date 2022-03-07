@@ -49,7 +49,7 @@ public class AlbumCoverItem extends PlayableRecordItem {
             if (dropContents(stack, player)) {
                 this.playDropContentsSound(player);
                 player.awardStat(Stats.ITEM_USED.get(this));
-                return InteractionResultHolder.sidedSuccess(ItemStack.EMPTY, level.isClientSide());
+                return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
             }
             return InteractionResultHolder.pass(stack);
         }
@@ -87,8 +87,10 @@ public class AlbumCoverItem extends PlayableRecordItem {
 
         ItemStack clickItem = slot.getItem();
         if (clickItem.isEmpty()) {
-            this.playRemoveOneSound(player);
-            removeOne(keyRing).ifPresent(key -> add(keyRing, slot.safeInsert(key)));
+            removeOne(keyRing).ifPresent(key -> {
+                this.playRemoveOneSound(player);
+                add(keyRing, slot.safeInsert(key));
+            });
         } else if (canAdd(keyRing, clickItem)) {
             this.playInsertSound(player);
             add(keyRing, slot.safeTake(clickItem.getCount(), 1, player));
@@ -157,9 +159,9 @@ public class AlbumCoverItem extends PlayableRecordItem {
         if (keysNbt.isEmpty())
             return Optional.empty();
 
-        CompoundTag keyNbt = keysNbt.getCompound(0);
+        CompoundTag keyNbt = keysNbt.getCompound(keysNbt.size() - 1);
         ItemStack keyStack = ItemStack.of(keyNbt);
-        keysNbt.remove(0);
+        keysNbt.remove(keysNbt.size() - 1);
 
         return Optional.of(keyStack);
     }
@@ -193,7 +195,7 @@ public class AlbumCoverItem extends PlayableRecordItem {
         ItemStack singleKey = record.split(1);
         CompoundTag keyTag = new CompoundTag();
         singleKey.save(keyTag);
-        keysNbt.add(0, keyTag);
+        keysNbt.add(keyTag);
 
         if (!getCoverStack(albumCover).isPresent())
             getRecords(albumCover).stream().filter(stack -> !stack.isEmpty()).findFirst().ifPresent(stack -> setCover(albumCover, stack));
@@ -202,7 +204,7 @@ public class AlbumCoverItem extends PlayableRecordItem {
     private static boolean canAdd(ItemStack albumCover, ItemStack record) {
         if (!albumCover.is(EtchedItems.ALBUM_COVER.get()) || !AlbumCoverMenu.isValid(record))
             return false;
-        return albumCover.getTag() == null || (albumCover.getTag().contains("Records", NbtConstants.LIST) && albumCover.getTag().getList("Records", NbtConstants.COMPOUND).size() < MAX_RECORDS);
+        return albumCover.getTag() == null || !albumCover.getTag().contains("Records", NbtConstants.LIST) || albumCover.getTag().getList("Records", NbtConstants.COMPOUND).size() < MAX_RECORDS;
     }
 
     @Override

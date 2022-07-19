@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.block.model.ItemModelGenerator;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.client.resources.model.BakedModel;
@@ -211,10 +212,11 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
 
     private static class DynamicModelData extends TextureAtlasSprite implements ModelData {
 
+        private static final TextureAtlas ATLAS = new TextureAtlas(new ResourceLocation(Etched.MOD_ID, DigestUtils.md5Hex(UUID.randomUUID().toString())));
         private BakedModel model;
 
         private DynamicModelData(NativeImage image) {
-            super(null, new Info(new ResourceLocation(Etched.MOD_ID, DigestUtils.md5Hex(UUID.randomUUID().toString())), image.getWidth(), image.getHeight(), AnimationMetadataSection.EMPTY), 0, image.getWidth(), image.getHeight(), 0, 0, image);
+            super(ATLAS, new Info(ATLAS.location(), image.getWidth(), image.getHeight(), AnimationMetadataSection.EMPTY), 0, image.getWidth(), image.getHeight(), 0, 0, image);
         }
 
         @Override

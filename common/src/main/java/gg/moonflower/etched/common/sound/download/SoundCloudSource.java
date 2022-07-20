@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Ocelot
@@ -34,16 +36,20 @@ public class SoundCloudSource implements SoundDownloadSource {
 
     static final Logger LOGGER = LogManager.getLogger();
     private static final Component BRAND = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500)));
+    private static final Pattern KEY_REGEX = Pattern.compile("/[-a-zA-Z\\d()@:%_+.~#?&/=]+/[-a-zA-Z\\d()@:%_+.~#?&/=]+/([-a-zA-Z\\d()@:%_+.~#?&/=]+)"); // Regex for the third path of track URLs
 
     private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
-    private InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
+    private InputStream get(String url, String sourceUrl, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
         HttpURLConnection httpURLConnection;
         if (progressListener != null)
             progressListener.progressStartRequest(new TranslatableComponent("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
 
         try {
-            URL uRL = requiresId ? new URL(url + SoundCloudIdTracker.fetch(proxy)) : new URL(url);
+            Matcher matcher = KEY_REGEX.matcher(new URL(sourceUrl).getPath());
+            String key = matcher.matches() ? matcher.group(1) : null;
+
+            URL uRL = requiresId ? new URL(url + (key != null ? key : SoundCloudIdTracker.fetch(proxy))) : new URL(url);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
@@ -52,10 +58,10 @@ public class SoundCloudSource implements SoundDownloadSource {
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
 
             int response = httpURLConnection.getResponseCode();
-            if (attempt == 0 && (response == 401 || response == 403)) {
+            if (requiresId && attempt == 0 && (response == 401 || response == 403)) { // Authenticate if required and bad auth response
                 LOGGER.info("Attempting to authenticate");
                 SoundCloudIdTracker.invalidate();
-                return get(url, progressListener, proxy, 1, requiresId);
+                return this.get(url, sourceUrl, progressListener, proxy, 1, true);
             }
 
             long size = httpURLConnection.getContentLengthLong();
@@ -71,7 +77,7 @@ public class SoundCloudSource implements SoundDownloadSource {
     }
 
     private <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, SourceRequest<T> function) throws IOException, JsonParseException {
-        try (InputStreamReader reader = new InputStreamReader(get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", progressListener, proxy, 0, true))) {
+        try (InputStreamReader reader = new InputStreamReader(this.get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()) + "&client_id=", url, progressListener, proxy, 0, true))) {
             JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
 
             String kind = GsonHelper.getAsString(json, "kind");
@@ -88,7 +94,7 @@ public class SoundCloudSource implements SoundDownloadSource {
 
     @Override
     public List<URL> resolveUrl(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
-        return resolve(url, progressListener, proxy, json -> {
+        return this.resolve(url, progressListener, proxy, json -> {
             if (progressListener != null)
                 progressListener.progressStartRequest(RESOLVING_TRACKS);
             JsonArray media = GsonHelper.getAsJsonArray(GsonHelper.getAsJsonObject(json, "media"), "transcodings");
@@ -102,8 +108,8 @@ public class SoundCloudSource implements SoundDownloadSource {
                 if ("progressive".equals(protocol))
                     progressiveIndex = i;
                 if ("hls".equals(protocol)) {
-                    try (InputStreamReader r = new InputStreamReader(get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", null, proxy, 0, true))) {
-                        try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), null, proxy, 0, false))) {
+                    try (InputStreamReader r = new InputStreamReader(this.get(GsonHelper.getAsString(transcodingJson, "url") + "?client_id=", url, null, proxy, 0, true))) {
+                        try (InputStreamReader reader = new InputStreamReader(this.get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), url, null, proxy, 0, false))) {
                             return M3uParser.parse(reader);
                         }
                     }
@@ -111,7 +117,7 @@ public class SoundCloudSource implements SoundDownloadSource {
             }
             if (progressiveIndex == -1)
                 throw new IOException("Could not find an audio source");
-            try (InputStreamReader reader = new InputStreamReader(get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url") + "?client_id=", null, proxy, 0, true))) {
+            try (InputStreamReader reader = new InputStreamReader(this.get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url") + "?client_id=", url, null, proxy, 0, true))) {
                 return Collections.singletonList(new URL(GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url")));
             }
         });

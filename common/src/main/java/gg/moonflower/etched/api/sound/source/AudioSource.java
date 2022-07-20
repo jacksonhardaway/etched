@@ -74,7 +74,7 @@ public interface AudioSource {
                                     try {
                                         cacheTime = Integer.parseInt(element.getValue());
                                     } catch (NumberFormatException e) {
-                                        LOGGER.error("Invalid number: " + element.getValue());
+                                        LOGGER.error("Invalid max-age: " + element.getValue());
                                     }
                                     break;
                                 }
@@ -83,7 +83,7 @@ public interface AudioSource {
                                     try {
                                         cacheTime = Integer.parseInt(element.getValue());
                                     } catch (NumberFormatException e) {
-                                        LOGGER.error("Invalid number: " + element.getValue());
+                                        LOGGER.error("Invalid s-maxage: " + element.getValue());
                                     }
                                     break;
                                 }
@@ -108,7 +108,7 @@ public interface AudioSource {
                         try {
                             cacheTime -= Integer.parseInt(ageHeader.getValue());
                         } catch (NumberFormatException e) {
-                            LOGGER.error("Invalid number: " + ageHeader.getValue());
+                            LOGGER.error("Invalid Age: " + ageHeader.getValue());
                         }
                     }
 

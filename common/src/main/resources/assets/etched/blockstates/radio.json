@@ -1,19 +1,64 @@
 {
   "variants": {
-    "facing=east": {
-      "model": "etched:block/radio",
-      "y": 90
-    },
-    "facing=north": {
-      "model": "etched:block/radio"
-    },
-    "facing=south": {
+    "rotation=0": {
       "model": "etched:block/radio",
       "y": 180
     },
-    "facing=west": {
+    "rotation=1": {
+      "model": "etched:block/radio_675",
+      "y": 270
+    },
+    "rotation=2": {
+      "model": "etched:block/radio_45",
+      "y": 270
+    },
+    "rotation=3": {
+      "model": "etched:block/radio_225",
+      "y": 270
+    },
+    "rotation=4": {
       "model": "etched:block/radio",
       "y": 270
+    },
+    "rotation=5": {
+      "model": "etched:block/radio_675"
+    },
+    "rotation=6": {
+      "model": "etched:block/radio_45"
+    },
+    "rotation=7": {
+      "model": "etched:block/radio_225"
+    },
+    "rotation=8": {
+      "model": "etched:block/radio"
+    },
+    "rotation=9": {
+      "model": "etched:block/radio_675",
+      "y": 90
+    },
+    "rotation=10": {
+      "model": "etched:block/radio_45",
+      "y": 90
+    },
+    "rotation=11": {
+      "model": "etched:block/radio_225",
+      "y": 90
+    },
+    "rotation=12": {
+      "model": "etched:block/radio",
+      "y": 90
+    },
+    "rotation=13": {
+      "model": "etched:block/radio_675",
+      "y": 180
+    },
+    "rotation=14": {
+      "model": "etched:block/radio_45",
+      "y": 180
+    },
+    "rotation=15": {
+      "model": "etched:block/radio_225",
+      "y": 180
     }
   }
 }

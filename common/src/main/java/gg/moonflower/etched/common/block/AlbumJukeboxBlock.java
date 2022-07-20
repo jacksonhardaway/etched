@@ -1,5 +1,6 @@
 package gg.moonflower.etched.common.block;
 
+import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
@@ -118,7 +119,7 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> GameEventListener getListener(Level level, T blockEntity) {
         if (blockEntity instanceof AlbumJukeboxBlockEntity && level.isClientSide())
-            EtchedClientPlayPacketHandlerImpl.playAlbum((AlbumJukeboxBlockEntity) blockEntity, (ClientLevel) level, blockEntity.getBlockPos(), false);
+            SoundTracker.playAlbum((AlbumJukeboxBlockEntity) blockEntity, (ClientLevel) level, blockEntity.getBlockPos(), false);
         return null;
     }
 

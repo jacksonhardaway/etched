@@ -115,14 +115,14 @@ public class SoundTracker {
     /**
      * Creates an online sound for the specified position.
      *
-     * @param url    The url to play
-     * @param title  The title of the record
-     * @param level  The level to play the record in
-     * @param pos    The position of the record
-     * @param stream Whether to play a stream or regular file
+     * @param url   The url to play
+     * @param title The title of the record
+     * @param level The level to play the record in
+     * @param pos   The position of the record
+     * @param type  The type of audio to accept
      * @return A new sound instance
      */
-    public static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, boolean stream) {
+    public static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, AudioSource.AudioFileType type) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
         return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
             @Override
@@ -142,7 +142,7 @@ public class SoundTracker {
             public void onFail() {
                 PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
             }
-        }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
+        }, type);
     }
 
     private static void playRecord(BlockPos pos, SoundInstance sound) {
@@ -179,7 +179,7 @@ public class SoundTracker {
             playBlockRecord(pos, tracks, track + 1);
             return;
         }
-        playRecord(pos, StopListeningSound.create(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos, false), () -> Minecraft.getInstance().tell(() -> {
+        playRecord(pos, StopListeningSound.create(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> {
             if (!((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords().containsKey(pos))
                 return;
             playBlockRecord(pos, tracks, track + 1);
@@ -265,7 +265,7 @@ public class SoundTracker {
             return;
 
         if (TrackData.isValidURL(url))
-            playRecord(pos, getEtchedRecord(url, RADIO, level, pos, true));
+            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level, pos))));
     }
 
     /**
@@ -310,7 +310,7 @@ public class SoundTracker {
                 TrackData[] tracks = optional.get();
                 TrackData track = jukebox.getTrack() < 0 || jukebox.getTrack() >= tracks.length ? tracks[0] : tracks[jukebox.getTrack()];
                 if (TrackData.isValidURL(track.getUrl())) {
-                    sound = StopListeningSound.create(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos, false), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+                    sound = StopListeningSound.create(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }
         }

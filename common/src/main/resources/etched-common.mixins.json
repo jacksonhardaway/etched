@@ -14,9 +14,11 @@
   "mixins": [
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
+    "NoteBlockMixin",
     "RecordItemMixin",
     "SoundEventAccessor",
-    "StructureTemplatePoolAccessor"
+    "StructureTemplatePoolAccessor",
+    "VillagerGoalPackagesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

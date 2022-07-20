@@ -72,7 +72,7 @@ public class BoomboxItem extends Item {
 
     private static void updatePlaying(Entity entity, ItemStack record) {
         if (!ItemStack.matches(PLAYING_RECORDS.getOrDefault(entity.getId(), ItemStack.EMPTY), record)) {
-            SoundTracker.playBoombox(entity, record);
+            SoundTracker.playBoombox(entity.getId(), record);
             if (record.isEmpty()) {
                 PLAYING_RECORDS.remove(entity.getId());
             } else {

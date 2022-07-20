@@ -265,7 +265,7 @@ public class EtchingMenu extends AbstractContainerMenu {
             if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get() || (!discStack.isEmpty() && !labelStack.isEmpty())) {
                 if (this.url == null && !discStack.isEmpty())
                     this.url = PlayableRecord.getStackAlbum(discStack).map(TrackData::getUrl).orElse(null);
-                if (this.url == null || !TrackData.isValidURL(this.url))
+                if (!TrackData.isValidURL(this.url))
                     return;
 
                 int currentId = this.currentRequestId = this.urlId;
@@ -287,7 +287,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                         data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack)).withArtist(MusicLabelItem.getAuthor(labelStack));
                     if (SoundSourceManager.isValidUrl(this.url)) {
                         try {
-                            TrackData[] cache = DATA_CACHE.get(this.url, () -> SoundSourceManager.resolveTracks(this.url, null, Proxy.NO_PROXY).orElse(null));
+                            TrackData[] cache = DATA_CACHE.get(this.url, () -> SoundSourceManager.resolveTracks(this.url, null, Proxy.NO_PROXY).join().orElse(null));
                             if (cache != null)
                                 data = cache;
                         } catch (Exception e) {

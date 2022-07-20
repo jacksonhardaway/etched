@@ -2,6 +2,7 @@ package gg.moonflower.etched.common.blockentity;
 
 import dev.architectury.injectables.annotations.PlatformOnly;
 import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
@@ -77,7 +78,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         if (!this.tryLoadLootTable(hbt))
             ContainerHelper.loadAllItems(hbt, this.items);
         if (this.level != null && this.level.isClientSide())
-            EtchedClientPlayPacketHandlerImpl.playAlbum(this, (ClientLevel) this.level, this.getBlockPos(), false);
+            SoundTracker.playAlbum(this, (ClientLevel) this.level, this.getBlockPos(), false);
     }
 
     @Override

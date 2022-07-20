@@ -1,5 +1,6 @@
 package gg.moonflower.etched.common.item;
 
+import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.menu.BoomboxMenu;
 import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
@@ -71,7 +72,7 @@ public class BoomboxItem extends Item {
 
     private static void updatePlaying(Entity entity, ItemStack record) {
         if (!ItemStack.matches(PLAYING_RECORDS.getOrDefault(entity.getId(), ItemStack.EMPTY), record)) {
-            EtchedClientPlayPacketHandlerImpl.playBoombox(entity, record);
+            SoundTracker.playBoombox(entity, record);
             if (record.isEmpty()) {
                 PLAYING_RECORDS.remove(entity.getId());
             } else {

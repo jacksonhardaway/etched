@@ -8,14 +8,19 @@ dependencies {
 }
 
 architectury {
-    common()
+    common("forge", "fabric")
 }
 
 publishing {
     publications {
         mavenCommon(MavenPublication) {
             artifactId = project.archivesBaseName
-            from components.java
+            artifact remapJar
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
         }
     }
 }
+
+loom.disableDeprecatedPomGeneration(publishing.publications.mavenCommon)

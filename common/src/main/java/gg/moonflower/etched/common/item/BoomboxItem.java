@@ -10,6 +10,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.KeybindComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -27,13 +29,16 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class BoomboxItem extends Item {
 
     private static final Map<Integer, ItemStack> PLAYING_RECORDS = new Int2ObjectArrayMap<>();
-    private static final Component PAUSED = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.paused").withStyle(ChatFormatting.BLUE);
+    private static final Component PAUSE = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.pause", new KeybindComponent("key.sneak"), new KeybindComponent("key.use")).withStyle(ChatFormatting.GRAY);
+    private static final Component RECORDS = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.records");
+    public static final Component PAUSED = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.paused").withStyle(ChatFormatting.YELLOW);
 
     public BoomboxItem(Properties properties) {
         super(properties);
@@ -117,12 +122,18 @@ public class BoomboxItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+        tooltipComponents.add(PAUSE);
         if (hasRecord(stack)) {
             ItemStack record = getRecord(stack);
-            record.getItem().appendHoverText(record, level, tooltipComponents, isAdvanced);
+            List<Component> records = new LinkedList<>();
+            record.getItem().appendHoverText(record, level, records, isAdvanced);
+
+            if (!records.isEmpty()) {
+                tooltipComponents.add(TextComponent.EMPTY);
+                tooltipComponents.add(RECORDS);
+                tooltipComponents.addAll(records);
+            }
         }
-        if (isPaused(stack))
-            tooltipComponents.add(PAUSED);
     }
 
     /**

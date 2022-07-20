@@ -8,6 +8,7 @@
     "client.GuiAccessor",
     "client.GuiMixin",
     "client.HumanoidModelMixin",
+    "client.ItemStackMixin",
     "client.LevelRendererAccessor",
     "client.SoundEngineMixin"
   ],

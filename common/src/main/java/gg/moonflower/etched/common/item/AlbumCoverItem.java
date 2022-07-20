@@ -58,13 +58,9 @@ public class AlbumCoverItem extends PlayableRecordItem {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
-        List<ItemStack> records = getRecords(stack);
-        for (int i = 0; i < records.size(); i++) {
-            ItemStack record = records.get(i);
+        for (ItemStack record : getRecords(stack)) {
             if (record.getItem() instanceof PlayableRecord) {
                 record.getItem().appendHoverText(record, level, list, tooltipFlag);
-                if (i < records.size() - 1)
-                    list.add(TextComponent.EMPTY);
             }
         }
     }

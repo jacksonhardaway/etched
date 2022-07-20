@@ -7,6 +7,8 @@ import gg.moonflower.etched.core.Etched;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -29,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class PlayableRecordItem extends Item implements PlayableRecord {
 
-    private static final Component ALBUM = new TranslatableComponent("item." + Etched.MOD_ID + ".etched_music_disc.album").withStyle(ChatFormatting.BLUE);
+    private static final Component ALBUM = new TranslatableComponent("item." + Etched.MOD_ID + ".etched_music_disc.album").withStyle(ChatFormatting.DARK_GRAY);
 
     public PlayableRecordItem(Properties properties) {
         super(properties);
@@ -63,9 +65,11 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
         this.getAlbum(stack).ifPresent(track -> {
             list.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-            SoundSourceManager.getBrandText(track.getUrl()).ifPresent(list::add);
-            if (getTrackCount(stack) > 1)
-                list.add(ALBUM);
+            Component brand = SoundSourceManager.getBrandText(track.getUrl())
+                .map(component -> new TextComponent("  ").append(component.copy()))
+                .<Component>map(component -> getTrackCount(stack) > 1 ? component.append(" ").append(ALBUM) : component)
+                .orElse(getTrackCount(stack) > 1 ? ALBUM : TextComponent.EMPTY);
+            list.add(brand);
         });
     }
 

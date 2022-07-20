@@ -1,7 +1,6 @@
 package gg.moonflower.etched.common.item;
 
 import gg.moonflower.etched.common.block.RadioBlock;
-import gg.moonflower.etched.core.registry.EtchedBlocks;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;

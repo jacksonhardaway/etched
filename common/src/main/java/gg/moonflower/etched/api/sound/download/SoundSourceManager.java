@@ -2,7 +2,6 @@ package gg.moonflower.etched.api.sound.download;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.api.record.AlbumCover;
-import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.source.RawAudioSource;
@@ -19,7 +18,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;

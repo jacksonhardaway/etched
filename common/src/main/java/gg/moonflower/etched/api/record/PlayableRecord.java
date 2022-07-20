@@ -3,7 +3,6 @@ package gg.moonflower.etched.api.record;
 import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
-import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;

@@ -2,7 +2,6 @@ package gg.moonflower.etched.common.recipe;
 
 import gg.moonflower.etched.common.item.AlbumCoverItem;
 import gg.moonflower.etched.core.registry.EtchedRecipes;
-import gg.moonflower.pollen.api.crafting.PollenRecipeTypes;
 import gg.moonflower.pollen.api.crafting.grindstone.PollenGrindstoneRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;

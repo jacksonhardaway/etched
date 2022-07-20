@@ -2,7 +2,6 @@ package gg.moonflower.etched.common.item;
 
 import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.menu.BoomboxMenu;
-import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.pollen.api.event.events.lifecycle.TickEvents;
 import gg.moonflower.pollen.api.util.NbtConstants;

@@ -3,7 +3,6 @@ package gg.moonflower.etched.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.etched.common.menu.AlbumCoverMenu;
-import gg.moonflower.etched.core.Etched;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

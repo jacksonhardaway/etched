@@ -1,6 +1,5 @@
 package gg.moonflower.etched.api.record;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class PlayableRecordItem extends Item implements PlayableRecord {

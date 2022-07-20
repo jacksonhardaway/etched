@@ -9,7 +9,6 @@ import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.SetAlbumJukeboxTrackPacket;
-import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;

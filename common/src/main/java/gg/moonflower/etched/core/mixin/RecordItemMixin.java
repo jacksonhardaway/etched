@@ -6,6 +6,7 @@ import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
 import gg.moonflower.etched.client.sound.EntityRecordSoundInstance;
+import gg.moonflower.etched.core.hook.RecordItemHook;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -13,6 +14,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.sounds.SoundEvent;
@@ -34,19 +36,13 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
 
     @Unique
     private final Supplier<TrackData[]> track = Suppliers.memoize(() -> {
-        Component desc = this.getDisplayName();
+        Component desc = new TranslatableComponent(this.getDescriptionId() + ".desc");
 
         String[] parts = desc.getString().split("-", 2);
         if (parts.length < 2)
-            return new TrackData[]{new TrackData(this.getSound().getLocation().toString(), "Minecraft", desc)};
-        return new TrackData[]{new TrackData(this.getSound().getLocation().toString(), parts[0].trim(), new TextComponent(parts[1].trim()).withStyle(desc.getStyle()))};
+            return new TrackData[]{new TrackData(((SoundEventAccessor) RecordItemHook.getSound((RecordItem) (Object) this)).getLocation().toString(), "Minecraft", desc)};
+        return new TrackData[]{new TrackData(((SoundEventAccessor) RecordItemHook.getSound((RecordItem) (Object) this)).getLocation().toString(), parts[0].trim(), new TextComponent(parts[1].trim()).withStyle(desc.getStyle()))};
     });
-
-    @Shadow
-    public abstract SoundEvent getSound();
-
-    @Shadow
-    public abstract MutableComponent getDisplayName();
 
     private RecordItemMixin(Properties properties) {
         super(properties);
@@ -69,6 +65,7 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
         ResourceLocation key = Registry.ITEM.getKey(this);
         return resourceManager.hasResource(new ResourceLocation(key.getNamespace(), "models/item/" + AlbumCoverItemRenderer.FOLDER_NAME + "/" + key.getPath() + ".json")) ? CompletableFuture.completedFuture(AlbumCover.of(new ResourceLocation(key.getNamespace(), AlbumCoverItemRenderer.FOLDER_NAME + "/" + key.getPath()))) : CompletableFuture.completedFuture(AlbumCover.EMPTY);

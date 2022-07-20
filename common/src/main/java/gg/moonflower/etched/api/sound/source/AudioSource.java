@@ -65,7 +65,7 @@ public interface AudioSource {
                     try {
                         String[] entry = parts[i].split("=");
                         String name = entry[0].trim();
-                        String value = entry.length > 0 ? entry[1].trim() : null;
+                        String value = entry.length > 1 ? entry[1].trim() : null;
                         switch (name) {
                             case "max-age": {
                                 if (cachePriority > 0)
@@ -118,7 +118,7 @@ public interface AudioSource {
                 if (!type.isStream())
                     throw new IOException("The provided URL is a stream, but that is not supported");
                 Files.deleteIfExists(file);
-                return () -> new AsyncInputStream(url::openStream, 8192, 4, HttpUtil.DOWNLOAD_EXECUTOR);
+                return () -> new AsyncInputStream(url::openStream, 8192, 8, HttpUtil.DOWNLOAD_EXECUTOR);
             }
 
             if (!type.isFile())

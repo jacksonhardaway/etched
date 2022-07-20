@@ -5,8 +5,10 @@ import gg.moonflower.etched.common.menu.RadioMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ServerboundSetUrlPacket;
 import gg.moonflower.etched.core.Etched;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -39,6 +41,10 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> {
         this.url.setVisible(this.canEdit);
         this.url.setCanLoseFocus(false);
         this.addButton(this.url);
+        this.addButton(new Button((this.width - this.imageWidth) / 2, (this.height - this.imageHeight) / 2 + this.imageHeight + 5, this.imageWidth, 20, CommonComponents.GUI_DONE, button -> {
+            EtchedMessages.PLAY.sendToServer(new ServerboundSetUrlPacket(this.url.getValue()));
+            this.minecraft.setScreen(null);
+        }));
     }
 
     @Override
@@ -74,12 +80,6 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> {
     @Override
     public boolean keyPressed(int i, int j, int k) {
         return this.url.keyPressed(i, j, k) || (this.url.isFocused() && this.url.isVisible() && i != 256) || super.keyPressed(i, j, k);
-    }
-
-    @Override
-    public void onClose() {
-        EtchedMessages.PLAY.sendToServer(new ServerboundSetUrlPacket(this.url.getValue()));
-        super.onClose();
     }
 
     public void receiveUrl(String url) {

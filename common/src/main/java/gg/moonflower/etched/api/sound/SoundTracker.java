@@ -265,7 +265,7 @@ public class SoundTracker {
             return;
 
         if (TrackData.isValidURL(url))
-            playRecord(pos, getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH).setLoop(true));
+            playRecord(pos, getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH));
     }
 
     /**

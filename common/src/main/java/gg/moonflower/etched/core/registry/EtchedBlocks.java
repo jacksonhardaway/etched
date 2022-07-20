@@ -30,7 +30,7 @@ public class EtchedBlocks {
     public static final Supplier<Block> ETCHING_TABLE = registerBlock("etching_table", () -> new EtchingTableBlock(BlockBehaviour.Properties.of(Material.WOOD).strength(2.5F).sound(SoundType.WOOD)), new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
     public static final Supplier<Block> ALBUM_JUKEBOX = registerBlock("album_jukebox", () -> new AlbumJukeboxBlock(BlockBehaviour.Properties.copy(Blocks.JUKEBOX)), new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
     public static final Supplier<Block> RADIO = registerBlock("radio", () -> new RadioBlock(BlockBehaviour.Properties.copy(Blocks.JUKEBOX)), new Item.Properties().tab(CreativeModeTab.TAB_DECORATIONS));
-    public static final Supplier<Item> PORTAL_RADIO = EtchedItems.ITEMS.register("portal_radio", () -> new PortalRadioItem(RADIO.get(), new Item.Properties()));
+    public static final Supplier<Item> PORTAL_RADIO_ITEM = EtchedItems.ITEMS.register("portal_radio", () -> new PortalRadioItem(RADIO.get(), new Item.Properties()));
 
     public static final Supplier<BlockEntityType<AlbumJukeboxBlockEntity>> ALBUM_JUKEBOX_BE = BLOCK_ENTITIES.register("album_jukebox", () -> BlockEntityType.Builder.of(AlbumJukeboxBlockEntity::new, ALBUM_JUKEBOX.get()).build(null));
     public static final Supplier<BlockEntityType<RadioBlockEntity>> RADIO_BE = BLOCK_ENTITIES.register("radio", () -> BlockEntityType.Builder.of(RadioBlockEntity::new, RADIO.get()).build(null));

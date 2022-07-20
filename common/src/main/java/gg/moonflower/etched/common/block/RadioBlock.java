@@ -7,10 +7,8 @@ import gg.moonflower.etched.common.network.play.ClientboundSetUrlPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.*;
@@ -157,6 +155,6 @@ public class RadioBlock extends BaseEntityBlock {
 
     @Override
     public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
-        return new ItemStack(state.getValue(PORTAL) ? Registry.ITEM.get(new ResourceLocation(Etched.MOD_ID, "portal_radio")) : EtchedBlocks.RADIO.get());
+        return new ItemStack(state.getValue(PORTAL) ? EtchedBlocks.PORTAL_RADIO_ITEM.get() : EtchedBlocks.RADIO.get());
     }
 }

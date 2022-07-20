@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MinecartJukebox extends AbstractMinecart implements WorldlyContainer {
 
-    private static final EntityDataAccessor<Boolean> DATA_ID_HAS_RECORD = SynchedEntityData.defineId(AbstractMinecart.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_ID_HAS_RECORD = SynchedEntityData.defineId(MinecartJukebox.class, EntityDataSerializers.BOOLEAN);
     private static final int[] SLOTS = {0};
 
     private ItemStack record;

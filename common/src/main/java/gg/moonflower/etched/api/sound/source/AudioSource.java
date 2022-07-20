@@ -122,7 +122,7 @@ public interface AudioSource {
                     if (!type.isFile())
                         throw new IOException("The provided URL is a file, but that is not supported");
                     if (SoundCache.isValid(file, file.getFileName().toString()))
-                        return () -> new FileInputStream(file.toFile());
+                        return () -> Files.newInputStream(file.toFile().toPath());
                     if (contentLength > 104857600)
                         throw new IOException("Filesize is bigger than maximum allowed (file is " + contentLength + ", limit is 104857600)");
 
@@ -145,10 +145,10 @@ public interface AudioSource {
                     });
                 }
             }
-        } catch (Throwable var22) {
-            throw new CompletionException(var22);
+        } catch (Throwable e) {
+            throw new CompletionException(e);
         }
-        return () -> new FileInputStream(file.toFile());
+        return () -> Files.newInputStream(file.toFile().toPath());
     }
 
     /**

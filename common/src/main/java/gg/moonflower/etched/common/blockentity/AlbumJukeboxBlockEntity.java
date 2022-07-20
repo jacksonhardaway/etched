@@ -246,6 +246,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         } else {
             this.playingIndex++;
             this.playingIndex %= this.getContainerSize();
+            this.nextPlayingIndex(false);
             this.track = 0;
             this.playingStack = ItemStack.EMPTY;
         }

@@ -36,7 +36,7 @@ public class SoundCloudSource implements SoundDownloadSource {
 
     static final Logger LOGGER = LogManager.getLogger();
     private static final Component BRAND = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500)));
-    private static final Pattern KEY_REGEX = Pattern.compile("/[-a-zA-Z\\d()@:%_+.~#?&/=]+/[-a-zA-Z\\d()@:%_+.~#?&/=]+/([-a-zA-Z\\d()@:%_+.~#?&/=]+)"); // Regex for the third path of track URLs
+    private static final Pattern KEY_REGEX = Pattern.compile("http.?://soundcloud\\.com/[/\\w]*(s-[A-Za-z\\d]+).*$", Pattern.CASE_INSENSITIVE); // Regex for the third path of track URLs
 
     private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
@@ -49,7 +49,7 @@ public class SoundCloudSource implements SoundDownloadSource {
             Matcher matcher = KEY_REGEX.matcher(new URL(sourceUrl).getPath());
             String key = matcher.matches() ? matcher.group(1) : null;
 
-            URL uRL = requiresId ? new URL(url + (key != null ? key : SoundCloudIdTracker.fetch(proxy))) : new URL(url);
+            URL uRL = requiresId ? new URL(url + SoundCloudIdTracker.fetch(proxy) + (key != null ? "&secret_token=" + key : "")) : new URL(url);
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();

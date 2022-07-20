@@ -65,7 +65,7 @@ public interface AudioSource {
                     try {
                         String[] entry = parts[i].split("=");
                         String name = entry[0].trim();
-                        String value = entry[1].trim();
+                        String value = entry.length > 0 ? entry[1].trim() : null;
                         switch (name) {
                             case "max-age": {
                                 if (cachePriority > 0)

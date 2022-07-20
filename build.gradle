@@ -36,6 +36,7 @@ allprojects {
 
     repositories {
         mavenLocal()
+        maven { url "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
         maven { url "https://jitpack.io" }
         maven { url "https://repo.moonflower.gg/releases" }
         maven { url "https://maven.parchmentmc.org" }

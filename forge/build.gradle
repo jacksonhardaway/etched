@@ -8,21 +8,14 @@ plugins {
 archivesBaseName = "${rootProject.archivesBaseName}-${project.name}"
 
 loom {
-//    accessWidenerPath.set(project(":common").file("src/main/resources/${project.mod_id}.accesswidener"))
 
     forge {
         mixinConfig "${project.mod_id}-common.mixins.json"
         mixinConfig "${project.mod_id}.mixins.json"
 
-//        convertAccessWideners.set(true)
-//        extraAccessWideners.add("${project.mod_id}.accesswidener")
-
         dataGen {
             mod project.mod_id
         }
-    }
-    mixin {
-        defaultRefmapName = "${project.mod_id}-refmap.json"
     }
     launches {
         data {
@@ -48,7 +41,7 @@ configurations {
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
 
-    modApi("gg.moonflower:pollen-forge:${rootProject.pollen_version}") { transitive = false }
+    modApi("gg.moonflower:pollen-forge:${rootProject.pollen_version}")
 
     modRuntimeOnly "me.djtheredstoner:DevAuth-forge-latest:${rootProject.devauth_version}"
 	modRuntimeOnly "curse.maven:configured-457570:3640884"
@@ -56,8 +49,7 @@ dependencies {
 
     shadowCommon(implementation("javazoom:jlayer:1.0.1"))
 
-    implementation(project(path: ":common", configuration: "namedElements")) { transitive false }
-    developmentForge(project(path: ":common", configuration: "namedElements")) { transitive false }
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 

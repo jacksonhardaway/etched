@@ -19,6 +19,7 @@ import gg.moonflower.pollen.api.registry.client.*;
 import net.minecraft.client.model.MinecartModel;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
@@ -89,8 +90,8 @@ public class Etched {
             ModifyTradesEvents.TradeRegistry tier5 = context.getTrades(5);
             tier5.add(Items.DIAMOND, 8, 1, 8, 40, true);
             tier5.add(Items.AMETHYST_SHARD, 1, 8, 10, 40, true);
-            for (Item item : ItemTags.MUSIC_DISCS.getValues())
-                tier5.add(item, 10, 1, 4, 40, true);
+
+            Registry.ITEM.getTag(ItemTags.MUSIC_DISCS).ifPresent(tag -> tag.stream().forEach(item -> tier5.add(item.value(), 10, 1, 4, 40, true)));
         });
     }
 

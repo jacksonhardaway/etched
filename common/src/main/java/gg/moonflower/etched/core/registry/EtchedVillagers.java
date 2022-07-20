@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.StructureTemplatePoolAccessor;
 import gg.moonflower.pollen.api.registry.PollinatedRegistry;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.data.worldgen.DesertVillagePools;
@@ -17,8 +18,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.feature.structures.StructurePoolElement;
-import net.minecraft.world.level.levelgen.feature.structures.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 
 import java.util.List;
@@ -46,16 +47,16 @@ public class EtchedVillagers {
         createVillagePiece("taiga", "bard_house", 1, 4, ProcessorLists.MOSSIFY_10_PERCENT, ProcessorLists.ZOMBIE_TAIGA);
     }
 
-    private static void createVillagePiece(String village, String name, int houseId, int weight, StructureProcessorList zombieProcessor) {
+    private static void createVillagePiece(String village, String name, int houseId, int weight, Holder<StructureProcessorList> zombieProcessor) {
         createVillagePiece(village, name, houseId, weight, ProcessorLists.EMPTY, zombieProcessor);
     }
 
-    private static void createVillagePiece(String village, String name, int houseId, int weight, StructureProcessorList normalProcessor, StructureProcessorList zombieProcessor) {
+    private static void createVillagePiece(String village, String name, int houseId, int weight, Holder<StructureProcessorList> normalProcessor, Holder<StructureProcessorList> zombieProcessor) {
         EtchedVillagers.addToPool(new ResourceLocation("village/" + village + "/houses"), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), normalProcessor, weight);
         EtchedVillagers.addToPool(new ResourceLocation("village/" + village + "/zombie/houses"), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), zombieProcessor, weight);
     }
 
-    private static void addToPool(ResourceLocation poolId, ResourceLocation pieceId, StructureProcessorList processorList, int weight) {
+    private static void addToPool(ResourceLocation poolId, ResourceLocation pieceId, Holder<StructureProcessorList> processorList, int weight) {
         StructureTemplatePool pool = BuiltinRegistries.TEMPLATE_POOL.get(poolId);
         if (pool == null)
             return;

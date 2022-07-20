@@ -12,13 +12,6 @@ architectury {
     fabric()
 }
 
-loom {
-    mixin {
-        defaultRefmapName = "${project.mod_id}-refmap.json"
-    }
-//    accessWidenerPath.set(project(":common").file("src/main/resources/${project.mod_id}.accesswidener"))
-}
-
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
@@ -35,15 +28,14 @@ repositories {
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    modApi("gg.moonflower:pollen-fabric:${rootProject.pollen_version}") { transitive = false }
+    modApi("gg.moonflower:pollen-fabric:${rootProject.pollen_version}")
 
     modRuntimeOnly "com.terraformersmc:modmenu:${rootProject.mod_menu_version}"
     modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:${rootProject.devauth_version}"
 
     include(implementation("javazoom:jlayer:1.0.1"))
 
-    implementation(project(path: ":common", configuration: "namedElements")) { transitive false }
-    developmentFabric(project(path: ":common", configuration: "namedElements")) { transitive false }
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 }
 

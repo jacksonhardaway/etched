@@ -93,7 +93,7 @@ public class SoundTracker {
      * @param stream Whether to play a stream or regular file
      * @return A new sound instance
      */
-    public static SoundInstance getEtchedRecord(String url, Component title, Entity entity, boolean stream) {
+    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, Entity entity, boolean stream) {
         return new OnlineRecordSoundInstance(url, entity, new MusicDownloadListener(title, entity::getX, entity::getY, entity::getZ) {
             @Override
             public void onSuccess() {
@@ -122,7 +122,7 @@ public class SoundTracker {
      * @param type  The type of audio to accept
      * @return A new sound instance
      */
-    public static SoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, AudioSource.AudioFileType type) {
+    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, AudioSource.AudioFileType type) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
         return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
             @Override
@@ -265,7 +265,7 @@ public class SoundTracker {
             return;
 
         if (TrackData.isValidURL(url))
-            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level, pos))));
+            playRecord(pos, getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH).setLoop(true));
     }
 
     /**

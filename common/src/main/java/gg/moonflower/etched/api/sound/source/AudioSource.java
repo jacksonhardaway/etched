@@ -1,10 +1,10 @@
 package gg.moonflower.etched.api.sound.source;
 
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
-import gg.moonflower.etched.api.util.AsyncInputStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.client.sound.SoundCache;
+import gg.moonflower.pollen.api.util.AsyncInputStream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.HttpUtil;

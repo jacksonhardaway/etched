@@ -218,7 +218,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         if (state.getValue(RadioBlock.POWERED))
             return;
 
-        if (url != null && TrackData.isValidURL(url))
+        if (TrackData.isValidURL(url))
             playRecord(pos, getEtchedRecord(url, RADIO, level, pos, true));
     }
 

@@ -115,6 +115,7 @@ public class Etched {
         ColorRegistry.register((stack, index) -> index == 0 ? EtchedMusicDiscItem.getDiscColor(stack) : EtchedMusicDiscItem.getPattern(stack).isColorable() ? index == 1 ? EtchedMusicDiscItem.getLabelPrimaryColor(stack) : index == 2 ? EtchedMusicDiscItem.getLabelSecondaryColor(stack) : -1 : -1, EtchedItems.ETCHED_MUSIC_DISC);
 
         EntityRendererRegistry.registerLayerDefinition(EtchedModelLayers.JUKEBOX_MINECART, MinecartModel::createBodyLayer);
+        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
         AlbumCoverItemRenderer.init();
     }
 
@@ -142,7 +143,6 @@ public class Etched {
         RenderTypeRegistry.register(EtchedBlocks.ETCHING_TABLE.get(), RenderType.cutout());
 
         RenderTypeRegistry.register(EtchedBlocks.RADIO.get(), RenderType.cutout());
-        EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
 
         ItemRendererRegistry.registerHandModel(EtchedItems.BOOMBOX.get(), new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
         ItemRendererRegistry.registerRenderer(EtchedItems.ALBUM_COVER.get(), AlbumCoverItemRenderer.INSTANCE);

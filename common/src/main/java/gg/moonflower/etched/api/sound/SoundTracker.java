@@ -265,7 +265,7 @@ public class SoundTracker {
             return;
 
         if (TrackData.isValidURL(url))
-            playRecord(pos, getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH));
+            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level, pos))));
     }
 
     /**

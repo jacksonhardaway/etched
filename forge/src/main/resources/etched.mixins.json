@@ -8,6 +8,7 @@
     "client.LevelRendererMixin"
   ],
   "mixins": [
+    "RecordItemAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

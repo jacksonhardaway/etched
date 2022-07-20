@@ -27,6 +27,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
+import java.util.function.Supplier;
+
 /**
  * @author Jackson
  * @author Ocelot
@@ -96,7 +98,7 @@ public class Etched {
             registry.accept(new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label"));
         });
 
-        ModelRegistry.registerSpecial(new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
+        ClientLoading.load(); // stops server from crashing due to client loading
         ModelRegistry.registerFactory((resourceManager, out) -> {
             String folder = "models/item/" + AlbumCoverItemRenderer.FOLDER_NAME + "/";
             for (ResourceLocation animationLocation : resourceManager.listResources(folder, name -> name.endsWith(".json")))
@@ -138,5 +140,11 @@ public class Etched {
         EntityRendererRegistry.register(EtchedEntities.JUKEBOX_MINECART, JukeboxMinecartRenderer::new);
         ItemRendererRegistry.registerHandModel(EtchedItems.BOOMBOX.get(), new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
         ItemRendererRegistry.registerRenderer(EtchedItems.ALBUM_COVER.get(), AlbumCoverItemRenderer.INSTANCE);
+    }
+
+    private static class ClientLoading {
+        private static void load() {
+            ModelRegistry.registerSpecial(new ModelResourceLocation(new ResourceLocation(Etched.MOD_ID, "boombox_in_hand"), "inventory"));
+        }
     }
 }

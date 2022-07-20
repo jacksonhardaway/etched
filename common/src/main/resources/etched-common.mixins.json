@@ -15,6 +15,7 @@
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
     "RecordItemMixin",
+    "SoundEventAccessor",
     "StructureTemplatePoolAccessor"
   ],
   "injectors": {

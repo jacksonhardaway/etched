@@ -63,7 +63,7 @@ public interface SoundDownloadSource {
      * @throws IOException        If any error occurs with requests
      * @throws JsonParseException If any error occurs when parsing
      */
-    Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
+    TrackData[] resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
 
     /**
      * Resolves the input stream to the cover for the specified album.

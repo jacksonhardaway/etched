@@ -97,14 +97,13 @@ public final class SoundSourceManager {
      * @return The track information found or nothing
      * @throws IOException If any error occurs when connecting to the sources
      */
-    public static CompletableFuture<Optional<TrackData[]>> resolveTracks(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
+    public static CompletableFuture<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
         SoundDownloadSource source = SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().orElseThrow(() -> new IOException("Unknown source for: " + url));
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return source.resolveTracks(url, listener, proxy);
             } catch (Exception e) {
-                LOGGER.error("Failed to connect to " + source.getApiName() + " API", e);
-                return Optional.empty();
+                throw new CompletionException(e);
             }
         }, HttpUtil.DOWNLOAD_EXECUTOR);
     }

@@ -48,6 +48,11 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
         return weighedSoundEvents;
     }
 
+    public AbstractOnlineSoundInstance setLoop(boolean loop) {
+        this.looping = loop;
+        return this;
+    }
+
     public static class OnlineSound extends Sound implements SoundStreamModifier {
 
         private final String url;
@@ -73,10 +78,6 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
 
         public AudioSource.AudioFileType getAudioFileType() {
             return type;
-        }
-
-        public boolean isStereo() {
-            return stereo;
         }
 
         @Override

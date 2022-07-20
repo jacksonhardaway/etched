@@ -143,7 +143,7 @@ public interface AudioSource {
         } catch (Throwable e) {
             throw new CompletionException(e);
         }
-        return () -> Files.newInputStream(file.toFile().toPath());
+        return () -> Files.newInputStream(file);
     }
 
     /**

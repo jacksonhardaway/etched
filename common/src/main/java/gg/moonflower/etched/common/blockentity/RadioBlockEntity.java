@@ -1,7 +1,7 @@
 package gg.moonflower.etched.common.blockentity;
 
+import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.block.RadioBlock;
-import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
 import gg.moonflower.pollen.api.util.NbtConstants;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -32,7 +32,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
         this.url = nbt.contains("Url", NbtConstants.STRING) ? nbt.getString("Url") : null;
 
         if (this.level != null && this.level.isClientSide())
-            EtchedClientPlayPacketHandlerImpl.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
+            SoundTracker.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
     }
 
     @Override
@@ -56,7 +56,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
     public void clearContent() {
         this.url = null;
         if (this.level != null && this.level.isClientSide())
-            EtchedClientPlayPacketHandlerImpl.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
+            SoundTracker.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
     }
 
     public String getUrl() {

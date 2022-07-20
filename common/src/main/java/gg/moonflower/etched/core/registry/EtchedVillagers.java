@@ -8,15 +8,11 @@ import gg.moonflower.pollen.api.registry.PollinatedRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
-import net.minecraft.data.worldgen.DesertVillagePools;
-import net.minecraft.data.worldgen.PlainVillagePools;
-import net.minecraft.data.worldgen.ProcessorLists;
-import net.minecraft.data.worldgen.SavannaVillagePools;
-import net.minecraft.data.worldgen.SnowyVillagePools;
-import net.minecraft.data.worldgen.TaigaVillagePools;
+import net.minecraft.data.worldgen.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -30,8 +26,8 @@ public class EtchedVillagers {
     public static final PollinatedRegistry<VillagerProfession> PROFESSIONS = PollinatedRegistry.create(Registry.VILLAGER_PROFESSION, Etched.MOD_ID);
     public static final PollinatedRegistry<PoiType> POI_TYPES = PollinatedRegistry.create(Registry.POINT_OF_INTEREST_TYPE, Etched.MOD_ID);
 
-    public static final Supplier<PoiType> ETCHING_TABLE_POI = POI_TYPES.register("etching_table", () -> PoiType.registerBlockStates(new PoiType("etched:etching_table", ImmutableSet.<BlockState>builder().addAll(EtchedBlocks.ETCHING_TABLE.get().getStateDefinition().getPossibleStates()).build(), 1, 1)));
-    public static final Supplier<VillagerProfession> BARD = PROFESSIONS.register("bard", () -> new VillagerProfession("etched:bard", ETCHING_TABLE_POI.get(), ImmutableSet.of(), ImmutableSet.of(), EtchedSounds.UI_ETCHER_TAKE_RESULT.get()));
+    public static final Supplier<PoiType> BARD_POI = POI_TYPES.register("bard", () -> PoiType.registerBlockStates(new PoiType("etched:bard", ImmutableSet.<BlockState>builder().addAll(Blocks.NOTE_BLOCK.getStateDefinition().getPossibleStates()).build(), 1, 1)));
+    public static final Supplier<VillagerProfession> BARD = PROFESSIONS.register("bard", () -> new VillagerProfession("etched:bard", BARD_POI.get(), ImmutableSet.of(), ImmutableSet.of(), null));
 
     public static void registerVillages() {
         PlainVillagePools.bootstrap();

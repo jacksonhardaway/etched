@@ -216,7 +216,7 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
         private BakedModel model;
 
         private DynamicModelData(NativeImage image) {
-            super(ATLAS, new Info(ATLAS.location(), image.getWidth(), image.getHeight(), AnimationMetadataSection.EMPTY), 0, image.getWidth(), image.getHeight(), 0, 0, image);
+            super(ATLAS, new Info(new ResourceLocation(Etched.MOD_ID, DigestUtils.md5Hex(UUID.randomUUID().toString())), image.getWidth(), image.getHeight(), AnimationMetadataSection.EMPTY), 0, image.getWidth(), image.getHeight(), 0, 0, image);
         }
 
         @Override

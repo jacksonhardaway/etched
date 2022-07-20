@@ -1,9 +1,9 @@
 package gg.moonflower.etched.common.entity;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
-import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedEntities;
 import gg.moonflower.etched.core.registry.EtchedItems;
@@ -28,7 +28,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -87,7 +86,7 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
         super.tick();
         if (this.level.isClientSide()) {
             if (Etched.CLIENT_CONFIG.showNotes.get() && this.random.nextInt(6) == 0) {
-                SoundInstance instance = EtchedClientPlayPacketHandlerImpl.getEntitySound(this.getId());
+                SoundInstance instance = SoundTracker.getEntitySound(this.getId());
                 if (instance != null && Minecraft.getInstance().getSoundManager().isActive(instance))
                     this.level.addParticle(ParticleTypes.NOTE, this.getX(), this.getY() + 1.2D, this.getZ(), random.nextInt(25) / 24D, 0, 0);
             }

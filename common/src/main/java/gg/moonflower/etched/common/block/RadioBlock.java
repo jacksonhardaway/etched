@@ -5,14 +5,19 @@ import gg.moonflower.etched.common.menu.RadioMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundSetUrlPacket;
 import gg.moonflower.etched.core.Etched;
+import gg.moonflower.etched.core.registry.EtchedBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -22,32 +27,40 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class RadioBlock extends BaseEntityBlock {
 
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final IntegerProperty ROTATION = BlockStateProperties.ROTATION_16;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    public static final BooleanProperty PORTAL = BooleanProperty.create("portal");
     private static final VoxelShape X_SHAPE = Block.box(5.0D, 0.0D, 2.0D, 11.0D, 8.0D, 14.0D);
     private static final VoxelShape Z_SHAPE = Block.box(2.0D, 0.0D, 5.0D, 14.0D, 8.0D, 11.0D);
+    private static final VoxelShape ROTATED_SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
     private static final Component CONTAINER_TITLE = new TranslatableComponent("container." + Etched.MOD_ID + ".radio");
 
     public RadioBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(ROTATION, 0).setValue(POWERED, false).setValue(PORTAL, false));
     }
 
     @Override
-    public InteractionResult use(BlockState blockState, Level level, BlockPos pos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
         if (level.isClientSide())
             return InteractionResult.SUCCESS;
-        player.openMenu(blockState.getMenuProvider(level, pos)).ifPresent(__ -> {
+        ItemStack stack = player.getItemInHand(interactionHand);
+        if (stack.getItem() == Items.CAKE && !state.getValue(PORTAL)) {
+            if (!player.isCreative())
+                stack.shrink(1);
+            level.setBlock(pos, state.setValue(PORTAL, true), 3);
+            return InteractionResult.SUCCESS;
+        }
+        player.openMenu(state.getMenuProvider(level, pos)).ifPresent(__ -> {
             String url = "";
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof RadioBlockEntity)
@@ -58,8 +71,10 @@ public class RadioBlock extends BaseEntityBlock {
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        return this.defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite()).setValue(POWERED, ctx.getLevel().hasNeighborSignal(ctx.getClickedPos()));
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState()
+                .setValue(ROTATION, Mth.floor((double) ((180.0F + context.getRotation()) * 16.0F / 360.0F) + 0.5) & 15)
+                .setValue(POWERED, context.getLevel().hasNeighborSignal(context.getClickedPos()));
     }
 
     @Override
@@ -96,13 +111,12 @@ public class RadioBlock extends BaseEntityBlock {
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext collisionContext) {
-        switch (state.getValue(FACING).getAxis()) {
-            case X:
-                return X_SHAPE;
-            case Z:
-                return Z_SHAPE;
-        }
-        return Shapes.block(); // Not possible
+        int rotation = state.getValue(ROTATION);
+        if (rotation % 8 == 0)
+            return Z_SHAPE;
+        if (rotation % 8 == 4)
+            return X_SHAPE;
+        return ROTATED_SHAPE;
     }
 
     @Override
@@ -116,13 +130,13 @@ public class RadioBlock extends BaseEntityBlock {
     }
 
     @Override
-    public BlockState rotate(BlockState blockState, Rotation rotation) {
-        return blockState.setValue(FACING, rotation.rotate(blockState.getValue(FACING)));
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(ROTATION, rotation.rotate(state.getValue(ROTATION), 16));
     }
 
     @Override
-    public BlockState mirror(BlockState blockState, Mirror mirror) {
-        return blockState.rotate(mirror.getRotation(blockState.getValue(FACING)));
+    public BlockState mirror(BlockState state, Mirror mirror) {
+        return state.setValue(ROTATION, mirror.mirror(state.getValue(ROTATION), 16));
     }
 
     @Nullable
@@ -133,11 +147,16 @@ public class RadioBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, POWERED);
+        builder.add(ROTATION, POWERED, PORTAL);
     }
 
     @Override
     public boolean isPathfindable(BlockState blockState, BlockGetter blockGetter, BlockPos blockPos, PathComputationType pathComputationType) {
         return false;
+    }
+
+    @Override
+    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+        return new ItemStack(state.getValue(PORTAL) ? Registry.ITEM.get(new ResourceLocation(Etched.MOD_ID, "portal_radio")) : EtchedBlocks.RADIO.get());
     }
 }

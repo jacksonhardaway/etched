@@ -7,12 +7,10 @@ import gg.moonflower.etched.core.Etched;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.HashMap;
@@ -63,7 +61,7 @@ public interface SoundDownloadSource {
      * @throws IOException        If any error occurs with requests
      * @throws JsonParseException If any error occurs when parsing
      */
-    Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
+    TrackData[] resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
 
     /**
      * Resolves the input stream to the cover for the specified album.

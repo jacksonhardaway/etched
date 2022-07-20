@@ -48,7 +48,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
-    private static final Cache<String, TrackData[]> DATA_CACHE = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
+    private static final Cache<String, CompletableFuture<TrackData[]>> DATA_CACHE = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
     private static final Set<String> VALID_FORMATS;
 
     static {
@@ -265,7 +265,7 @@ public class EtchingMenu extends AbstractContainerMenu {
             if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get() || (!discStack.isEmpty() && !labelStack.isEmpty())) {
                 if (this.url == null && !discStack.isEmpty())
                     this.url = PlayableRecord.getStackAlbum(discStack).map(TrackData::getUrl).orElse(null);
-                if (this.url == null || !TrackData.isValidURL(this.url))
+                if (!TrackData.isValidURL(this.url))
                     return;
 
                 int currentId = this.currentRequestId = this.urlId;
@@ -287,12 +287,12 @@ public class EtchingMenu extends AbstractContainerMenu {
                         data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack)).withArtist(MusicLabelItem.getAuthor(labelStack));
                     if (SoundSourceManager.isValidUrl(this.url)) {
                         try {
-                            TrackData[] cache = DATA_CACHE.get(this.url, () -> SoundSourceManager.resolveTracks(this.url, null, Proxy.NO_PROXY).orElse(null));
-                            if (cache != null)
-                                data = cache;
+                            data = DATA_CACHE.get(this.url, () -> SoundSourceManager.resolveTracks(this.url, null, Proxy.NO_PROXY)).join();
                         } catch (Exception e) {
                             if (!this.player.level.isClientSide())
-                                EtchedMessages.PLAY.sendTo((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e.getMessage()));
+                                EtchedMessages.PLAY.sendTo((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e instanceof CompletionException ? e.getCause().getMessage() : e.getMessage()));
+                            if (e instanceof CompletionException)
+                                throw (CompletionException) e;
                             throw new CompletionException(e);
                         }
                     } else if (!TrackData.isLocalSound(this.url)) {

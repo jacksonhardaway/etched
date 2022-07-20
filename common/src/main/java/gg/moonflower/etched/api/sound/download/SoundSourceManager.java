@@ -2,7 +2,6 @@ package gg.moonflower.etched.api.sound.download;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.api.record.AlbumCover;
-import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.source.RawAudioSource;
@@ -19,12 +18,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -79,8 +78,8 @@ public final class SoundSourceManager {
                 if (urls.length == 0)
                     throw new IOException("No audio data was found at the source!");
                 if (urls.length == 1)
-                    return new RawAudioSource(DigestUtils.sha1Hex(url), urls[0], listener, source.map(s -> s.isTemporary(url)).orElse(false),type);
-                return new StreamingAudioSource(DigestUtils.sha1Hex(url), urls, listener, source.map(s -> s.isTemporary(url)).orElse(false),type);
+                    return new RawAudioSource(DigestUtils.sha1Hex(url), urls[0], listener, source.map(s -> s.isTemporary(url)).orElse(false), type);
+                return new StreamingAudioSource(DigestUtils.sha1Hex(url), urls, listener, source.map(s -> s.isTemporary(url)).orElse(false), type);
             } catch (Exception e) {
                 throw new CompletionException(e);
             }
@@ -96,13 +95,15 @@ public final class SoundSourceManager {
      * @return The track information found or nothing
      * @throws IOException If any error occurs when connecting to the sources
      */
-    public static Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
+    public static CompletableFuture<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener listener, Proxy proxy) throws IOException {
         SoundDownloadSource source = SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst().orElseThrow(() -> new IOException("Unknown source for: " + url));
-        try {
-            return source.resolveTracks(url, listener, proxy);
-        } catch (Exception e) {
-            throw new IOException("Failed to connect to " + source.getApiName() + " API", e);
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return source.resolveTracks(url, listener, proxy);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, HttpUtil.DOWNLOAD_EXECUTOR);
     }
 
     /**
@@ -122,7 +123,7 @@ public final class SoundSourceManager {
                 return Optional.empty();
             }
         }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
-            try (InputStream is = new FileInputStream(path.toFile())) {
+            try (InputStream is = Files.newInputStream(path)) {
                 return AlbumCover.of(NativeImage.read(is));
             } catch (Exception e) {
                 throw new CompletionException("Failed to read album cover from '" + url + "'", e);

@@ -41,6 +41,10 @@ import java.util.Objects;
 public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implements ContainerListener {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/container/etching_table.png");
+    private static final Component INVALID_URL = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.invalid_url");
+    private static final Component CANNOT_CREATE = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create");
+    private static final Component CANNOT_CREATE_MISSING_DISC = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create.missing_disc").withStyle(ChatFormatting.GRAY);
+    private static final Component CANNOT_CREATE_MISSING_LABEL = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create.missing_label").withStyle(ChatFormatting.GRAY);
 
     private ItemStack discStack;
     private ItemStack labelStack;
@@ -138,13 +142,15 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         boolean isEtched = this.discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get();
         List<FormattedCharSequence> reasonLines = new ArrayList<>();
         if (!isEtched && !this.discStack.isEmpty() && this.labelStack.isEmpty()) {
-            reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.missing_label").getVisualOrderText());
+            reasonLines.add(CANNOT_CREATE.getVisualOrderText());
+            reasonLines.add(CANNOT_CREATE_MISSING_LABEL.getVisualOrderText());
         } else if (!isEtched && this.discStack.isEmpty() && !this.labelStack.isEmpty()) {
-            reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.missing_disc").getVisualOrderText());
+            reasonLines.add(CANNOT_CREATE.getVisualOrderText());
+            reasonLines.add(CANNOT_CREATE_MISSING_DISC.getVisualOrderText());
         } else if ((!this.url.getValue().isEmpty() && !TrackData.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty()) {
-            reasonLines.add(new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.invalid_url").getVisualOrderText());
+            reasonLines.add(INVALID_URL.getVisualOrderText());
             if (!this.invalidReason.isEmpty())
-                reasonLines.addAll(this.font.split(new TextComponent(this.invalidReason).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC), 200));
+                reasonLines.addAll(this.font.split(new TextComponent(this.invalidReason).withStyle(ChatFormatting.GRAY), 200));
         }
 
         if (mouseX >= this.leftPos + 83 && mouseX < this.leftPos + 110 && mouseY >= this.topPos + 44 && mouseY < this.topPos + 61) {

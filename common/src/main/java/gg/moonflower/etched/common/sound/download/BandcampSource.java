@@ -55,7 +55,7 @@ public class BandcampSource implements SoundDownloadSource {
             if (response != 200)
                 throw new IOException(response + " " + httpURLConnection.getResponseMessage());
 
-            return size != -1 ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
+            return size != -1 && progressListener != null ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
         } catch (IOException e) {
             throw e;
         } catch (Throwable e) {
@@ -105,7 +105,7 @@ public class BandcampSource implements SoundDownloadSource {
     }
 
     @Override
-    public Optional<TrackData[]> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
+    public TrackData[] resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
         return this.resolve(url, progressListener, proxy, json -> {
             int urlEnd = url.indexOf(".com/");
             if (urlEnd == -1)
@@ -126,9 +126,9 @@ public class BandcampSource implements SoundDownloadSource {
 
                     tracks.add(new TrackData(trackUrl, trackArtist, new TextComponent(trackTitle)));
                 }
-                return Optional.of(tracks.toArray(new TrackData[0]));
+                return tracks.toArray(new TrackData[0]);
             }
-            return Optional.of(new TrackData[]{new TrackData(url, artist, new TextComponent(title))});
+            return new TrackData[]{new TrackData(url, artist, new TextComponent(title))};
         });
     }
 

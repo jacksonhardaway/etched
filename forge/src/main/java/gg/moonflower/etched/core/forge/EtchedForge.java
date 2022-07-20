@@ -1,11 +1,7 @@
 package gg.moonflower.etched.core.forge;
 
 import gg.moonflower.etched.core.Etched;
-import gg.moonflower.etched.core.forge.datagen.ItemModelGen;
-import gg.moonflower.etched.core.forge.datagen.ItemTagGen;
-import gg.moonflower.etched.core.forge.datagen.LanguageGen;
-import gg.moonflower.etched.core.forge.datagen.LootTableGen;
-import gg.moonflower.etched.core.forge.datagen.RecipeGen;
+import gg.moonflower.etched.core.forge.datagen.*;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;

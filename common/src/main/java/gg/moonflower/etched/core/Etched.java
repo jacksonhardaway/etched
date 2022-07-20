@@ -29,8 +29,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
-import java.util.function.Supplier;
-
 /**
  * @author Jackson
  * @author Ocelot

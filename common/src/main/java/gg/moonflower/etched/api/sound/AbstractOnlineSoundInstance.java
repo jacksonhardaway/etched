@@ -26,10 +26,6 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
     private final AudioSource.AudioFileType type;
     private final boolean stereo;
 
-    public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, SoundSource source, DownloadProgressListener progressListener, AudioSource.AudioFileType type, boolean stereo) {
-        this(url, subtitle, 16, source, progressListener, type, stereo);
-    }
-
     public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, int attenuationDistance, SoundSource source, DownloadProgressListener progressListener, AudioSource.AudioFileType type, boolean stereo) {
         super(new ResourceLocation(Etched.MOD_ID, DigestUtils.sha1Hex(url)), source);
         this.url = url;

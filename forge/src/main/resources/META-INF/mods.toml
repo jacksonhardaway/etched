@@ -9,8 +9,12 @@ version = "${version}"
 displayName = "${name}"
 authors = "Moonflower"
 credits = "Jackson, Ocelot, Farcr (Art), AstraZoey (Sound Design)"
-description = "A new way to play music."
-#logoFile = ""
+description = "A new form of entertainment."
+displayURL= "https://www.moonflower.gg"
+logoFile = "logo.png"
+
+[modproperties.${id}]
+catalogueImageIcon="icon.png"
 
 [[dependencies.${id}]]
 modId = "forge"
@@ -22,13 +26,13 @@ side = "BOTH"
 [[dependencies.${id}]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.16.5,)"
+versionRange = "[1.16.5,1.17)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${id}]]
 modId = "pollen"
 mandatory = true
-versionRange = "[1.2.0,)"
+versionRange = "[1.2.0,2.0.0)"
 ordering = "BEFORE"
 side = "BOTH"

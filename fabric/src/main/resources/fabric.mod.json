@@ -3,14 +3,15 @@
   "id": "${id}",
   "version": "${version}",
   "name": "${name}",
-  "description": "A new way to play music.",
+  "description": "A new form of entertainment.",
   "authors": [ "Moonflower" ],
-  "contributors": [ "Jackson", "Ocelot", "Farcr (Art)", "AstraZoey (Sound Design)" ],
+  "contributors": [ "Jackson", "Ocelot", "Farcr (Art)", "Echolite (Art)", "AstraZoey (Sound Design)" ],
   "contact": {
-    "homepage": "https://moonflower.gg",
+    "homepage": "https://www.moonflower.gg",
 	"issues": "https://github.com/MoonflowerTeam/${repo}/issues",
     "sources": "https://github.com/MoonflowerTeam/${repo}/"
   },
+  "icon": "icon.png",
   "license": "GPLv3",
   "environment": "*",
   "mixins": [
@@ -23,7 +24,7 @@
     ]
   },
   "depends": {
-    "minecraft": "1.16.x",
+    "minecraft": ">=1.16.5 <1.17",
     "pollen": ">=1.2 <2.0.0"
   }
 }

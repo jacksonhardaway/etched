@@ -9,6 +9,7 @@
     "client.SoundEngineMixin"
   ],
   "mixins": [
+    "EntityMixin",
     "RecordItemAccessor"
   ],
   "injectors": {

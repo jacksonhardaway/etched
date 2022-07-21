@@ -109,7 +109,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 return;
             }
 
-            Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, 0);
+            Optional<? extends SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, 0);
             if (!sound.isPresent()) {
                 LOGGER.error("Server sent invalid music disc: " + record);
                 return;

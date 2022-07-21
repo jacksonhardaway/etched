@@ -8,6 +8,7 @@
     "client.LevelRendererMixin"
   ],
   "mixins": [
+    "EntityMixin",
     "RecordItemAccessor"
   ],
   "injectors": {

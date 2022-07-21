@@ -52,7 +52,7 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
 
     @Override
     @Environment(EnvType.CLIENT)
-    public Optional<SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
+    public Optional<? extends SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
         if (track != 0 || !(stack.getItem() instanceof RecordItem))
             return Optional.empty();
 

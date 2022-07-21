@@ -203,7 +203,7 @@ public class SoundTracker {
         if (entity == null)
             return;
 
-        Optional<SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track);
+        Optional<? extends SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track);
         if (!sound.isPresent()) {
             if (loop && track != 0)
                 playEntityRecord(record, entityId, 0, true);

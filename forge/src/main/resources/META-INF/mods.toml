@@ -10,7 +10,6 @@ displayName = "${name}"
 authors = "Moonflower"
 credits = "Jackson, Ocelot, Farcr (Art), AstraZoey (Sound Design)"
 description = "A new way to play music."
-updateJSONURL = "https://github.com/MoonflowerTeam/${repo}/update.json"
 #logoFile = ""
 
 [[dependencies.${id}]]

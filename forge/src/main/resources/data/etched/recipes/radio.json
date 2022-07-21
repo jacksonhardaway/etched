@@ -1,7 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "RIR",
+    "RCR",
     "INI",
     "OOO"
   ],
@@ -11,6 +11,9 @@
     },
     "I": {
       "tag": "forge:ingots/iron"
+    },
+    "C": {
+      "tag": "forge:ingots/copper"
     },
     "N": {
       "item": "minecraft:note_block"

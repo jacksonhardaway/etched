@@ -26,6 +26,16 @@
         ]
       }
     },
+    "has_copper": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "tag": "c:copper_ingots"
+          }
+        ]
+      }
+    },
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
@@ -37,6 +47,7 @@
     [
       "has_redstone",
       "has_iron",
+      "has_copper",
       "has_the_recipe"
     ]
   ]

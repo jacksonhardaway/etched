@@ -13,6 +13,7 @@
     "client.SoundEngineMixin"
   ],
   "mixins": [
+    "EntityMixin",
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
     "NoteBlockMixin",

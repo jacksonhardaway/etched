@@ -87,14 +87,15 @@ public class SoundTracker {
     /**
      * Creates an online sound for the specified entity.
      *
-     * @param url    The url to play
-     * @param title  The title of the record
-     * @param entity The entity to play for
-     * @param stream Whether to play a stream or regular file
+     * @param url                 The url to play
+     * @param title               The title of the record
+     * @param entity              The entity to play for
+     * @param attenuationDistance The attenuation distance of the sound
+     * @param stream              Whether to play a stream or regular file
      * @return A new sound instance
      */
-    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, Entity entity, boolean stream) {
-        return new OnlineRecordSoundInstance(url, entity, new MusicDownloadListener(title, entity::getX, entity::getY, entity::getZ) {
+    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, Entity entity, int attenuationDistance, boolean stream) {
+        return new OnlineRecordSoundInstance(url, entity, attenuationDistance, new MusicDownloadListener(title, entity::getX, entity::getY, entity::getZ) {
             @Override
             public void onSuccess() {
                 if (!entity.isAlive() || !ENTITY_PLAYING_SOUNDS.containsKey(entity.getId())) {
@@ -112,19 +113,24 @@ public class SoundTracker {
         }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
 
+    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, Entity entity, boolean stream) {
+        return SoundTracker.getEtchedRecord(url, title, entity, 16, stream);
+    }
+
     /**
      * Creates an online sound for the specified position.
      *
-     * @param url   The url to play
-     * @param title The title of the record
-     * @param level The level to play the record in
-     * @param pos   The position of the record
-     * @param type  The type of audio to accept
+     * @param url                 The url to play
+     * @param title               The title of the record
+     * @param level               The level to play the record in
+     * @param pos                 The position of the record
+     * @param attenuationDistance The attenuation distance of the sound
+     * @param type                The type of audio to accept
      * @return A new sound instance
      */
-    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, AudioSource.AudioFileType type) {
+    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, int attenuationDistance, AudioSource.AudioFileType type) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, attenuationDistance, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
             @Override
             public void onSuccess() {
                 if (!playingRecords.containsKey(pos)) {
@@ -143,6 +149,10 @@ public class SoundTracker {
                 PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
             }
         }, type);
+    }
+
+    public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, AudioSource.AudioFileType type) {
+        return SoundTracker.getEtchedRecord(url, title, level, pos, 16, type);
     }
 
     private static void playRecord(BlockPos pos, SoundInstance sound) {
@@ -189,12 +199,13 @@ public class SoundTracker {
     /**
      * Plays a record stack for an entity.
      *
-     * @param record   The record to play
-     * @param entityId The id of the entity to play the record at
-     * @param track    The track to play
-     * @param loop     Whether to loop
+     * @param record              The record to play
+     * @param entityId            The id of the entity to play the record at
+     * @param track               The track to play
+     * @param attenuationDistance The attenuation distance of the sound
+     * @param loop                Whether to loop
      */
-    public static void playEntityRecord(ItemStack record, int entityId, int track, boolean loop) {
+    public static void playEntityRecord(ItemStack record, int entityId, int track, int attenuationDistance, boolean loop) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null)
             return;
@@ -203,10 +214,10 @@ public class SoundTracker {
         if (entity == null)
             return;
 
-        Optional<? extends SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track);
+        Optional<? extends SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track, attenuationDistance);
         if (!sound.isPresent()) {
             if (loop && track != 0)
-                playEntityRecord(record, entityId, 0, true);
+                playEntityRecord(record, entityId, 0, attenuationDistance, true);
             return;
         }
 
@@ -219,11 +230,15 @@ public class SoundTracker {
 
         entitySound = StopListeningSound.create(sound.get(), () -> Minecraft.getInstance().tell(() -> {
             ENTITY_PLAYING_SOUNDS.remove(entityId);
-            playEntityRecord(record, entityId, track + 1, loop);
+            playEntityRecord(record, entityId, track + 1, attenuationDistance, loop);
         }));
 
         ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
         Minecraft.getInstance().getSoundManager().play(entitySound);
+    }
+
+    public static void playEntityRecord(ItemStack record, int entityId, int track, boolean loop) {
+        SoundTracker.playEntityRecord(record, entityId, track, 16, loop);
     }
 
     /**
@@ -235,7 +250,7 @@ public class SoundTracker {
     public static void playBoombox(int entityId, ItemStack record) {
         setEntitySound(entityId, null);
         if (!record.isEmpty())
-            playEntityRecord(record, entityId, 0, true);
+            playEntityRecord(record, entityId, 0, 8, true);
     }
 
     /**
@@ -265,7 +280,7 @@ public class SoundTracker {
             return;
 
         if (TrackData.isValidURL(url))
-            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level, pos))));
+            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level, pos))));
     }
 
     /**

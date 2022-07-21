@@ -1,6 +1,7 @@
 {
 	"parent": "block/cube",
 	"credit": "Made by Farcr",
+	"ambientocclusion": false,
 	"texture_size": [32, 32],
 	"textures": {
 		"texture": "etched:block/radio",

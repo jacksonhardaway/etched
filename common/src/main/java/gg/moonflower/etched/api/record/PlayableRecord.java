@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
  * @since 2.0.0
  */
 public interface PlayableRecord {
-    
+
     /**
      * Checks to see if the specified stack can be played.
      *
@@ -126,14 +126,20 @@ public interface PlayableRecord {
     /**
      * Creates the sound for an entity.
      *
-     * @param stack  The stack to play
-     * @param entity The entity to play the sound for
-     * @param track  The track to play on the disc
+     * @param stack               The stack to play
+     * @param entity              The entity to play the sound for
+     * @param track               The track to play on the disc
+     * @param attenuationDistance The attenuation distance of the sound
      * @return The sound to play or nothing to error
      */
     @Environment(EnvType.CLIENT)
+    default Optional<? extends SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track, int attenuationDistance) {
+        return track < 0 ? Optional.empty() : this.getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> SoundTracker.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity, attenuationDistance, false));
+    }
+
+    @Environment(EnvType.CLIENT)
     default Optional<? extends SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
-        return track < 0 ? Optional.empty() : this.getMusic(stack).filter(tracks -> track < tracks.length).map(tracks -> SoundTracker.getEtchedRecord(tracks[track].getUrl(), tracks[track].getDisplayName(), entity, false));
+        return this.createEntitySound(stack, entity, track, 16);
     }
 
     /**

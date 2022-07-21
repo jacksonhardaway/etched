@@ -51,7 +51,7 @@ public class AlbumTextureCache implements FileCache {
                         };
                     } catch (IOException e) {
                         if (!ignoreMissing)
-                            LOGGER.error("Failed to read data from '" + url + "'");
+                            LOGGER.error("Failed to read data from '" + url + "'", e);
                         return null;
                     }
                 });

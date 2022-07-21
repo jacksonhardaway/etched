@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RIR",
+    "INI",
+    "OOO"
+  ],
+  "key": {
+    "R": {
+      "tag": "c:redstone_dusts"
+    },
+    "I": {
+      "tag": "c:iron_ingots"
+    },
+    "N": {
+      "item": "minecraft:note_block"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "result": {
+    "item": "etched:radio"
+  }
+}

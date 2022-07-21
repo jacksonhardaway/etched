@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "PMP",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "tag": "forge:paper"
+    },
+    "M": {
+      "item": "etched:music_label"
+    }
+  },
+  "result": {
+    "item": "etched:album_cover"
+  }
+}

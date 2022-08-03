@@ -160,7 +160,7 @@ public class SoundCloudSource implements SoundDownloadSource {
 
     @Override
     public Optional<String> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
-        return resolve(url, progressListener, proxy, json -> {
+        return this.resolve(url, progressListener, proxy, json -> {
             if (!json.has("artwork_url") || json.get("artwork_url").isJsonNull())
                 return Optional.empty();
             return Optional.of(GsonHelper.getAsString(json, "artwork_url"));

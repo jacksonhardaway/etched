@@ -16,6 +16,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public class BandcampSource implements SoundDownloadSource {
             if (raw == null)
                 throw new IOException("Failed to find properties");
 
-            JsonObject json = new JsonParser().parse(raw.replaceAll("&quot;", "\"")).getAsJsonObject();
+            JsonObject json = new JsonParser().parse(StringEscapeUtils.unescapeHtml4(raw)).getAsJsonObject();
             String type = GsonHelper.getAsString(GsonHelper.getAsJsonObject(json, "current"), "type");
             if (!"track".equals(type) && !"album".equals(type))
                 throw new IOException("URL is not a track or album");
@@ -111,8 +112,8 @@ public class BandcampSource implements SoundDownloadSource {
             if (urlEnd == -1)
                 urlEnd = url.length() - 4;
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
-            String artist = GsonHelper.getAsString(json, "artist");
-            String title = GsonHelper.getAsString(current, "title");
+            String artist = StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(json, "artist"));
+            String title = StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(current, "title"));
             String type = GsonHelper.getAsString(current, "type");
             if ("album".equals(type)) {
                 JsonArray trackInfoJson = GsonHelper.getAsJsonArray(json, "trackinfo");
@@ -121,8 +122,8 @@ public class BandcampSource implements SoundDownloadSource {
                 for (int i = 0; i < trackInfoJson.size(); i++) {
                     JsonObject trackJson = GsonHelper.convertToJsonObject(trackInfoJson.get(i), "trackinfo[" + i + "]");
                     String trackUrl = url.substring(0, urlEnd + 4) + GsonHelper.getAsString(trackJson, "title_link");
-                    String trackArtist = trackJson.has("artist") && !trackJson.get("artist").isJsonNull() ? GsonHelper.getAsString(trackJson, "artist", artist) : artist;
-                    String trackTitle = GsonHelper.getAsString(trackJson, "title");
+                    String trackArtist = trackJson.has("artist") && !trackJson.get("artist").isJsonNull() ? StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(trackJson, "artist", artist)) : artist;
+                    String trackTitle = StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(trackJson, "title"));
 
                     tracks.add(new TrackData(trackUrl, trackArtist, new TextComponent(trackTitle)));
                 }
@@ -144,7 +145,6 @@ public class BandcampSource implements SoundDownloadSource {
 
     @Override
     public boolean isValidUrl(String url) {
-        this.validCache.clear();
         return this.validCache.computeIfAbsent(url, key -> {
             try {
                 String host = new URI(key).getHost();

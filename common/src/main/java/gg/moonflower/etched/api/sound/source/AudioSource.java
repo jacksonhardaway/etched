@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
-    HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    HttpClient HTTP_CLIENT = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build(); // FIXME: properly fix this issue (#33)
 
     static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = SoundDownloadSource.getDownloadHeaders();

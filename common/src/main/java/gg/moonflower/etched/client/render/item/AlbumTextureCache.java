@@ -2,6 +2,7 @@ package gg.moonflower.etched.client.render.item;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.core.Etched;
+import gg.moonflower.pollen.api.util.OnlineRequest;
 import gg.moonflower.pollen.pinwheel.api.client.FileCache;
 import gg.moonflower.pollen.pinwheel.api.client.geometry.GeometryCache;
 import org.apache.logging.log4j.LogManager;
@@ -39,7 +40,7 @@ public class AlbumTextureCache implements FileCache {
             try {
                 return GeometryCache.getPath(url, this.cacheTime, this.cacheTimeUnit, s ->
                 {
-                    try (InputStream is = FileCache.get(url)) {
+                    try (InputStream is = OnlineRequest.get(url)) {
                         Path tempFile = Files.createTempFile(Etched.MOD_ID + "-album-cover", null);
                         AlbumImageProcessor.apply(NativeImage.read(is), AlbumCoverItemRenderer.getOverlayImage(), 1).writeToFile(tempFile);
                         return new FileInputStream(tempFile.toFile()) {

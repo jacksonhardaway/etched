@@ -19,7 +19,7 @@ catalogueImageIcon="icon.png"
 [[dependencies.${id}]]
 modId = "forge"
 mandatory = true
-versionRange = "[36,)"
+versionRange = "[36.2.38,)"
 ordering = "NONE"
 side = "BOTH"
 

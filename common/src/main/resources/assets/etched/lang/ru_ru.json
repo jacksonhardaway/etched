@@ -31,7 +31,7 @@
   "screen.etched.edit_music_label.title": "Название",
   "screen.etched.etching_table.error.cannot_create": "Нельзя создать пластинку",
   "screen.etched.etching_table.error.cannot_create.missing_disc": "Отсутствует пустая пластинка",
-  "screen.etched.etching_table.error.cannot_create.missing_label": "Отсутсвует ярлык",
+  "screen.etched.etching_table.error.cannot_create.missing_label": "Отсутствует ярлык",
   "screen.etched.etching_table.error.invalid_url": "Неправильный URL",
   "sound_source.etched.bandcamp": "Предоставлено Bandcamp",
   "sound_source.etched.info": "%s - %s",

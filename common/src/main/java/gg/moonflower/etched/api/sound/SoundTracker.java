@@ -257,14 +257,13 @@ public class SoundTracker {
      * Plays the records on an album jukebox in order.
      *
      * @param url   The URL of the stream
+     * @param state The block state of the radio
      * @param level The level to play records in
      * @param pos   The position of the jukebox
      */
-    public static void playRadio(@Nullable String url, ClientLevel level, BlockPos pos) {
+    public static void playRadio(@Nullable String url, BlockState state, ClientLevel level, BlockPos pos) {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-
-        BlockState state = level.getBlockState(pos);
 
         SoundInstance soundInstance = playingRecords.get(pos);
         if (soundInstance != null) {
@@ -278,7 +277,12 @@ public class SoundTracker {
             return;
 
         if (TrackData.isValidURL(url))
-            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level, pos))));
+            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, state, level, pos))));
+    }
+
+    @Deprecated
+    public static void playRadio(@Nullable String url, ClientLevel level, BlockPos pos) {
+        playRadio(url, level.getBlockState(pos), level, pos);
     }
 
     /**
@@ -293,7 +297,7 @@ public class SoundTracker {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
-        BlockState state = level.getBlockState(pos);
+        BlockState state = jukebox.getBlockState();
         if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !force && !jukebox.recalculatePlayingIndex(false)) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
@@ -305,7 +309,7 @@ public class SoundTracker {
             playingRecords.remove(pos);
         }
 
-        if (level.getBlockState(pos).getValue(AlbumJukeboxBlock.POWERED))
+        if (state.getValue(AlbumJukeboxBlock.POWERED))
             jukebox.stopPlaying();
 
         if (jukebox.getPlayingIndex() < 0) // Nothing can be played inside the jukebox
@@ -333,7 +337,7 @@ public class SoundTracker {
 
         playRecord(pos, sound);
 
-        if (disc.getItem() instanceof RecordItem && level.getBlockState(pos).is(Blocks.JUKEBOX))
+        if (disc.getItem() instanceof RecordItem && state.is(Blocks.JUKEBOX))
             for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
                 livingEntity.setRecordPlayingNearby(pos, true);
     }

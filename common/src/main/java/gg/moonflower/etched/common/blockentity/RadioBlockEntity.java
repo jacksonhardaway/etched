@@ -32,9 +32,8 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
     public void load(BlockState state, CompoundTag nbt) {
         super.load(state, nbt);
         this.url = nbt.contains("Url", NbtConstants.STRING) ? nbt.getString("Url") : null;
-
         if (this.level != null && this.level.isClientSide())
-            SoundTracker.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
+            SoundTracker.playRadio(this.url, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos());
     }
 
     @Override
@@ -65,7 +64,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
     public void clearContent() {
         this.url = null;
         if (this.level != null && this.level.isClientSide())
-            SoundTracker.playRadio(this.url, (ClientLevel) this.level, this.getBlockPos());
+            SoundTracker.playRadio(this.url, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos());
     }
 
     public String getUrl() {

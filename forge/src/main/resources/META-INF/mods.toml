@@ -33,6 +33,6 @@ side = "BOTH"
 [[dependencies.${id}]]
 modId = "pollen"
 mandatory = true
-versionRange = "[1.2.0,2.0.0)"
+versionRange = "[1.4.0,2.0.0)"
 ordering = "BEFORE"
 side = "BOTH"

@@ -14,10 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -33,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
-    HttpClient HTTP_CLIENT = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build(); // FIXME: properly fix this issue (#33)
 
     static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
@@ -47,23 +44,22 @@ public interface AudioSource {
             progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
 
         try {
-            HttpRequest.Builder get = HttpRequest.newBuilder().uri(url.toURI());
-            getDownloadHeaders().forEach(get::setHeader);
-            HttpResponse<InputStream> response = HTTP_CLIENT.send(get.build(), HttpResponse.BodyHandlers.ofInputStream());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            getDownloadHeaders().forEach(connection::setRequestProperty);
 
-            long contentLength = response.headers().firstValueAsLong("Content-Length").orElse(0);
+            long contentLength = connection.getContentLengthLong();
 
             // Indicates a cache of "forever"
             long cacheTime = Long.MAX_VALUE;
             int cachePriority = 0;
             boolean cache = true;
 
-            String cacheControl = response.headers().firstValue("Cache-Control").orElse(null);
+            String cacheControl = connection.getHeaderField("Cache-Control");
             if (cacheControl != null) {
                 String[] parts = cacheControl.split(",");
-                for (int i = 0; i < parts.length; i++) {
+                for (String part : parts) {
                     try {
-                        String[] entry = parts[i].split("=");
+                        String[] entry = part.split("=");
                         String name = entry[0].trim();
                         String value = entry.length > 1 ? entry[1].trim() : null;
                         switch (name) {
@@ -100,12 +96,12 @@ public interface AudioSource {
                             // Skip stale-if-error
                         }
                     } catch (Exception e) {
-                        LOGGER.error("Invalid response header: {}", parts[i], e);
+                        LOGGER.error("Invalid response header: {}", part, e);
                     }
                 }
             }
 
-            String ageHeader = response.headers().firstValue("Age").orElse(null);
+            String ageHeader = connection.getHeaderField("Age");
             if (ageHeader != null) {
                 try {
                     cacheTime -= Integer.parseInt(ageHeader);
@@ -128,7 +124,7 @@ public interface AudioSource {
             if (contentLength > 104857600)
                 throw new IOException("Filesize is bigger than maximum allowed (file is " + contentLength + ", limit is 104857600)");
 
-            SoundCache.updateCache(file, file.getFileName().toString(), cacheTime, TimeUnit.SECONDS, new ProgressTrackingInputStream(response.body(), contentLength, progressListener) {
+            SoundCache.updateCache(file, file.getFileName().toString(), cacheTime, TimeUnit.SECONDS, new ProgressTrackingInputStream(connection.getInputStream(), contentLength, progressListener) {
                 @Override
                 public int read() throws IOException {
                     int value = super.read();

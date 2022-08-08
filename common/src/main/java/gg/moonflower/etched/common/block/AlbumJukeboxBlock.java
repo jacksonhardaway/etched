@@ -117,14 +117,6 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     @Nullable
     @Override
-    public <T extends BlockEntity> GameEventListener getListener(Level level, T blockEntity) {
-        if (blockEntity instanceof AlbumJukeboxBlockEntity && level.isClientSide())
-            SoundTracker.playAlbum((AlbumJukeboxBlockEntity) blockEntity, (ClientLevel) level, blockEntity.getBlockPos(), false);
-        return null;
-    }
-
-    @Nullable
-    @Override
     public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new AlbumJukeboxBlockEntity(blockPos, blockState);
     }

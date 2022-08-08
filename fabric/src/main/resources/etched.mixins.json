@@ -8,7 +8,8 @@
     "client.ClientPacketListenerMixin",
     "client.ItemEntityMixin",
     "client.LevelRendererMixin",
-    "client.OptifineLevelRendererMixin"
+    "client.OptifineLevelRendererMixin",
+    "client.SoundEngineMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,7 +1,11 @@
 package gg.moonflower.etched.core.mixin.fabric.client;
 
 import gg.moonflower.etched.api.sound.AbstractOnlineSoundInstance;
+import gg.moonflower.etched.api.sound.StopListeningSound;
+import gg.moonflower.etched.api.sound.TickableStopListeningSound;
+import gg.moonflower.etched.api.sound.WrappedSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.client.sounds.AudioStream;
 import net.minecraft.client.sounds.SoundBufferLibrary;
 import net.minecraft.client.sounds.SoundEngine;
@@ -23,7 +27,7 @@ public abstract class SoundEngineMixin {
 
     @Inject(method = "play", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sounds/SoundBufferLibrary;getStream(Lnet/minecraft/resources/ResourceLocation;Z)Ljava/util/concurrent/CompletableFuture;"))
     public void captureSound(SoundInstance soundInstance, CallbackInfo ci) {
-        this.soundInstance = soundInstance;
+        this.soundInstance = soundInstance instanceof WrappedSoundInstance ? ((WrappedSoundInstance) soundInstance).getParent() : soundInstance;
     }
 
     @Redirect(method = "play", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sounds/SoundBufferLibrary;getStream(Lnet/minecraft/resources/ResourceLocation;Z)Ljava/util/concurrent/CompletableFuture;"))

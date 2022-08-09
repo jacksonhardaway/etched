@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AlbumCoverItem extends PlayableRecordItem {
+public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem {
 
     public static final int MAX_RECORDS = 9;
 
@@ -34,26 +34,12 @@ public class AlbumCoverItem extends PlayableRecordItem {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        ItemStack stack = player.getItemInHand(hand);
-        int index = player.inventory.findSlotMatchingItem(stack);
-        if (index == -1)
-            return InteractionResultHolder.pass(stack);
+        return this.use(this, level, player, hand);
+    }
 
-        if (!level.isClientSide()) {
-            player.awardStat(Stats.ITEM_USED.get(this));
-            player.openMenu(new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return stack.getHoverName();
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-                    return new AlbumCoverMenu(containerId, inventory, index);
-                }
-            });
-        }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+    @Override
+    public AbstractContainerMenu constructMenu(int containerId, Inventory inventory, Player player, int index) {
+        return new AlbumCoverMenu(containerId, inventory, index);
     }
 
     @Override

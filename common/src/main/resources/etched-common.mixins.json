@@ -11,7 +11,9 @@
     "client.ItemStackMixin",
     "client.LevelRendererAccessor",
     "client.ParrotMixin",
-    "client.SoundEngineMixin"
+    "client.SoundEngineMixin",
+    "client.VillagerMixin",
+    "client.VillagerModelMixin"
   ],
   "mixins": [
     "JukeboxBlockEntityMixin",

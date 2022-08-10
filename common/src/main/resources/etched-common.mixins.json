@@ -16,6 +16,7 @@
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
     "NoteBlockMixin",
+    "ParrotMixin",
     "RecordItemMixin",
     "SoundEventAccessor",
     "StructureTemplatePoolAccessor",

@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class BoomboxItem extends Item {
+public class BoomboxItem extends Item implements ContainerItem {
 
     private static final Map<Integer, ItemStack> PLAYING_RECORDS = new Int2ObjectArrayMap<>();
     private static final Component PAUSE = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.pause", new KeybindComponent("key.sneak"), new KeybindComponent("key.use")).withStyle(ChatFormatting.GRAY);
@@ -106,29 +106,14 @@ public class BoomboxItem extends Item {
             setPaused(stack, !isPaused(stack));
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
         }
-
         if (!Etched.SERVER_CONFIG.useBoomboxMenu.get())
             return InteractionResultHolder.fail(stack);
+        return this.use(this, level, player, hand);
+    }
 
-        int index = player.getInventory().findSlotMatchingItem(stack);
-        if (index == -1)
-            return InteractionResultHolder.pass(stack);
-
-        if (!level.isClientSide()) {
-            player.awardStat(Stats.ITEM_USED.get(this));
-            player.openMenu(new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return stack.getHoverName();
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-                    return new BoomboxMenu(containerId, inventory, index);
-                }
-            });
-        }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+    @Override
+    public AbstractContainerMenu constructMenu(int containerId, Inventory inventory, Player player, int index) {
+        return new BoomboxMenu(containerId, inventory, index);
     }
 
     @Override

@@ -6,7 +6,7 @@
   "client": [
     "client.ForgeIngameGuiMixin",
     "client.LevelRendererMixin",
-    "client.SoundEngineMixin"
+    "client.StopListeningSoundMixin"
   ],
   "mixins": [
     "EntityMixin",

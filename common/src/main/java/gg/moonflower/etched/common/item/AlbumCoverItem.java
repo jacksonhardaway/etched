@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AlbumCoverItem extends PlayableRecordItem {
+public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem {
 
     public static final int MAX_RECORDS = 9;
 
@@ -56,30 +56,16 @@ public class AlbumCoverItem extends PlayableRecordItem {
 
         if (!Etched.SERVER_CONFIG.useAlbumCoverMenu.get())
             return InteractionResultHolder.fail(stack);
-
-        int index = player.getInventory().findSlotMatchingItem(stack);
-        if (index == -1)
-            return InteractionResultHolder.pass(stack);
-
-        if (!level.isClientSide()) {
-            player.awardStat(Stats.ITEM_USED.get(this));
-            player.openMenu(new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return stack.getHoverName();
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-                    return new AlbumCoverMenu(containerId, inventory, index);
-                }
-            });
-        }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        return this.use(this, level, player, hand);
     }
 
     @Override
-    public boolean overrideStackedOnOther(ItemStack keyRing, Slot slot, ClickAction clickAction, Player player) {
+    public AbstractContainerMenu constructMenu(int containerId, Inventory inventory, Player player, int index) {
+        return new AlbumCoverMenu(containerId, inventory, index);
+    }
+
+    @Override
+    public boolean overrideStackedOnOther(ItemStack albumCover, Slot slot, ClickAction clickAction, Player player) {
         if (Etched.SERVER_CONFIG.useAlbumCoverMenu.get())
             return false;
         if (clickAction != ClickAction.SECONDARY)
@@ -87,31 +73,31 @@ public class AlbumCoverItem extends PlayableRecordItem {
 
         ItemStack clickItem = slot.getItem();
         if (clickItem.isEmpty()) {
-            removeOne(keyRing).ifPresent(key -> {
+            removeOne(albumCover).ifPresent(record -> {
                 this.playRemoveOneSound(player);
-                add(keyRing, slot.safeInsert(key));
+                add(albumCover, slot.safeInsert(record));
             });
-        } else if (canAdd(keyRing, clickItem)) {
+        } else if (canAdd(albumCover, clickItem)) {
             this.playInsertSound(player);
-            add(keyRing, slot.safeTake(clickItem.getCount(), 1, player));
+            add(albumCover, slot.safeTake(clickItem.getCount(), 1, player));
         }
 
         return true;
     }
 
     @Override
-    public boolean overrideOtherStackedOnMe(ItemStack keyRing, ItemStack clickItem, Slot slot, ClickAction clickAction, Player player, SlotAccess slotAccess) {
+    public boolean overrideOtherStackedOnMe(ItemStack albumCover, ItemStack clickItem, Slot slot, ClickAction clickAction, Player player, SlotAccess slotAccess) {
         if (Etched.SERVER_CONFIG.useAlbumCoverMenu.get())
             return false;
         if (clickAction == ClickAction.SECONDARY && slot.allowModification(player)) {
             if (clickItem.isEmpty()) {
-                removeOne(keyRing).ifPresent(removedKey -> {
+                removeOne(albumCover).ifPresent(removedRecord -> {
                     this.playRemoveOneSound(player);
-                    slotAccess.set(removedKey);
+                    slotAccess.set(removedRecord);
                 });
-            } else if (canAdd(keyRing, clickItem)) {
+            } else if (canAdd(albumCover, clickItem)) {
                 this.playInsertSound(player);
-                add(keyRing, clickItem);
+                add(albumCover, clickItem);
             }
 
             return true;
@@ -151,15 +137,15 @@ public class AlbumCoverItem extends PlayableRecordItem {
         if (!tag.contains("Records", NbtConstants.LIST))
             return Optional.empty();
 
-        ListTag keysNbt = tag.getList("Records", NbtConstants.COMPOUND);
-        if (keysNbt.isEmpty())
+        ListTag recordsNbt = tag.getList("Records", NbtConstants.COMPOUND);
+        if (recordsNbt.isEmpty())
             return Optional.empty();
 
-        CompoundTag keyNbt = keysNbt.getCompound(keysNbt.size() - 1);
-        ItemStack keyStack = ItemStack.of(keyNbt);
-        keysNbt.remove(keysNbt.size() - 1);
+        CompoundTag recordNbt = recordsNbt.getCompound(recordsNbt.size() - 1);
+        ItemStack recordStack = ItemStack.of(recordNbt);
+        recordsNbt.remove(recordsNbt.size() - 1);
 
-        return Optional.of(keyStack);
+        return Optional.of(recordStack);
     }
 
     private static boolean dropContents(ItemStack itemStack, Player player) {
@@ -186,12 +172,12 @@ public class AlbumCoverItem extends PlayableRecordItem {
         if (!tag.contains("Records"))
             tag.put("Records", new ListTag());
 
-        ListTag keysNbt = tag.getList("Records", NbtConstants.COMPOUND);
+        ListTag recordsNbt = tag.getList("Records", NbtConstants.COMPOUND);
 
-        ItemStack singleKey = record.split(1);
-        CompoundTag keyTag = new CompoundTag();
-        singleKey.save(keyTag);
-        keysNbt.add(keyTag);
+        ItemStack singleRecord = record.split(1);
+        CompoundTag recordTag = new CompoundTag();
+        singleRecord.save(recordTag);
+        recordsNbt.add(recordTag);
 
         if (!getCoverStack(albumCover).isPresent())
             getRecords(albumCover).stream().filter(stack -> !stack.isEmpty()).findFirst().ifPresent(stack -> setCover(albumCover, stack));
@@ -239,15 +225,15 @@ public class AlbumCoverItem extends PlayableRecordItem {
         if (nbt == null || !nbt.contains("Records", NbtConstants.LIST))
             return Collections.emptyList();
 
-        ListTag keysNbt = nbt.getList("Records", NbtConstants.COMPOUND);
-        if (keysNbt.isEmpty())
+        ListTag recordsNbt = nbt.getList("Records", NbtConstants.COMPOUND);
+        if (recordsNbt.isEmpty())
             return Collections.emptyList();
 
-        List<ItemStack> list = new ArrayList<>(keysNbt.size());
-        for (int i = 0; i < Math.min(MAX_RECORDS, keysNbt.size()); i++) {
-            ItemStack key = ItemStack.of(keysNbt.getCompound(i));
-            if (!key.isEmpty())
-                list.add(key);
+        List<ItemStack> list = new ArrayList<>(recordsNbt.size());
+        for (int i = 0; i < Math.min(MAX_RECORDS, recordsNbt.size()); i++) {
+            ItemStack record = ItemStack.of(recordsNbt.getCompound(i));
+            if (!record.isEmpty())
+                list.add(record);
         }
 
         return list;
@@ -264,21 +250,21 @@ public class AlbumCoverItem extends PlayableRecordItem {
         stack.getOrCreateTag().put("CoverRecord", record.save(new CompoundTag()));
     }
 
-    public static void setRecords(ItemStack stack, Collection<ItemStack> keys) {
-        if (stack.getItem() != EtchedItems.ALBUM_COVER.get() || keys.isEmpty())
+    public static void setRecords(ItemStack stack, Collection<ItemStack> records) {
+        if (stack.getItem() != EtchedItems.ALBUM_COVER.get() || records.isEmpty())
             return;
 
         CompoundTag nbt = stack.getOrCreateTag();
-        ListTag keysNbt = new ListTag();
+        ListTag recordsNbt = new ListTag();
         int i = 0;
-        for (ItemStack key : keys) {
-            if (key.isEmpty())
+        for (ItemStack record : records) {
+            if (record.isEmpty())
                 continue;
             if (i >= MAX_RECORDS)
                 break;
-            keysNbt.add(key.save(new CompoundTag()));
+            recordsNbt.add(record.save(new CompoundTag()));
             i++;
         }
-        nbt.put("Records", keysNbt);
+        nbt.put("Records", recordsNbt);
     }
 }

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Ocelot
  */
-public class StopListeningSound implements SoundInstance, SoundStopListener {
+public class StopListeningSound implements SoundInstance, SoundStopListener, WrappedSoundInstance {
 
     private final SoundInstance source;
     private final SoundStopListener listener;
@@ -32,6 +32,11 @@ public class StopListeningSound implements SoundInstance, SoundStopListener {
 
     public void stopListening() {
         this.ignoringEvents = true;
+    }
+
+    @Override
+    public SoundInstance getParent() {
+        return this.source;
     }
 
     @Override

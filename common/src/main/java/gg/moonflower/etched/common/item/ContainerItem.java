@@ -32,7 +32,7 @@ public interface ContainerItem {
 
     default InteractionResultHolder<ItemStack> use(Item item, Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        int index = findSlotMatchingItem(player.inventory, stack);
+        int index = findSlotMatchingItem(player.getInventory(), stack);
         if (index == -1)
             return InteractionResultHolder.pass(stack);
 

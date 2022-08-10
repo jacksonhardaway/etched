@@ -265,9 +265,6 @@ public class SoundTracker {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
-        if (!state.hasProperty(RadioBlock.POWERED)) // Something must already be playing since it would otherwise be -1 and a change would occur
-            return;
-
         SoundInstance soundInstance = playingRecords.get(pos);
         if (soundInstance != null) {
             if (soundInstance instanceof StopListeningSound)
@@ -276,7 +273,7 @@ public class SoundTracker {
             playingRecords.remove(pos);
         }
 
-        if (state.getValue(RadioBlock.POWERED))
+        if (!state.hasProperty(RadioBlock.POWERED) || state.getValue(RadioBlock.POWERED)) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
         if (TrackData.isValidURL(url))

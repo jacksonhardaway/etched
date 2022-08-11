@@ -10,11 +10,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Clearable;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -29,10 +32,19 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
         super(EtchedBlocks.RADIO_BE.get(), pos, state);
     }
 
-    public static void tick(Level level, BlockPos pos, BlockState state, RadioBlockEntity entity) {
-        if (!entity.loaded && level != null && level.isClientSide()) {
-            entity.loaded = true;
-            SoundTracker.playRadio(entity.url, state, (ClientLevel) level, pos);
+    public static void tick(Level level, BlockPos pos, BlockState state, RadioBlockEntity blockEntity) {
+        if (level == null || !level.isClientSide())
+            return;
+
+        if (!blockEntity.loaded) {
+            blockEntity.loaded = true;
+            SoundTracker.playRadio(blockEntity.url, state, (ClientLevel) level, pos);
+        }
+
+        if (blockEntity.isPlaying()) {
+            AABB range = new AABB(pos).inflate(3.45);
+            List<LivingEntity> livingEntities = level.getEntitiesOfClass(LivingEntity.class, range);
+            livingEntities.forEach(living -> living.setRecordPlayingNearby(pos, true));
         }
     }
 

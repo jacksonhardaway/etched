@@ -48,7 +48,7 @@ public abstract class ParrotMixin extends Entity {
 
     @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/ShoulderRidingEntity;aiStep()V"))
     public void addAudioProviders(CallbackInfo ci) {
-        if (this.musicPos == null || !this.musicPos.closerThan(this.position(), 3.46) || !this.level.getBlockState(this.musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
+        if (this.musicPos == null || !this.musicPos.closerToCenterThan(this.position(), 3.46) || !this.level.getBlockState(this.musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
             this.partyParrot = false;
             this.jukebox = null;
         } else {

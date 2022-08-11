@@ -176,7 +176,7 @@ public class SoundTracker {
 
         AlbumJukeboxBlockEntity jukebox = (AlbumJukeboxBlockEntity) blockEntity;
         jukebox.next();
-        playAlbum((AlbumJukeboxBlockEntity) blockEntity, level, pos, true);
+        playAlbum((AlbumJukeboxBlockEntity) blockEntity, blockEntity.getBlockState(), level, pos, true);
     }
 
     public static void playBlockRecord(BlockPos pos, TrackData[] tracks, int track) {
@@ -299,11 +299,10 @@ public class SoundTracker {
      * @param pos     The position of the jukebox
      * @param force   Whether to force the jukebox to play
      */
-    public static void playAlbum(AlbumJukeboxBlockEntity jukebox, ClientLevel level, BlockPos pos, boolean force) {
+    public static void playAlbum(AlbumJukeboxBlockEntity jukebox, BlockState state, ClientLevel level, BlockPos pos, boolean force) {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
 
-        BlockState state = jukebox.getBlockState();
         if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !force && !jukebox.recalculatePlayingIndex(false)) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
@@ -344,6 +343,11 @@ public class SoundTracker {
 
         playRecord(pos, sound);
         setRecordPlayingNearby(level, pos, true);
+    }
+
+    @Deprecated
+    public static void playAlbum(AlbumJukeboxBlockEntity jukebox, ClientLevel level, BlockPos pos, boolean force) {
+        playAlbum(jukebox, jukebox.getBlockState(), level, pos, force);
     }
 
     private static class DownloadTextComponent extends BaseComponent {

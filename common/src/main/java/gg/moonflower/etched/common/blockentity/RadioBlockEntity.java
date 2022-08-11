@@ -12,6 +12,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,19 +21,28 @@ import java.util.Objects;
 /**
  * @author Ocelot
  */
-public class RadioBlockEntity extends BlockEntity implements Clearable {
+public class RadioBlockEntity extends BlockEntity implements Clearable, TickableBlockEntity {
 
     private String url;
+    private boolean loaded;
 
     public RadioBlockEntity() {
         super(EtchedBlocks.RADIO_BE.get());
     }
 
     @Override
+    public void tick() {
+        if (!this.loaded && this.level != null && this.level.isClientSide()) {
+            this.loaded = true;
+            SoundTracker.playRadio(this.url, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos());
+        }
+    }
+
+    @Override
     public void load(BlockState state, CompoundTag nbt) {
         super.load(state, nbt);
         this.url = nbt.contains("Url", NbtConstants.STRING) ? nbt.getString("Url") : null;
-        if (this.level != null && this.level.isClientSide())
+        if (this.loaded && this.level != null && this.level.isClientSide())
             SoundTracker.playRadio(this.url, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos());
     }
 

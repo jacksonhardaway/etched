@@ -151,8 +151,10 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
             if (minecraft.level != null && minecraft.screen instanceof AlbumJukeboxScreen) {
                 AlbumJukeboxScreen screen = (AlbumJukeboxScreen) minecraft.screen;
                 BlockPos pos = screen.getMenu().getPos();
-                if (screen.getMenu().setPlayingTrack(minecraft.level, pkt))
-                    SoundTracker.playAlbum((AlbumJukeboxBlockEntity) Objects.requireNonNull(minecraft.level.getBlockEntity(pos)), minecraft.level, pos, true);
+                if (screen.getMenu().setPlayingTrack(minecraft.level, pkt)) {
+                    AlbumJukeboxBlockEntity entity = (AlbumJukeboxBlockEntity) Objects.requireNonNull(minecraft.level.getBlockEntity(pos));
+                    SoundTracker.playAlbum(entity, entity.getBlockState(), minecraft.level, pos, true);
+                }
             }
         });
     }

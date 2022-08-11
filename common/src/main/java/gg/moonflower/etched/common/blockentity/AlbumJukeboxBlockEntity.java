@@ -22,13 +22,14 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Ocelot
  */
-public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer {
+public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, TickableBlockEntity {
 
     private static final int[] SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
@@ -36,6 +37,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     private int playingIndex;
     private int track;
     private ItemStack playingStack;
+    private boolean loaded;
 
     public AlbumJukeboxBlockEntity() {
         super(EtchedBlocks.ALBUM_JUKEBOX_BE.get());
@@ -70,14 +72,22 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     @Override
+    public void tick() {
+        if (!this.loaded && this.level != null && this.level.isClientSide()) {
+            this.loaded = true;
+            SoundTracker.playAlbum(this, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos(), false);
+        }
+    }
+
+    @Override
     public void load(BlockState state, CompoundTag hbt) {
         super.load(state, hbt);
 
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         if (!this.tryLoadLootTable(hbt))
             ContainerHelper.loadAllItems(hbt, this.items);
-        if (this.level != null && this.level.isClientSide())
-            SoundTracker.playAlbum(this, (ClientLevel) this.level, this.getBlockPos(), false);
+        if (this.loaded && this.level != null && this.level.isClientSide())
+            SoundTracker.playAlbum(this, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos(), false);
     }
 
     @Override

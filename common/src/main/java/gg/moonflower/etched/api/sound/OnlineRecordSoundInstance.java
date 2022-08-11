@@ -15,17 +15,25 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
     private final Entity entity;
     private boolean stopped;
 
-    public OnlineRecordSoundInstance(String url, Entity entity, int attenuationDistance, DownloadProgressListener progressListener, AudioSource.AudioFileType type) {
+    public OnlineRecordSoundInstance(String url, Entity entity, float volume, int attenuationDistance, DownloadProgressListener progressListener, AudioSource.AudioFileType type) {
         super(url, null, attenuationDistance, SoundSource.RECORDS, progressListener, type, entity == Minecraft.getInstance().player);
-        this.volume = 4.0F;
+        this.volume = volume;
         this.entity = entity;
     }
 
-    public OnlineRecordSoundInstance(String url, double x, double y, double z, int attenuationDistance, DownloadProgressListener progressListener, AudioSource.AudioFileType type) {
-        this(url, null, attenuationDistance, progressListener, type);
+    public OnlineRecordSoundInstance(String url, Entity entity, int attenuationDistance, DownloadProgressListener progressListener, AudioSource.AudioFileType type) {
+        this(url, entity, 4.0F, attenuationDistance, progressListener, type);
+    }
+
+    public OnlineRecordSoundInstance(String url, double x, double y, double z, float volume, int attenuationDistance, DownloadProgressListener progressListener, AudioSource.AudioFileType type) {
+        this(url, null, volume, attenuationDistance, progressListener, type);
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public OnlineRecordSoundInstance(String url, double x, double y, double z, int attenuationDistance, DownloadProgressListener progressListener, AudioSource.AudioFileType type) {
+        this(url, x, y, z, 4.0F, attenuationDistance, progressListener, type);
     }
 
     @Override

@@ -16,7 +16,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
@@ -26,6 +25,7 @@ import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -54,7 +54,7 @@ public class SoundTracker {
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
     private static final Component RADIO = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".radio");
 
-    private static void setRecordPlayingNearby(Level level, BlockPos pos, boolean playing) {
+    private static synchronized void setRecordPlayingNearby(Level level, BlockPos pos, boolean playing) {
         BlockState state = level.getBlockState(pos);
         if (state.is(EtchedTags.AUDIO_PROVIDER) || state.is(Blocks.JUKEBOX))
             for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
@@ -138,14 +138,18 @@ public class SoundTracker {
      * @return A new sound instance
      */
     public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, int attenuationDistance, AudioSource.AudioFileType type) {
+        BlockState aboveState = level.getBlockState(pos.above());
+        boolean muffled = aboveState.is(BlockTags.WOOL);
+        boolean hidden = !aboveState.isAir();
+
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, attenuationDistance, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
             @Override
             public void onSuccess() {
                 if (!playingRecords.containsKey(pos)) {
                     this.clearComponent();
                 } else {
-                    if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                    if (!hidden && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
                         PlayableRecord.showMessage(title);
                     setRecordPlayingNearby(level, pos, true);
                 }
@@ -159,7 +163,7 @@ public class SoundTracker {
     }
 
     public static AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, ClientLevel level, BlockPos pos, AudioSource.AudioFileType type) {
-        return SoundTracker.getEtchedRecord(url, title, level, pos, 16, type);
+        return getEtchedRecord(url, title, level, pos, 16, type);
     }
 
     private static void playRecord(BlockPos pos, SoundInstance sound) {
@@ -324,9 +328,7 @@ public class SoundTracker {
         ItemStack disc = jukebox.getItem(jukebox.getPlayingIndex());
         SoundInstance sound = null;
         if (disc.getItem() instanceof RecordItem) {
-            if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
-                PlayableRecord.showMessage(((RecordItem) disc.getItem()).getDisplayName());
-            sound = StopListeningSound.create(SimpleSoundInstance.forRecord(((RecordItem) disc.getItem()).getSound(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+            sound = StopListeningSound.create(getEtchedRecord(((RecordItem) disc.getItem()).getSound().getLocation().toString(), ((RecordItem) disc.getItem()).getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
         } else if (disc.getItem() instanceof PlayableRecord) {
             Optional<TrackData[]> optional = PlayableRecord.getStackMusic(disc);
             if (optional.isPresent()) {

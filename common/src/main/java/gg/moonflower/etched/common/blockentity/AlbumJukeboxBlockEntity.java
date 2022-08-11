@@ -18,13 +18,17 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.entity.TickableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * @author Ocelot
@@ -73,9 +77,18 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
     @Override
     public void tick() {
-        if (!this.loaded && this.level != null && this.level.isClientSide()) {
+        if (this.level == null || !this.level.isClientSide())
+            return;
+
+        if (!this.loaded) {
             this.loaded = true;
             SoundTracker.playAlbum(this, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos(), false);
+        }
+
+        if (this.isPlaying()) {
+            AABB range = new AABB(this.getBlockPos()).inflate(3.45);
+            List<LivingEntity> livingEntities = this.level.getEntitiesOfClass(LivingEntity.class, range);
+            livingEntities.forEach(living -> living.setRecordPlayingNearby(this.getBlockPos(), true));
         }
     }
 

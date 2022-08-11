@@ -18,9 +18,7 @@ import java.util.Map;
 @SuppressWarnings("UnstableApiUsage")
 public class AnimationUtil {
 
-    private static final Map<Model, Map<String, ModelPart>> MODEL_PARTS = new HashMap<>();
-    private static final Map<String, String> MAPPED_NAMES = new HashMap<>();
-
+    @SuppressWarnings("ConstantConditions")
     public static void copyAngles(String name, GeometryModel model, ModelPart part) {
         model.getModelPart(name).ifPresent(bonePart -> {
             if (bonePart instanceof BoneModelPart) {
@@ -38,33 +36,5 @@ public class AnimationUtil {
         part.x += pose.getPosition().x();
         part.y -= pose.getPosition().y();
         part.z += pose.getPosition().z();
-    }
-
-    public static Map<String, ModelPart> mapRenderers(Model model) {
-        Map<String, ModelPart> renderers = new HashMap<>();
-        Class<?> i = model.getClass();
-        while (i != null && i != Object.class) {
-            for (Field field : i.getDeclaredFields()) {
-                if (!field.isSynthetic()) {
-                    if (ModelPart.class.isAssignableFrom(field.getType())) {
-                        try {
-                            field.setAccessible(true);
-                            renderers.put(field.getName(), (ModelPart) field.get(model));
-                        } catch (Exception ignored) {
-                        }
-                    }
-                }
-            }
-            i = i.getSuperclass();
-        }
-        return renderers;
-    }
-
-    public static Map<String, ModelPart> getMappings(Model model) {
-        return MODEL_PARTS.computeIfAbsent(model, AnimationUtil::mapRenderers);
-    }
-
-    public static String getNameForPart(String name, Model model) {
-        return MAPPED_NAMES.computeIfAbsent(name, key -> VanillaModelMapping.get(model.getClass(), key));
     }
 }

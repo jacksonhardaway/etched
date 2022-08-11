@@ -47,7 +47,7 @@ public abstract class VillagerMixin extends AbstractVillager implements Villager
 
             if (!entities.isEmpty()) {
                 this.dancing = true;
-            } else if (this.musicPos == null || !this.musicPos.closerThan(this.position(), 3.46) || !this.level.getBlockState(this.musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
+            } else if (this.musicPos == null || !this.musicPos.closerToCenterThan(this.position(), 3.46) || !this.level.getBlockState(this.musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
                 this.dancing = false;
                 this.musicPos = null;
             }

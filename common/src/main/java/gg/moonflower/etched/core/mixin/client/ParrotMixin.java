@@ -2,6 +2,7 @@ package gg.moonflower.etched.core.mixin.client;
 
 import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.item.BoomboxItem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,15 +31,11 @@ public abstract class ParrotMixin extends ShoulderRidingEntity {
     @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/ShoulderRidingEntity;aiStep()V"))
     public void checkEntitySound(CallbackInfo ci) {
         if (this.level.isClientSide()) {
-            List<Entity> entities = this.level.getEntitiesOfClass(Entity.class, new AABB(this.position().x() - 3.46, this.position().y() - 3.46, this.position().z() - 3.46, this.position().x() + 3.46, this.position().y() + 3.46, this.position().z() + 3.46), entity -> {
-                if (entity instanceof LivingEntity) {
-                    if (BoomboxItem.getPlayingHand((LivingEntity) entity) != null) {
-                        return true;
-                    }
-
-                    if (entity instanceof Player)
-                        return false;
-                }
+            List<Entity> entities = this.level.getEntities(this, this.getBoundingBox().inflate(3.45), entity -> {
+                if (!entity.isAlive() || entity.isSpectator())
+                    return false;
+                if (entity == Minecraft.getInstance().player && BoomboxItem.getPlayingHand((LivingEntity) entity) == null)
+                    return false;
 
                 return SoundTracker.getEntitySound(entity.getId()) != null;
             });

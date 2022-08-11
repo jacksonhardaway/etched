@@ -32,12 +32,12 @@ public class AnimationUtil {
     public static void applyPose(ModelPart part, BoneModelPart modelPart) {
         AnimatedModelPart.AnimationPose pose = modelPart.getAnimationPose();
 
-        part.xRot = (float) (pose.getRotation().x() * Math.PI / 180.0F);
-        part.yRot = (float) (pose.getRotation().y() * Math.PI / 180.0F);
-        part.zRot = (float) (pose.getRotation().z() * Math.PI / 180.0F);
-        part.x = pose.getPosition().x();
-        part.y = -pose.getPosition().y();
-        part.z = pose.getPosition().z();
+        part.xRot += (float) (pose.getRotation().x() * Math.PI / 180.0F);
+        part.yRot += (float) (pose.getRotation().y() * Math.PI / 180.0F);
+        part.zRot += (float) (pose.getRotation().z() * Math.PI / 180.0F);
+        part.x += pose.getPosition().x();
+        part.y -= pose.getPosition().y();
+        part.z += pose.getPosition().z();
     }
 
     public static Map<String, ModelPart> mapRenderers(Model model) {

@@ -1,11 +1,9 @@
 package gg.moonflower.etched.common.blockentity;
 
-import dev.architectury.injectables.annotations.PlatformOnly;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
-import gg.moonflower.etched.common.network.play.handler.EtchedClientPlayPacketHandlerImpl;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -13,7 +11,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -23,6 +20,7 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +36,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     private int playingIndex;
     private int track;
     private ItemStack playingStack;
+    private boolean loaded;
 
     public AlbumJukeboxBlockEntity(BlockPos pos, BlockState state) {
         super(EtchedBlocks.ALBUM_JUKEBOX_BE.get(), pos, state);
@@ -45,6 +44,13 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         this.playingIndex = -1;
         this.track = 0;
         this.playingStack = ItemStack.EMPTY;
+    }
+
+    public static void tick(Level level, BlockPos pos, BlockState state, AlbumJukeboxBlockEntity entity) {
+        if (!entity.loaded && level != null && level.isClientSide()) {
+            entity.loaded = true;
+            SoundTracker.playAlbum(entity, state, (ClientLevel) level, pos, false);
+        }
     }
 
     private void updateState() {
@@ -78,8 +84,8 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         if (!this.tryLoadLootTable(nbt))
             ContainerHelper.loadAllItems(nbt, this.items);
-        if (this.level != null && this.level.isClientSide())
-            SoundTracker.playAlbum(this, (ClientLevel) this.level, this.getBlockPos(), false);
+        if (this.loaded)
+            SoundTracker.playAlbum(this, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos(), false);
     }
 
     @Override

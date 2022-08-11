@@ -10,12 +10,16 @@
     "client.HumanoidModelMixin",
     "client.ItemStackMixin",
     "client.LevelRendererAccessor",
-    "client.SoundEngineMixin"
+    "client.ParrotMixin",
+    "client.SoundEngineMixin",
+    "client.VillagerMixin",
+    "client.VillagerModelMixin"
   ],
   "mixins": [
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
     "NoteBlockMixin",
+    "ParrotMixin",
     "RecordItemMixin",
     "SoundEventAccessor",
     "StructureTemplatePoolAccessor",

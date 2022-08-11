@@ -10,6 +10,7 @@ import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.GuiAccessor;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
+import gg.moonflower.etched.core.registry.EtchedTags;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -51,6 +53,13 @@ public class SoundTracker {
 
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
     private static final Component RADIO = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".radio");
+
+    private static void setRecordPlayingNearby(Level level, BlockPos pos, boolean playing) {
+        BlockState state = level.getBlockState(pos);
+        if (state.is(EtchedTags.AUDIO_PROVIDER) || state.is(Blocks.JUKEBOX))
+            for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
+                livingEntity.setRecordPlayingNearby(pos, playing);
+    }
 
     /**
      * Retrieves the sound instance for the specified entity id.
@@ -138,9 +147,7 @@ public class SoundTracker {
                 } else {
                     if (level.getBlockState(pos.above()).isAir() && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
                         PlayableRecord.showMessage(title);
-                    if (level.getBlockState(pos).is(Blocks.JUKEBOX))
-                        for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
-                            livingEntity.setRecordPlayingNearby(pos, true);
+                    setRecordPlayingNearby(level, pos, true);
                 }
             }
 
@@ -178,9 +185,7 @@ public class SoundTracker {
             return;
 
         if (track >= tracks.length) {
-            if (level.getBlockState(pos).is(Blocks.JUKEBOX))
-                for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
-                    livingEntity.setRecordPlayingNearby(pos, false);
+            setRecordPlayingNearby(level, pos, false);
             return;
         }
 
@@ -271,13 +276,14 @@ public class SoundTracker {
                 ((StopListeningSound) soundInstance).stopListening();
             soundManager.stop(soundInstance);
             playingRecords.remove(pos);
+            setRecordPlayingNearby(level, pos, false);
         }
 
         if (!state.hasProperty(RadioBlock.POWERED) || state.getValue(RadioBlock.POWERED)) // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
 
         if (TrackData.isValidURL(url))
-            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, state, level, pos))));
+            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level.getBlockState(pos), level, pos)))); // Get the new block state
     }
 
     @Deprecated
@@ -307,6 +313,7 @@ public class SoundTracker {
                 ((StopListeningSound) soundInstance).stopListening();
             soundManager.stop(soundInstance);
             playingRecords.remove(pos);
+            setRecordPlayingNearby(level, pos, false);
         }
 
         if (state.getValue(AlbumJukeboxBlock.POWERED))
@@ -336,10 +343,7 @@ public class SoundTracker {
             return;
 
         playRecord(pos, sound);
-
-        if (disc.getItem() instanceof RecordItem && state.is(Blocks.JUKEBOX))
-            for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D)))
-                livingEntity.setRecordPlayingNearby(pos, true);
+        setRecordPlayingNearby(level, pos, true);
     }
 
     private static class DownloadTextComponent extends BaseComponent {

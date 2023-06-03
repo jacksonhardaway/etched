@@ -2,7 +2,7 @@ package gg.moonflower.etched.common.menu;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.mojang.datafixers.util.Pair;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
@@ -53,7 +53,7 @@ public class EtchingMenu extends AbstractContainerMenu {
     private static final Set<String> VALID_FORMATS;
 
     static {
-        ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
+        ImmutableSortedSet.Builder<String> builder = new ImmutableSortedSet.Builder<>(String.CASE_INSENSITIVE_ORDER);
         builder.add("audio/wav", "audio/x-wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
         VALID_FORMATS = builder.build();
     }
@@ -171,12 +171,13 @@ public class EtchingMenu extends AbstractContainerMenu {
         for (Map.Entry<String, String> entry : map.entrySet())
             httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
 
-        if (httpURLConnection.getResponseCode() != 200) {
+        if (httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
             throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
         }
 
         String contentType = httpURLConnection.getContentType();
-        if (!VALID_FORMATS.contains(contentType))
+        String contentTypeAndDerivatives[] = contentType.split("\\s*;\\s*");
+        if (!VALID_FORMATS.contains(contentTypeAndDerivatives[0]))
             throw new IOException("Unsupported Content-Type: " + contentType);
     }
 

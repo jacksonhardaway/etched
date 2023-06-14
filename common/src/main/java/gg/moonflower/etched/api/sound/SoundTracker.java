@@ -21,10 +21,9 @@ import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.locale.Language;
-import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
@@ -52,7 +51,7 @@ import java.util.function.DoubleSupplier;
 public class SoundTracker {
 
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
-    private static final Component RADIO = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".radio");
+    private static final Component RADIO = Component.translatable("sound_source." + Etched.MOD_ID + ".radio");
 
     private static synchronized void setRecordPlayingNearby(Level level, BlockPos pos, boolean playing) {
         BlockState state = level.getBlockState(pos);
@@ -117,7 +116,7 @@ public class SoundTracker {
 
             @Override
             public void onFail() {
-                PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
+                PlayableRecord.showMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title));
             }
         }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
@@ -157,7 +156,7 @@ public class SoundTracker {
 
             @Override
             public void onFail() {
-                PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
+                PlayableRecord.showMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title));
             }
         }, type);
     }
@@ -352,9 +351,9 @@ public class SoundTracker {
         playAlbum(jukebox, jukebox.getBlockState(), level, pos, force);
     }
 
-    private static class DownloadTextComponent extends BaseComponent {
+    private static class DownloadTextComponent extends Component {
 
-        private String text;
+        private ComponentContents text;
         private FormattedCharSequence visualOrderText;
         private Language decomposedWith;
 
@@ -363,13 +362,13 @@ public class SoundTracker {
         }
 
         @Override
-        public String getContents() {
+        public ComponentContents getContents() {
             return text;
         }
 
         @Override
-        public TextComponent plainCopy() {
-            return new TextComponent(this.text);
+        public MutableComponent plainCopy() {
+            return new Component.literal(this.text);
         }
 
         @Environment(EnvType.CLIENT)
@@ -454,19 +453,19 @@ public class SoundTracker {
             if (this.requesting != null) {
                 this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
             } else if (this.size != 0) {
-                this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), this.title));
+                this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), this.title));
             }
         }
 
         @Override
         public void progressStartLoading() {
             this.requesting = null;
-            this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".loading", this.title));
+            this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".loading", this.title));
         }
 
         @Override
         public void onFail() {
-            Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
+            Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
         }
     }
 }

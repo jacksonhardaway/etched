@@ -17,8 +17,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +31,7 @@ import java.util.Optional;
 public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu> {
 
     private static final ResourceLocation CONTAINER_LOCATION = new ResourceLocation("textures/gui/container/dispenser.png");
-    private static final Component NOW_PLAYING = new TranslatableComponent("screen." + Etched.MOD_ID + ".album_jukebox.now_playing").withStyle(ChatFormatting.YELLOW);
+    private static final Component NOW_PLAYING = Component.translatable("screen." + Etched.MOD_ID + ".album_jukebox.now_playing").withStyle(ChatFormatting.YELLOW);
 
     private int playingIndex;
     private int playingTrack;
@@ -71,8 +69,8 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
         super.init();
 
         int buttonPadding = 6;
-        Component last = new TextComponent("Last");
-        Component next = new TextComponent("Next");
+        Component last = Component.literal("Last");
+        Component next = Component.literal("Next");
         Font font = Minecraft.getInstance().font;
         this.addRenderableWidget(new Button(this.leftPos + 7 + (54 - font.width(last)) / 2 - buttonPadding, this.topPos + 33, font.width(last) + 2 * buttonPadding, 20, last, b -> this.update(false)));
         this.addRenderableWidget(new Button(this.leftPos + 115 + (54 - font.width(last)) / 2 - buttonPadding, this.topPos + 33, font.width(next) + 2 * buttonPadding, 20, next, b -> this.update(true)));

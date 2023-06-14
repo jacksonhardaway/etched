@@ -20,8 +20,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
@@ -41,10 +39,10 @@ import java.util.Objects;
 public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implements ContainerListener {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/container/etching_table.png");
-    private static final Component INVALID_URL = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.invalid_url");
-    private static final Component CANNOT_CREATE = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create");
-    private static final Component CANNOT_CREATE_MISSING_DISC = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create.missing_disc").withStyle(ChatFormatting.GRAY);
-    private static final Component CANNOT_CREATE_MISSING_LABEL = new TranslatableComponent("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create.missing_label").withStyle(ChatFormatting.GRAY);
+    private static final Component INVALID_URL = Component.translatable("screen." + Etched.MOD_ID + ".etching_table.error.invalid_url");
+    private static final Component CANNOT_CREATE = Component.translatable("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create");
+    private static final Component CANNOT_CREATE_MISSING_DISC = Component.translatable("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create.missing_disc").withStyle(ChatFormatting.GRAY);
+    private static final Component CANNOT_CREATE_MISSING_LABEL = Component.translatable("screen." + Etched.MOD_ID + ".etching_table.error.cannot_create.missing_label").withStyle(ChatFormatting.GRAY);
 
     private ItemStack discStack;
     private ItemStack labelStack;
@@ -69,7 +67,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
     protected void init() {
         super.init();
         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        this.url = new EditBox(this.font, this.leftPos + 11, this.topPos + 25, 154, 16,this.url, new TranslatableComponent("container."+Etched.MOD_ID+".etching_table.url"));
+        this.url = new EditBox(this.font, this.leftPos + 11, this.topPos + 25, 154, 16,this.url, Component.translatable("container."+Etched.MOD_ID+".etching_table.url"));
         this.url.setTextColor(-1);
         this.url.setTextColorUneditable(-1);
         this.url.setBordered(false);
@@ -150,7 +148,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         } else if ((!this.url.getValue().isEmpty() && !TrackData.isValidURL(this.url.getValue())) || !this.invalidReason.isEmpty()) {
             reasonLines.add(INVALID_URL.getVisualOrderText());
             if (!this.invalidReason.isEmpty())
-                reasonLines.addAll(this.font.split(new TextComponent(this.invalidReason).withStyle(ChatFormatting.GRAY), 200));
+                reasonLines.addAll(this.font.split(Component.literal(this.invalidReason).withStyle(ChatFormatting.GRAY), 200));
         }
 
         if (mouseX >= this.leftPos + 83 && mouseX < this.leftPos + 110 && mouseY >= this.topPos + 44 && mouseY < this.topPos + 61) {

@@ -65,7 +65,7 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
         ctx.enqueueWork(() -> {
             MinecartJukebox entity = new MinecartJukebox(level, pkt.getX(), pkt.getY(), pkt.getZ());
             int i = pkt.getId();
-            entity.setPacketCoordinates(pkt.getX(), pkt.getY(), pkt.getZ());
+            entity.syncPacketPositionCodec(pkt.getX(), pkt.getY(), pkt.getZ());
             entity.moveTo(pkt.getX(), pkt.getY(), pkt.getZ());
             entity.setXRot((float) (pkt.getxRot() * 360) / 256.0F);
             entity.setYRot((float) (pkt.getyRot() * 360) / 256.0F);

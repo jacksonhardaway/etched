@@ -1,6 +1,7 @@
 package gg.moonflower.etched.client.sound;
 
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -13,7 +14,7 @@ public class EntityRecordSoundInstance extends AbstractTickableSoundInstance {
     private final Entity entity;
 
     public EntityRecordSoundInstance(SoundEvent soundEvent, Entity entity) {
-        super(soundEvent, SoundSource.RECORDS);
+        super(soundEvent, SoundSource.RECORDS, SoundInstance.createUnseededRandom());
         this.volume = 4.0F;
         this.entity = entity;
     }

@@ -12,8 +12,6 @@ import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import org.apache.logging.log4j.LogManager;
@@ -33,7 +31,7 @@ import java.util.*;
 public class SoundCloudSource implements SoundDownloadSource {
 
     static final Logger LOGGER = LogManager.getLogger();
-    private static final Component BRAND = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500)));
+    private static final Component BRAND = Component.translatable("sound_source." + Etched.MOD_ID + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500)));
 
     private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
@@ -45,7 +43,7 @@ public class SoundCloudSource implements SoundDownloadSource {
     private InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
         HttpURLConnection httpURLConnection;
         if (progressListener != null)
-            progressListener.progressStartRequest(new TranslatableComponent("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
+            progressListener.progressStartRequest(Component.translatable("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
 
         try {
             URL uRL = requiresId ? appendUri(url, "client_id=" + SoundCloudIdTracker.fetch(proxy)) : new URL(url);
@@ -134,7 +132,7 @@ public class SoundCloudSource implements SoundDownloadSource {
             if ("playlist".equals(kind)) {
                 JsonArray tracksJson = GsonHelper.getAsJsonArray(json, "tracks");
                 List<TrackData> tracks = new ArrayList<>();
-                tracks.add(new TrackData(url, artist, new TextComponent(title)));
+                tracks.add(new TrackData(url, artist, Component.literal(title)));
 
                 for (int i = 0; i < tracksJson.size(); i++) {
                     try {
@@ -145,7 +143,7 @@ public class SoundCloudSource implements SoundDownloadSource {
                         String trackUrl = GsonHelper.getAsString(trackJson, "permalink_url");
                         String trackArtist = GsonHelper.getAsString(trackUser, "username");
                         String trackTitle = GsonHelper.getAsString(trackJson, "title");
-                        tracks.add(new TrackData(trackUrl, trackArtist, new TextComponent(trackTitle)));
+                        tracks.add(new TrackData(trackUrl, trackArtist, Component.literal(trackTitle)));
                     } catch (JsonParseException e) {
                         LOGGER.error("Failed to parse track: " + url + "[" + i + "]", e);
                     }
@@ -154,7 +152,7 @@ public class SoundCloudSource implements SoundDownloadSource {
                 return tracks.toArray(new TrackData[0]);
             }
 
-            return new TrackData[]{new TrackData(url, artist, new TextComponent(title))};
+            return new TrackData[]{new TrackData(url, artist, Component.literal(title))};
         });
     }
 

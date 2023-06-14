@@ -7,8 +7,6 @@ import gg.moonflower.etched.core.Etched;
 import gg.moonflower.pollen.api.util.NbtConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -23,17 +21,17 @@ import java.util.regex.Pattern;
  */
 public class TrackData {
 
-    public static final TrackData EMPTY = new TrackData(null, "Unknown", new TextComponent("Custom Music"));
+    public static final TrackData EMPTY = new TrackData(null, "Unknown", Component.literal("Custom Music"));
     public static final Codec<TrackData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("Url").forGetter(TrackData::getUrl),
             Codec.STRING.optionalFieldOf("Author", EMPTY.getArtist()).forGetter(TrackData::getArtist),
             Codec.STRING.optionalFieldOf("Title", Component.Serializer.toJson(EMPTY.getTitle())).<Component>xmap(json -> {
                 if (!json.startsWith("{"))
-                    return new TextComponent(json);
+                    return Component.literal(json);
                 try {
                     return Component.Serializer.fromJson(json);
                 } catch (JsonParseException e) {
-                    return new TextComponent(json);
+                    return Component.literal(json);
                 }
             }, Component.Serializer::toJson).forGetter(TrackData::getTitle)
     ).apply(instance, TrackData::new));
@@ -131,7 +129,7 @@ public class TrackData {
     }
 
     public TrackData withTitle(String title) {
-        return new TrackData(this.url, this.artist, new TextComponent(title));
+        return new TrackData(this.url, this.artist, Component.literal(title));
     }
 
     public TrackData withTitle(Component title) {
@@ -142,6 +140,6 @@ public class TrackData {
      * @return The name to show as the record title
      */
     public Component getDisplayName() {
-        return new TranslatableComponent("sound_source." + Etched.MOD_ID + ".info", this.artist, this.title);
+        return Component.translatable("sound_source." + Etched.MOD_ID + ".info", this.artist, this.title);
     }
 }

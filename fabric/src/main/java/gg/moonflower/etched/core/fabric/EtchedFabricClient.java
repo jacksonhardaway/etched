@@ -15,13 +15,15 @@ public class EtchedFabricClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientPickBlockGatherCallback.EVENT.register((player, result) -> {
+        // @todo: Make sure the new method AbstractMinecart#getDropItem() is used instead of this
+
+        /*ClientPickBlockGatherCallback.EVENT.register((player, result) -> {
             if (result.getType() == HitResult.Type.ENTITY && player.getAbilities().instabuild) {
                 Entity entity = ((EntityHitResult) result).getEntity();
                 if (entity instanceof MinecartJukebox)
                     return ((MinecartJukebox) entity).getCartItem();
             }
             return ItemStack.EMPTY;
-        });
+        });*/
     }
 }

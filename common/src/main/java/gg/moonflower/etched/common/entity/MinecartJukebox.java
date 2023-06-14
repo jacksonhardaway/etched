@@ -27,6 +27,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -166,8 +167,9 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
         return EtchedMessages.PLAY.toVanillaPacket(new ClientboundAddMinecartJukeboxPacket(this), PollinatedPacketDirection.PLAY_CLIENTBOUND);
     }
 
-    public ItemStack getCartItem() {
-        return new ItemStack(EtchedItems.JUKEBOX_MINECART.get());
+    @Override
+    protected Item getDropItem() {
+        return EtchedItems.JUKEBOX_MINECART.get();
     }
 
     @Override

@@ -4,7 +4,6 @@ import gg.moonflower.etched.common.item.BoomboxItem;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;

@@ -12,8 +12,6 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
@@ -33,12 +31,12 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
 
     @Unique
     private final Supplier<TrackData[]> track = Suppliers.memoize(() -> {
-        Component desc = new TranslatableComponent(this.getDescriptionId() + ".desc");
+        Component desc = Component.translatable(this.getDescriptionId() + ".desc");
 
         String[] parts = desc.getString().split("-", 2);
         if (parts.length < 2)
             return new TrackData[]{new TrackData(((SoundEventAccessor) RecordItemHook.getSound((RecordItem) (Object) this)).getLocation().toString(), "Minecraft", desc)};
-        return new TrackData[]{new TrackData(((SoundEventAccessor) RecordItemHook.getSound((RecordItem) (Object) this)).getLocation().toString(), parts[0].trim(), new TextComponent(parts[1].trim()).withStyle(desc.getStyle()))};
+        return new TrackData[]{new TrackData(((SoundEventAccessor) RecordItemHook.getSound((RecordItem) (Object) this)).getLocation().toString(), parts[0].trim(), Component.literal(parts[1].trim()).withStyle(desc.getStyle()))};
     });
 
     private RecordItemMixin(Properties properties) {

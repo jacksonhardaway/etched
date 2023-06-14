@@ -36,6 +36,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -77,15 +78,13 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
     }
 
     private static void renderModelLists(BakedModel model, int combinedLight, int combinedOverlay, PoseStack matrixStack, VertexConsumer buffer) {
-        Random random = new Random();
+        RandomSource randomSource = RandomSource.create(42L);
 
         for (Direction direction : Direction.values()) {
-            random.setSeed(42L);
-            renderQuadList(matrixStack, buffer, model.getQuads(null, direction, random), combinedLight, combinedOverlay);
+            renderQuadList(matrixStack, buffer, model.getQuads(null, direction, randomSource), combinedLight, combinedOverlay);
         }
 
-        random.setSeed(42L);
-        renderQuadList(matrixStack, buffer, model.getQuads(null, null, random), combinedLight, combinedOverlay);
+        renderQuadList(matrixStack, buffer, model.getQuads(null, null, randomSource), combinedLight, combinedOverlay);
     }
 
     private static void renderQuadList(PoseStack matrixStack, VertexConsumer buffer, List<BakedQuad> quads, int combinedLight, int combinedOverlay) {

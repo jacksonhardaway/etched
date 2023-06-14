@@ -1,6 +1,5 @@
 package gg.moonflower.etched.common.block;
 
-import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.blockentity.RadioBlockEntity;
 import gg.moonflower.etched.common.menu.RadioMenu;
 import gg.moonflower.etched.common.network.EtchedMessages;
@@ -13,9 +12,9 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -50,7 +49,7 @@ public class RadioBlock extends BaseEntityBlock {
     private static final VoxelShape X_SHAPE = Block.box(5.0D, 0.0D, 2.0D, 11.0D, 8.0D, 14.0D);
     private static final VoxelShape Z_SHAPE = Block.box(2.0D, 0.0D, 5.0D, 14.0D, 8.0D, 11.0D);
     private static final VoxelShape ROTATED_SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
-    private static final Component CONTAINER_TITLE = new TranslatableComponent("container." + Etched.MOD_ID + ".radio");
+    private static final Component CONTAINER_TITLE = Component.translatable("container." + Etched.MOD_ID + ".radio");
 
     public RadioBlock(Properties properties) {
         super(properties);
@@ -169,7 +168,7 @@ public class RadioBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void animateTick(BlockState state, Level level, BlockPos pos, Random random) {
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource randomSource) {
         if (!Etched.CLIENT_CONFIG.showNotes.get() || !level.getBlockState(pos.above()).isAir())
             return;
 
@@ -184,7 +183,7 @@ public class RadioBlock extends BaseEntityBlock {
         Minecraft minecraft = Minecraft.getInstance();
         Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingRecords();
         if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos)))
-            level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 0.7D, pos.getZ() + 0.5D, random.nextInt(25) / 24D, 0, 0);
+            level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 0.7D, pos.getZ() + 0.5D, randomSource.nextInt(25) / 24D, 0, 0);
     }
 
     @Override

@@ -11,8 +11,6 @@ import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import org.apache.commons.io.IOUtils;
@@ -33,14 +31,14 @@ import java.util.regex.Pattern;
 public class BandcampSource implements SoundDownloadSource {
 
     private static final Pattern DATA_PATTERN = Pattern.compile("data-tralbum=\"([^\"]+)\"");
-    private static final Component BRAND = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".bandcamp").withStyle(style -> style.withColor(TextColor.fromRgb(0x477987)));
+    private static final Component BRAND = Component.translatable("sound_source." + Etched.MOD_ID + ".bandcamp").withStyle(style -> style.withColor(TextColor.fromRgb(0x477987)));
 
     private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
     private InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
         HttpURLConnection httpURLConnection;
         if (progressListener != null)
-            progressListener.progressStartRequest(new TranslatableComponent("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
+            progressListener.progressStartRequest(Component.translatable("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
 
         try {
             URL uRL = new URL(url);
@@ -118,18 +116,18 @@ public class BandcampSource implements SoundDownloadSource {
             if ("album".equals(type)) {
                 JsonArray trackInfoJson = GsonHelper.getAsJsonArray(json, "trackinfo");
                 List<TrackData> tracks = new ArrayList<>(trackInfoJson.size());
-                tracks.add(new TrackData(url, artist, new TextComponent(title)));
+                tracks.add(new TrackData(url, artist, Component.literal(title)));
                 for (int i = 0; i < trackInfoJson.size(); i++) {
                     JsonObject trackJson = GsonHelper.convertToJsonObject(trackInfoJson.get(i), "trackinfo[" + i + "]");
                     String trackUrl = url.substring(0, urlEnd + 4) + GsonHelper.getAsString(trackJson, "title_link");
                     String trackArtist = trackJson.has("artist") && !trackJson.get("artist").isJsonNull() ? StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(trackJson, "artist", artist)) : artist;
                     String trackTitle = StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(trackJson, "title"));
 
-                    tracks.add(new TrackData(trackUrl, trackArtist, new TextComponent(trackTitle)));
+                    tracks.add(new TrackData(trackUrl, trackArtist, Component.literal(trackTitle)));
                 }
                 return tracks.toArray(new TrackData[0]);
             }
-            return new TrackData[]{new TrackData(url, artist, new TextComponent(title))};
+            return new TrackData[]{new TrackData(url, artist, Component.literal(title))};
         });
     }
 

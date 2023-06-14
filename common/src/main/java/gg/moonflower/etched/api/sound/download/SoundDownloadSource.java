@@ -6,7 +6,6 @@ import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +25,7 @@ import java.util.Optional;
  */
 public interface SoundDownloadSource {
 
-    Component RESOLVING_TRACKS = new TranslatableComponent("record." + Etched.MOD_ID + ".resolvingTracks");
+    Component RESOLVING_TRACKS = Component.translatable("record." + Etched.MOD_ID + ".resolvingTracks");
 
     /**
      * @return The vanilla Minecraft download headers

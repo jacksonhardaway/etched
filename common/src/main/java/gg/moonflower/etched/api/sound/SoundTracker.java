@@ -20,12 +20,8 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentContents;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -37,6 +33,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -351,48 +348,6 @@ public class SoundTracker {
         playAlbum(jukebox, jukebox.getBlockState(), level, pos, force);
     }
 
-    private static class DownloadTextComponent extends Component {
-
-        private ComponentContents text;
-        private FormattedCharSequence visualOrderText;
-        private Language decomposedWith;
-
-        public DownloadTextComponent() {
-            this.text = "";
-        }
-
-        @Override
-        public ComponentContents getContents() {
-            return text;
-        }
-
-        @Override
-        public MutableComponent plainCopy() {
-            return new Component.literal(this.text);
-        }
-
-        @Environment(EnvType.CLIENT)
-        public FormattedCharSequence getVisualOrderText() {
-            Language language = Language.getInstance();
-            if (this.decomposedWith != language) {
-                this.visualOrderText = language.getVisualOrder(this);
-                this.decomposedWith = language;
-            }
-
-            return this.visualOrderText;
-        }
-
-        @Override
-        public String toString() {
-            return "TextComponent{text='" + this.text + '\'' + ", siblings=" + this.siblings + ", style=" + this.getStyle() + '}';
-        }
-
-        public void setText(String text) {
-            this.text = text;
-            this.decomposedWith = null;
-        }
-    }
-
     private static abstract class MusicDownloadListener implements DownloadProgressListener {
 
         private final Component title;
@@ -402,7 +357,7 @@ public class SoundTracker {
         private final BlockPos.MutableBlockPos pos;
         private float size;
         private Component requesting;
-        private DownloadTextComponent component;
+        private Component component;
 
         protected MusicDownloadListener(Component title, DoubleSupplier x, DoubleSupplier y, DoubleSupplier z) {
             this.title = title;
@@ -421,11 +376,10 @@ public class SoundTracker {
                 return;
 
             if (this.component == null) {
-                this.component = new DownloadTextComponent();
+                this.component = text.copy();
                 Minecraft.getInstance().gui.setOverlayMessage(this.component, true);
                 ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(Short.MAX_VALUE);
             }
-            this.component.setText(text.getString());
         }
 
         protected void clearComponent() {

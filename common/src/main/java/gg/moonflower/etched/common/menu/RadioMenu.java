@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Consumer;
 
@@ -13,7 +14,6 @@ import java.util.function.Consumer;
  * @author Ocelot
  */
 public class RadioMenu extends AbstractContainerMenu {
-
     private final ContainerLevelAccess access;
     // Workaround for thread concurrency issues
     private final Consumer<String> urlConsumer;
@@ -27,6 +27,12 @@ public class RadioMenu extends AbstractContainerMenu {
         super(EtchedMenus.RADIO_MENU.get(), id);
         this.access = access;
         this.urlConsumer = containerLevelAccess;
+    }
+
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int sourceSlotIndex) {
+        return ItemStack.EMPTY;
     }
 
     @Override

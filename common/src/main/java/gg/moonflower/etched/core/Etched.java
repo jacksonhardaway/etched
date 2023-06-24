@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -28,6 +29,9 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jackson
@@ -104,7 +108,7 @@ public class Etched {
         ClientLoading.load(); // stops server from crashing due to client loading
         ModelRegistry.registerFactory((resourceManager, out) -> {
             String folder = "models/item/" + AlbumCoverItemRenderer.FOLDER_NAME + "/";
-            for (ResourceLocation animationLocation : resourceManager.listResources(folder, name -> name.endsWith(".json")))
+            for (ResourceLocation animationLocation : resourceManager.listResources(folder, name -> name.toString().endsWith(".json")).keySet())
                 out.accept(new ModelResourceLocation(new ResourceLocation(animationLocation.getNamespace(), animationLocation.getPath().substring(12, animationLocation.getPath().length() - 5)), "inventory"));
         });
 

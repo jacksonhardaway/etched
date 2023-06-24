@@ -95,25 +95,29 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
     }
 
     private static NativeImage getCoverOverlay(ResourceManager resourceManager) {
-        try (Resource resource = resourceManager.getResource(AlbumCoverItemRenderer.ALBUM_COVER_OVERLAY)) {
-            return NativeImage.read(resource.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
+        Optional<Resource> resource = resourceManager.getResource(AlbumCoverItemRenderer.ALBUM_COVER_OVERLAY);
 
-            NativeImage nativeImage = new NativeImage(16, 16, false);
-            for (int k = 0; k < 16; ++k) {
-                for (int l = 0; l < 16; ++l) {
-                    if (k < 8 ^ l < 8) {
-                        nativeImage.setPixelRGBA(l, k, -524040);
-                    } else {
-                        nativeImage.setPixelRGBA(l, k, -16777216);
-                    }
+        if (resource.isPresent()) {
+            try {
+                return NativeImage.read(resource.get().open());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        NativeImage nativeImage = new NativeImage(16, 16, false);
+        for (int k = 0; k < 16; ++k) {
+            for (int l = 0; l < 16; ++l) {
+                if (k < 8 ^ l < 8) {
+                    nativeImage.setPixelRGBA(l, k, -524040);
+                } else {
+                    nativeImage.setPixelRGBA(l, k, -16777216);
                 }
             }
-
-            nativeImage.untrack();
-            return nativeImage;
         }
+
+        nativeImage.untrack();
+        return nativeImage;
     }
 
     private void close() {

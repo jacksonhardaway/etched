@@ -13,6 +13,7 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
@@ -63,7 +64,9 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
     @Environment(EnvType.CLIENT)
     public CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
         ResourceLocation key = Registry.ITEM.getKey(this);
-        return resourceManager.hasResource(new ResourceLocation(key.getNamespace(), "models/item/" + AlbumCoverItemRenderer.FOLDER_NAME + "/" + key.getPath() + ".json")) ? CompletableFuture.completedFuture(AlbumCover.of(new ResourceLocation(key.getNamespace(), AlbumCoverItemRenderer.FOLDER_NAME + "/" + key.getPath()))) : CompletableFuture.completedFuture(AlbumCover.EMPTY);
+        Optional<Resource> resource = resourceManager.getResource(new ResourceLocation(key.getNamespace(), "models/item/" + AlbumCoverItemRenderer.FOLDER_NAME + "/" + key.getPath() + ".json"));
+
+        return resource.isPresent() ? CompletableFuture.completedFuture(AlbumCover.of(new ResourceLocation(key.getNamespace(), AlbumCoverItemRenderer.FOLDER_NAME + "/" + key.getPath()))) : CompletableFuture.completedFuture(AlbumCover.EMPTY);
     }
 
     @Override

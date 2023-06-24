@@ -9,7 +9,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.data.worldgen.*;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.level.block.Blocks;
@@ -19,6 +21,7 @@ import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class EtchedVillagers {
@@ -26,8 +29,19 @@ public class EtchedVillagers {
     public static final PollinatedRegistry<VillagerProfession> PROFESSIONS = PollinatedRegistry.create(Registry.VILLAGER_PROFESSION, Etched.MOD_ID);
     public static final PollinatedRegistry<PoiType> POI_TYPES = PollinatedRegistry.create(Registry.POINT_OF_INTEREST_TYPE, Etched.MOD_ID);
 
-    public static final Supplier<PoiType> BARD_POI = POI_TYPES.register("bard", () -> PoiType.registerBlockStates(new PoiType("etched:bard", ImmutableSet.<BlockState>builder().addAll(Blocks.NOTE_BLOCK.getStateDefinition().getPossibleStates()).build(), 1, 1)));
-    public static final Supplier<VillagerProfession> BARD = PROFESSIONS.register("bard", () -> new VillagerProfession("etched:bard", BARD_POI.get(), ImmutableSet.of(), ImmutableSet.of(), null));
+    public static final Supplier<PoiType> BARD_POI = POI_TYPES.register("bard", () -> new PoiType(ImmutableSet.copyOf(Blocks.NOTE_BLOCK.getStateDefinition().getPossibleStates()), 1, 1));
+    public static final Supplier<VillagerProfession> BARD = PROFESSIONS.register("bard", () -> new VillagerProfession("etched:bard", () -> {
+        ResourceKey<PoiType> key = Objects.requireNonNull(BARD_POI.getKey());
+
+        return new VillagerProfession(
+            "bard",
+            holder -> holder.is(key),
+            holder -> holder.is(key),
+            ImmutableSet.of(),
+            ImmutableSet.of(),
+            null
+        );
+    }));
 
     public static void registerVillages() {
         PlainVillagePools.bootstrap();

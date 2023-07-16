@@ -2,7 +2,7 @@ package gg.moonflower.etched.common.menu;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
@@ -34,26 +34,29 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
- * @author Jackson
+ * @author Ocelot, Jackson
  */
 public class EtchingMenu extends AbstractContainerMenu {
 
     public static final ResourceLocation EMPTY_SLOT_MUSIC_DISC = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_disc");
     public static final ResourceLocation EMPTY_SLOT_MUSIC_LABEL = new ResourceLocation(Etched.MOD_ID, "item/empty_etching_table_slot_music_label");
+    private static final Pattern CONTENT_TYPE_PATTERN = Pattern.compile("\\s*;\\s*");
     private static final Cache<String, CompletableFuture<TrackData[]>> DATA_CACHE = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
     private static final boolean IGNORE_CACHE = false;
     private static final Set<String> VALID_FORMATS;
 
     static {
-        ImmutableSortedSet.Builder<String> builder = new ImmutableSortedSet.Builder<>(String.CASE_INSENSITIVE_ORDER);
+        ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
         builder.add("audio/wav", "audio/x-wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
         VALID_FORMATS = builder.build();
     }
@@ -176,8 +179,7 @@ public class EtchingMenu extends AbstractContainerMenu {
         }
 
         String contentType = httpURLConnection.getContentType();
-        String contentTypeAndDerivatives[] = contentType.split("\\s*;\\s*");
-        if (!VALID_FORMATS.contains(contentTypeAndDerivatives[0]))
+        if (!VALID_FORMATS.contains(CONTENT_TYPE_PATTERN.split(contentType.toLowerCase(Locale.ROOT))[0]))
             throw new IOException("Unsupported Content-Type: " + contentType);
     }
 
@@ -289,7 +291,7 @@ public class EtchingMenu extends AbstractContainerMenu {
                         data[0] = data[0].withTitle(MusicLabelItem.getTitle(labelStack)).withArtist(MusicLabelItem.getAuthor(labelStack));
                     if (SoundSourceManager.isValidUrl(this.url)) {
                         try {
-                            if(IGNORE_CACHE)
+                            if (IGNORE_CACHE)
                                 DATA_CACHE.invalidateAll();
                             data = DATA_CACHE.get(this.url, () -> SoundSourceManager.resolveTracks(this.url, null, Proxy.NO_PROXY)).join();
                         } catch (Exception e) {

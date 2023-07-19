@@ -2,18 +2,14 @@ package gg.moonflower.etched.common.entity;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.sound.SoundTracker;
-import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.common.network.play.ClientboundAddMinecartJukeboxPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedEntities;
 import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.pollen.api.network.packet.PollinatedPacketDirection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -27,7 +23,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -128,7 +126,6 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
     public void destroy(DamageSource damageSource) {
         super.destroy(damageSource);
         if (this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-            this.spawnAtLocation(Blocks.JUKEBOX);
             Containers.dropItemStack(this.level, this.getX(), this.getY(), this.getZ(), this.record);
         }
     }
@@ -162,19 +159,14 @@ public class MinecartJukebox extends AbstractMinecart implements WorldlyContaine
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
-        return EtchedMessages.PLAY.toVanillaPacket(new ClientboundAddMinecartJukeboxPacket(this), PollinatedPacketDirection.PLAY_CLIENTBOUND);
-    }
-
-    public ItemStack getCartItem() {
-        return new ItemStack(EtchedItems.JUKEBOX_MINECART.get());
+    public Item getDropItem() {
+        return EtchedItems.JUKEBOX_MINECART.get();
     }
 
     @Override
     public Type getMinecartType() {
         return Type.SPAWNER;
     }
-
 
     @Override
     public int[] getSlotsForFace(Direction side) {

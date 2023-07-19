@@ -1,6 +1,7 @@
 package gg.moonflower.etched.core.mixin;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,7 +13,7 @@ import java.util.List;
 public interface StructureTemplatePoolAccessor {
 
     @Accessor
-    List<StructurePoolElement> getTemplates();
+    ObjectArrayList<StructurePoolElement> getTemplates();
 
     @Accessor
     List<Pair<StructurePoolElement, Integer>> getRawTemplates();

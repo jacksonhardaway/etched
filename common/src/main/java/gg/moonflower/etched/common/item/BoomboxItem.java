@@ -5,21 +5,15 @@ import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.menu.BoomboxMenu;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.pollen.api.event.events.lifecycle.TickEvents;
-import gg.moonflower.pollen.api.util.NbtConstants;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.KeybindComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SlotAccess;
@@ -43,42 +37,34 @@ import java.util.Optional;
 public class BoomboxItem extends Item implements ContainerItem {
 
     private static final Map<Integer, ItemStack> PLAYING_RECORDS = new Int2ObjectArrayMap<>();
-    private static final Component PAUSE = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.pause", new KeybindComponent("key.sneak"), new KeybindComponent("key.use")).withStyle(ChatFormatting.GRAY);
-    private static final Component RECORDS = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.records");
-    public static final Component PAUSED = new TranslatableComponent("item." + Etched.MOD_ID + ".boombox.paused").withStyle(ChatFormatting.YELLOW);
+    private static final Component PAUSE = Component.translatable("item." + Etched.MOD_ID + ".boombox.pause", Component.keybind("key.sneak"), Component.keybind("key.use")).withStyle(ChatFormatting.GRAY);
+    private static final Component RECORDS = Component.translatable("item." + Etched.MOD_ID + ".boombox.records");
+    public static final Component PAUSED = Component.translatable("item." + Etched.MOD_ID + ".boombox.paused").withStyle(ChatFormatting.YELLOW);
 
     public BoomboxItem(Properties properties) {
         super(properties);
     }
 
-    static {
-        TickEvents.LIVING_PRE.register(entity -> {
-            if (!entity.level.isClientSide())
-                return true;
+    public static void onLivingEntityUpdate(LivingEntity entity) {
+        ItemStack newPlayingRecord = ItemStack.EMPTY;
+        ItemStack mainStack = entity.getMainHandItem();
+        ItemStack offStack = entity.getOffhandItem();
+        if (mainStack.getItem() instanceof BoomboxItem && hasRecord(mainStack) && !isPaused(mainStack)) {
+            newPlayingRecord = getRecord(mainStack);
+        } else if (offStack.getItem() instanceof BoomboxItem && hasRecord(offStack) && !isPaused(offStack)) {
+            newPlayingRecord = getRecord(offStack);
+        }
 
-            ItemStack newPlayingRecord = ItemStack.EMPTY;
-            {
-                ItemStack mainStack = entity.getMainHandItem();
-                ItemStack offStack = entity.getOffhandItem();
-                if (mainStack.getItem() instanceof BoomboxItem && hasRecord(mainStack) && !isPaused(mainStack)) {
-                    newPlayingRecord = getRecord(mainStack);
-                } else if (offStack.getItem() instanceof BoomboxItem && hasRecord(offStack) && !isPaused(offStack)) {
-                    newPlayingRecord = getRecord(offStack);
+        if (entity instanceof Player && newPlayingRecord.isEmpty() && Minecraft.getInstance().cameraEntity == entity) {
+            Inventory inventory = ((Player) entity).getInventory();
+            for (ItemStack stack : inventory.items) {
+                if (stack.getItem() instanceof BoomboxItem && hasRecord(stack) && !isPaused(stack)) {
+                    newPlayingRecord = getRecord(stack);
                 }
             }
+        }
 
-            if (entity instanceof Player && newPlayingRecord.isEmpty() && Minecraft.getInstance().cameraEntity == entity) {
-                Inventory inventory = ((Player) entity).getInventory();
-                for (ItemStack stack : inventory.items) {
-                    if (stack.getItem() instanceof BoomboxItem && hasRecord(stack) && !isPaused(stack)) {
-                        newPlayingRecord = getRecord(stack);
-                    }
-                }
-            }
-
-            updatePlaying(entity, newPlayingRecord);
-            return true;
-        });
+        updatePlaying(entity, newPlayingRecord);
     }
 
     private static void updatePlaying(Entity entity, ItemStack record) {
@@ -165,7 +151,7 @@ public class BoomboxItem extends Item implements ContainerItem {
             record.getItem().appendHoverText(record, level, records, isAdvanced);
 
             if (!records.isEmpty()) {
-                tooltipComponents.add(TextComponent.EMPTY);
+                tooltipComponents.add(Component.empty());
                 tooltipComponents.add(RECORDS);
                 tooltipComponents.addAll(records);
             }
@@ -214,14 +200,14 @@ public class BoomboxItem extends Item implements ContainerItem {
         if (!(stack.getItem() instanceof BoomboxItem))
             return false;
         CompoundTag compoundTag = stack.getTag();
-        return compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND);
+        return compoundTag != null && compoundTag.contains("Record", Tag.TAG_COMPOUND);
     }
 
     public static ItemStack getRecord(ItemStack stack) {
         if (!(stack.getItem() instanceof BoomboxItem))
             return ItemStack.EMPTY;
         CompoundTag compoundTag = stack.getTag();
-        return compoundTag != null && compoundTag.contains("Record", NbtConstants.COMPOUND) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
+        return compoundTag != null && compoundTag.contains("Record", Tag.TAG_COMPOUND) ? ItemStack.of(compoundTag.getCompound("Record")) : ItemStack.EMPTY;
     }
 
     public static void setRecord(ItemStack stack, ItemStack record) {

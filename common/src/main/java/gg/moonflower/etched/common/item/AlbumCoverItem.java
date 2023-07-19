@@ -6,17 +6,15 @@ import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.common.menu.AlbumCoverMenu;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.pollen.api.util.NbtConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -134,10 +132,10 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
 
     private static Optional<ItemStack> removeOne(ItemStack albumCover) {
         CompoundTag tag = albumCover.getOrCreateTag();
-        if (!tag.contains("Records", NbtConstants.LIST))
+        if (!tag.contains("Records", Tag.TAG_LIST))
             return Optional.empty();
 
-        ListTag recordsNbt = tag.getList("Records", NbtConstants.COMPOUND);
+        ListTag recordsNbt = tag.getList("Records", Tag.TAG_COMPOUND);
         if (recordsNbt.isEmpty())
             return Optional.empty();
 
@@ -154,7 +152,7 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
             return false;
 
         if (player instanceof ServerPlayer) {
-            ListTag listTag = tag.getList("Records", NbtConstants.COMPOUND);
+            ListTag listTag = tag.getList("Records", Tag.TAG_COMPOUND);
 
             for (int i = 0; i < listTag.size(); i++)
                 player.getInventory().placeItemBackInInventory(ItemStack.of(listTag.getCompound(i)));
@@ -172,7 +170,7 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
         if (!tag.contains("Records"))
             tag.put("Records", new ListTag());
 
-        ListTag recordsNbt = tag.getList("Records", NbtConstants.COMPOUND);
+        ListTag recordsNbt = tag.getList("Records", Tag.TAG_COMPOUND);
 
         ItemStack singleRecord = record.split(1);
         CompoundTag recordTag = new CompoundTag();
@@ -186,7 +184,7 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
     private static boolean canAdd(ItemStack albumCover, ItemStack record) {
         if (!albumCover.is(EtchedItems.ALBUM_COVER.get()) || !AlbumCoverMenu.isValid(record))
             return false;
-        return albumCover.getTag() == null || !albumCover.getTag().contains("Records", NbtConstants.LIST) || albumCover.getTag().getList("Records", NbtConstants.COMPOUND).size() < MAX_RECORDS;
+        return albumCover.getTag() == null || !albumCover.getTag().contains("Records", Tag.TAG_LIST) || albumCover.getTag().getList("Records", Tag.TAG_COMPOUND).size() < MAX_RECORDS;
     }
 
     @Override
@@ -210,7 +208,7 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
             return Optional.empty();
 
         CompoundTag nbt = stack.getTag();
-        if (nbt == null || !nbt.contains("CoverRecord", NbtConstants.COMPOUND))
+        if (nbt == null || !nbt.contains("CoverRecord", Tag.TAG_COMPOUND))
             return Optional.empty();
 
         ItemStack cover = ItemStack.of(nbt.getCompound("CoverRecord"));
@@ -222,10 +220,10 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
             return Collections.emptyList();
 
         CompoundTag nbt = stack.getTag();
-        if (nbt == null || !nbt.contains("Records", NbtConstants.LIST))
+        if (nbt == null || !nbt.contains("Records", Tag.TAG_LIST))
             return Collections.emptyList();
 
-        ListTag recordsNbt = nbt.getList("Records", NbtConstants.COMPOUND);
+        ListTag recordsNbt = nbt.getList("Records", Tag.TAG_COMPOUND);
         if (recordsNbt.isEmpty())
             return Collections.emptyList();
 

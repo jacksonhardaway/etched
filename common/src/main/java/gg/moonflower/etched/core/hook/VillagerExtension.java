@@ -1,4 +1,4 @@
-package gg.moonflower.etched.core.hook.extension;
+package gg.moonflower.etched.core.hook;
 
 public interface VillagerExtension {
 

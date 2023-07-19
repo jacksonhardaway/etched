@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Consumer;
 
@@ -27,6 +28,11 @@ public class RadioMenu extends AbstractContainerMenu {
         super(EtchedMenus.RADIO_MENU.get(), id);
         this.access = access;
         this.urlConsumer = containerLevelAccess;
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int i) {
+        return ItemStack.EMPTY;
     }
 
     @Override

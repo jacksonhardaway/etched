@@ -3,11 +3,11 @@ package gg.moonflower.etched.client.sound;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.architectury.event.events.client.ClientTickEvent;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.core.Etched;
-import gg.moonflower.pollen.api.event.events.lifecycle.TickEvents;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -75,12 +75,12 @@ public final class SoundCache {
         if (Files.exists(CACHE_METADATA_LOCATION)) {
             LOGGER.debug("Reading cache metadata from file.");
             try (InputStreamReader reader = new InputStreamReader(new FileInputStream(CACHE_METADATA_LOCATION.toFile()))) {
-                CACHE_METADATA = new JsonParser().parse(reader).getAsJsonObject();
+                CACHE_METADATA = JsonParser.parseReader(reader).getAsJsonObject();
             } catch (Exception e) {
                 LOGGER.error("Failed to load cache metadata", e);
             }
         }
-        TickEvents.CLIENT_POST.register(() -> {
+        ClientTickEvent.CLIENT_POST.register(client -> {
             if (nextWriteTime == Long.MAX_VALUE)
                 return;
 

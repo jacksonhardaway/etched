@@ -3,7 +3,7 @@ package gg.moonflower.etched.common.menu;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.etched.core.registry.EtchedMenus;
-import gg.moonflower.pollen.api.util.QuickMoveHelper;
+import gg.moonflower.pollen.api.container.util.v1.QuickMoveHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;

@@ -7,8 +7,7 @@
   "client": [
     "client.ItemEntityMixin",
     "client.LevelRendererMixin",
-    "client.OptifineLevelRendererMixin",
-    "client.SoundEngineMixin"
+    "client.OptifineLevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

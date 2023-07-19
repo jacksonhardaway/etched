@@ -2,7 +2,7 @@ package gg.moonflower.etched.core.mixin.client;
 
 import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.item.BoomboxItem;
-import gg.moonflower.etched.core.hook.extension.VillagerExtension;
+import gg.moonflower.etched.core.hook.VillagerExtension;
 import gg.moonflower.etched.core.registry.EtchedTags;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -24,10 +24,9 @@ import java.util.List;
 public abstract class VillagerMixin extends AbstractVillager implements VillagerExtension {
 
     @Unique
-    private boolean dancing;
-
+    private boolean etched$dancing;
     @Unique
-    private BlockPos musicPos;
+    private BlockPos etched$musicPos;
 
     public VillagerMixin(EntityType<? extends AbstractVillager> entityType, Level level) {
         super(entityType, level);
@@ -46,13 +45,13 @@ public abstract class VillagerMixin extends AbstractVillager implements Villager
             });
 
             if (!entities.isEmpty()) {
-                this.dancing = true;
-            } else if (this.musicPos == null || !this.musicPos.closerToCenterThan(this.position(), 3.46) || !this.level.getBlockState(this.musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
-                this.dancing = false;
-                this.musicPos = null;
+                this.etched$dancing = true;
+            } else if (this.etched$musicPos == null || !this.etched$musicPos.closerToCenterThan(this.position(), 3.46) || !this.level.getBlockState(this.etched$musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.etched$musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
+                this.etched$dancing = false;
+                this.etched$musicPos = null;
             }
 
-            if (this.dancing) {
+            if (this.etched$dancing) {
                 if (this.ambientSoundTime > -this.getAmbientSoundInterval() + 20) {
                     this.ambientSoundTime = -this.getAmbientSoundInterval();
                     if (this.random.nextBoolean()) {
@@ -70,12 +69,12 @@ public abstract class VillagerMixin extends AbstractVillager implements Villager
 
     @Override
     public void setRecordPlayingNearby(BlockPos pos, boolean isPartying) {
-        this.musicPos = pos;
-        this.dancing = isPartying;
+        this.etched$musicPos = pos;
+        this.etched$dancing = isPartying;
     }
 
     @Override
     public boolean isDancing() {
-        return dancing;
+        return etched$dancing;
     }
 }

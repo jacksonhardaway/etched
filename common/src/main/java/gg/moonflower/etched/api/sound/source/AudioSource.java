@@ -4,9 +4,9 @@ import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.client.sound.SoundCache;
-import gg.moonflower.pollen.api.util.AsyncInputStream;
+import gg.moonflower.etched.core.util.AsyncInputStream;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.HttpUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,7 +41,7 @@ public interface AudioSource {
 
     static AsyncInputStream.InputStreamSupplier downloadTo(Path file, URL url, @Nullable DownloadProgressListener progressListener, AudioFileType type) {
         if (progressListener != null)
-            progressListener.progressStartRequest(new TranslatableComponent("resourcepack.requesting"));
+            progressListener.progressStartRequest(Component.translatable("resourcepack.requesting"));
 
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();

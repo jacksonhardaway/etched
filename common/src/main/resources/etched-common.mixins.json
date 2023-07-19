@@ -5,6 +5,7 @@
   "minVersion": "0.8",
   "client": [
     "client.ChannelMixin",
+    "client.ClientLivingEntityMixin",
     "client.GuiAccessor",
     "client.GuiMixin",
     "client.HumanoidModelMixin",

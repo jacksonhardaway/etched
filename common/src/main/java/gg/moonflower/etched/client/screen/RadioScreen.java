@@ -11,7 +11,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -34,7 +33,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> {
     protected void init() {
         super.init();
         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        this.url = new EditBox(this.font, this.leftPos + 10, this.topPos + 21, 154, 16, this.url, new TranslatableComponent("container." + Etched.MOD_ID + ".radio.url"));
+        this.url = new EditBox(this.font, this.leftPos + 10, this.topPos + 21, 154, 16, this.url, Component.translatable("container." + Etched.MOD_ID + ".radio.url"));
         this.url.setTextColor(-1);
         this.url.setTextColorUneditable(-1);
         this.url.setBordered(false);

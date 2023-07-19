@@ -1,36 +1,36 @@
 modLoader = "javafml"
-loaderVersion = "[40,)"
-issueTrackerURL = "https://github.com/MoonflowerTeam/${repo}/issues"
+loaderVersion = "[${forge_major_version},)"
+issueTrackerURL = "https://github.com/MoonflowerTeam/${archives_base_name}/issues"
 license = "GPLv3"
 
 [[mods]]
-modId = "${id}"
-version = "${version}"
-displayName = "${name}"
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+description = "${mod_description}"
+logoFile = "${mod_id}.logo.png"
 authors = "Moonflower"
-credits = "Jackson, Ocelot, Farcr (Art), AstraZoey (Sound Design)"
-description = "A new form of entertainment."
+credits = "Ocelot, Jackson, Farcr (Art), AstraZoey (Sound Design)"
 displayURL= "https://www.moonflower.gg"
-logoFile = "logo.png"
 
-[modproperties.${id}]
-catalogueImageIcon="icon.png"
+[modproperties.${mod_id}]
+catalogueImageIcon="${mod_id}.icon.png"
 
-[[dependencies.${id}]]
+[[dependencies.${mod_id}]]
 modId = "forge"
 mandatory = true
-versionRange = "[40.1,)"
-ordering = "NONE"
+versionRange = "[${forge_major_version},)"
+ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.${id}]]
+[[dependencies.${mod_id}]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.18.2,1.19)"
-ordering = "NONE"
+versionRange = "[${minecraft_version},)"
+ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.${id}]]
+[[dependencies.${mod_id}]]
 modId = "pollen"
 mandatory = true
 versionRange = "[1.4.0,2.0.0)"

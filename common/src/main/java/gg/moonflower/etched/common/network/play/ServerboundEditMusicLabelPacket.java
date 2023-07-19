@@ -1,8 +1,8 @@
 package gg.moonflower.etched.common.network.play;
 
 import gg.moonflower.etched.common.network.play.handler.EtchedServerPlayPacketHandler;
-import gg.moonflower.pollen.api.network.packet.PollinatedPacket;
-import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
+import gg.moonflower.pollen.api.network.v1.packet.PollinatedPacket;
+import gg.moonflower.pollen.api.network.v1.packet.PollinatedPacketContext;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class ServerboundEditMusicLabelPacket implements PollinatedPacket<EtchedServerPlayPacketHandler> {

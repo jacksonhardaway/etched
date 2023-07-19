@@ -1,26 +1,18 @@
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.0.0"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 archivesBaseName = "${rootProject.archivesBaseName}-${project.name}"
 
 loom {
+    accessWidenerPath = project(":common").loom.accessWidenerPath
 
     forge {
+        convertAccessWideners = true
+        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+
         mixinConfig "${project.mod_id}-common.mixins.json"
         mixinConfig "${project.mod_id}.mixins.json"
-
-        dataGen {
-            mod project.mod_id
-        }
-    }
-    launches {
-        data {
-            arg "--existing", file("src/main/resources").absolutePath
-        }
     }
 }
 
@@ -39,13 +31,11 @@ configurations {
 
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
-
-    modApi("gg.moonflower:pollen-forge:${rootProject.pollen_version}")
+    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_major_version}.${rootProject.forge_minor_version}.${rootProject.forge_build_version}"
+    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+    modApi "gg.moonflower:pollen-forge:${rootProject.pollen_version}"
 
     modRuntimeOnly "me.djtheredstoner:DevAuth-forge-latest:${rootProject.devauth_version}"
-	modRuntimeOnly "curse.maven:configured-457570:3640884"
-    modRuntimeOnly "curse.maven:catalogue-459701:3559402"
 
     shadowCommon(implementation("javazoom:jlayer:1.0.1"))
 
@@ -54,60 +44,46 @@ dependencies {
 }
 
 processResources {
-    inputs.property "id", rootProject.mod_id
-    inputs.property "name", rootProject.mod_name
-    inputs.property "version", rootProject.mod_version
-    inputs.property "repo", rootProject.repo_name
+    inputs.property "mod_id", project.mod_id
+    inputs.property "mod_version", project.mod_version
+    inputs.property "mod_name", project.mod_name
+    inputs.property "mod_description", project.mod_description
+    inputs.property "archives_base_name", project.archives_base_name
+
+    inputs.property "minecraft_version", project.minecraft_version
+    inputs.property "forge_major_version", project.forge_major_version
 
     filesMatching(["META-INF/mods.toml", "pack.mcmeta"]) {
-        expand "id": rootProject.mod_id,
-                "name": rootProject.mod_name,
-                "version": rootProject.mod_version,
-                "repo": rootProject.repo_name
-    }
-
-    doLast {
-        fileTree(dir: outputs.files.asPath, include: "**/*.json").each {
-            File file -> file.text = JsonOutput.toJson(new JsonSlurper().parse(file))
-        }
+        expand "mod_id": project.mod_id,
+                "mod_version": project.mod_version,
+                "mod_name": project.mod_name,
+                "mod_description": project.mod_description,
+                "minecraft_version": project.minecraft_version,
+                "archives_base_name": project.archives_base_name,
+                "forge_major_version": project.forge_major_version
     }
 }
 
 shadowJar {
     exclude "fabric.mod.json"
-    relocate "fr.delthas.javamp3", "gg.moonflower.etched.lib.javamp3"
+    exclude "architectury.common.json"
 
     configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
+    archiveClassifier = "dev-shadow"
 }
 
 remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
-    classifier null
+    archiveClassifier = null
 }
 
 jar {
-    classifier "dev"
-}
-
-sourcesJar {
-    def commonSources = project(":common").sourcesJar
-    dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
+    archiveClassifier = "dev"
 }
 
 components.java {
     withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
         skip()
-    }
-}
-
-publishing {
-    publications {
-        mavenForge(MavenPublication) {
-            artifactId = project.archivesBaseName
-            from components.java
-        }
     }
 }

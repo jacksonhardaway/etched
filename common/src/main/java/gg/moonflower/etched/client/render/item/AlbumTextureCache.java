@@ -2,9 +2,9 @@ package gg.moonflower.etched.client.render.item;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import gg.moonflower.etched.core.Etched;
-import gg.moonflower.pollen.api.util.OnlineRequest;
-import gg.moonflower.pollen.pinwheel.api.client.FileCache;
-import gg.moonflower.pollen.pinwheel.api.client.geometry.GeometryCache;
+import gg.moonflower.pollen.api.download.v1.FileCache;
+import gg.moonflower.pollen.api.download.v1.OnlineRequest;
+import gg.moonflower.pollen.impl.download.GeometryCache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus;

@@ -12,7 +12,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
@@ -183,7 +182,7 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
     @Override
     protected Component getDefaultName() {
-        return new TranslatableComponent("container." + Etched.MOD_ID + ".album_jukebox");
+        return Component.translatable("container." + Etched.MOD_ID + ".album_jukebox");
     }
 
     @Override

@@ -9,13 +9,12 @@ import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ServerboundEditMusicLabelPacket;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.chat.NarratorChatListener;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -25,8 +24,8 @@ public class EditMusicLabelScreen extends Screen {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Etched.MOD_ID, "textures/gui/edit_music_label.png");
     private static final ResourceLocation LABEL = new ResourceLocation(Etched.MOD_ID, "textures/gui/label.png");
-    private static final TranslatableComponent TITLE_COMPONENT = new TranslatableComponent("screen.etched.edit_music_label.title");
-    private static final TranslatableComponent AUTHOR_COMPONENT = new TranslatableComponent("screen.etched.edit_music_label.author");
+    private static final Component TITLE_COMPONENT = Component.translatable("screen.etched.edit_music_label.title");
+    private static final Component AUTHOR_COMPONENT = Component.translatable("screen.etched.edit_music_label.author");
 
     private final Player player;
     private final InteractionHand hand;
@@ -39,7 +38,7 @@ public class EditMusicLabelScreen extends Screen {
     private EditBox author;
 
     public EditMusicLabelScreen(Player player, InteractionHand hand, ItemStack stack) {
-        super(NarratorChatListener.NO_TITLE);
+        super(TITLE_COMPONENT);
         this.player = player;
         this.hand = hand;
         this.labelStack = stack;
@@ -135,10 +134,10 @@ public class EditMusicLabelScreen extends Screen {
 
         int primaryLabelColor = 0xFFFFFF;
         int secondaryLabelColor = primaryLabelColor;
-        if (this.labelStack.getItem() instanceof MusicLabelItem)  {
+        if (this.labelStack.getItem() instanceof MusicLabelItem) {
             primaryLabelColor = MusicLabelItem.getLabelColor(this.labelStack);
             secondaryLabelColor = primaryLabelColor;
-        } else if  (this.labelStack.getItem() instanceof ComplexMusicLabelItem) {
+        } else if (this.labelStack.getItem() instanceof ComplexMusicLabelItem) {
             primaryLabelColor = ComplexMusicLabelItem.getPrimaryColor(this.labelStack);
             secondaryLabelColor = ComplexMusicLabelItem.getSecondaryColor(this.labelStack);
         }

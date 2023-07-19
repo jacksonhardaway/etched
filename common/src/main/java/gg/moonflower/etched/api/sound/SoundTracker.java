@@ -21,10 +21,10 @@ import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.locale.Language;
-import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
@@ -38,9 +38,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.DoubleSupplier;
 
 /**
@@ -52,7 +50,7 @@ import java.util.function.DoubleSupplier;
 public class SoundTracker {
 
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
-    private static final Component RADIO = new TranslatableComponent("sound_source." + Etched.MOD_ID + ".radio");
+    private static final Component RADIO = Component.translatable("sound_source." + Etched.MOD_ID + ".radio");
 
     private static synchronized void setRecordPlayingNearby(Level level, BlockPos pos, boolean playing) {
         BlockState state = level.getBlockState(pos);
@@ -117,7 +115,7 @@ public class SoundTracker {
 
             @Override
             public void onFail() {
-                PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
+                PlayableRecord.showMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title));
             }
         }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
@@ -157,7 +155,7 @@ public class SoundTracker {
 
             @Override
             public void onFail() {
-                PlayableRecord.showMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", title));
+                PlayableRecord.showMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title));
             }
         }, type);
     }
@@ -175,10 +173,9 @@ public class SoundTracker {
 
     private static void playNextRecord(ClientLevel level, BlockPos pos) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof AlbumJukeboxBlockEntity))
+        if (!(blockEntity instanceof AlbumJukeboxBlockEntity jukebox))
             return;
 
-        AlbumJukeboxBlockEntity jukebox = (AlbumJukeboxBlockEntity) blockEntity;
         jukebox.next();
         playAlbum((AlbumJukeboxBlockEntity) blockEntity, blockEntity.getBlockState(), level, pos, true);
     }
@@ -224,7 +221,7 @@ public class SoundTracker {
             return;
 
         Optional<? extends SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track, attenuationDistance);
-        if (!sound.isPresent()) {
+        if (sound.isEmpty()) {
             if (loop && track != 0)
                 playEntityRecord(record, entityId, 0, attenuationDistance, true);
             return;
@@ -352,24 +349,31 @@ public class SoundTracker {
         playAlbum(jukebox, jukebox.getBlockState(), level, pos, force);
     }
 
-    private static class DownloadTextComponent extends BaseComponent {
+    private static class DownloadTextComponent implements Component {
 
-        private String text;
+        private ComponentContents contents;
         private FormattedCharSequence visualOrderText;
         private Language decomposedWith;
 
         public DownloadTextComponent() {
-            this.text = "";
+            this.contents = ComponentContents.EMPTY;
+            this.visualOrderText = FormattedCharSequence.EMPTY;
+            this.decomposedWith = null;
         }
 
         @Override
-        public String getContents() {
-            return text;
+        public ComponentContents getContents() {
+            return this.contents;
         }
 
         @Override
-        public TextComponent plainCopy() {
-            return new TextComponent(this.text);
+        public List<Component> getSiblings() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Style getStyle() {
+            return Style.EMPTY;
         }
 
         @Environment(EnvType.CLIENT)
@@ -384,12 +388,27 @@ public class SoundTracker {
         }
 
         @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+
+            DownloadTextComponent that = (DownloadTextComponent) o;
+            return this.contents.equals(that.contents);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.contents.hashCode();
+        }
+
+        @Override
         public String toString() {
-            return "TextComponent{text='" + this.text + '\'' + ", siblings=" + this.siblings + ", style=" + this.getStyle() + '}';
+            return this.contents.toString();
         }
 
         public void setText(String text) {
-            this.text = text;
+            this.contents = new LiteralContents(text);
             this.decomposedWith = null;
         }
     }
@@ -454,19 +473,19 @@ public class SoundTracker {
             if (this.requesting != null) {
                 this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
             } else if (this.size != 0) {
-                this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), this.title));
+                this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), this.title));
             }
         }
 
         @Override
         public void progressStartLoading() {
             this.requesting = null;
-            this.setComponent(new TranslatableComponent("record." + Etched.MOD_ID + ".loading", this.title));
+            this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".loading", this.title));
         }
 
         @Override
         public void onFail() {
-            Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
+            Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
         }
     }
 }

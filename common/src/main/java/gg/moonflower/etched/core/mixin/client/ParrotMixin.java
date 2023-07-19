@@ -10,15 +10,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Parrot;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
@@ -27,14 +24,15 @@ import java.util.List;
 @Mixin(Parrot.class)
 public abstract class ParrotMixin extends Entity {
 
-    @Shadow private BlockPos jukebox;
+    @Shadow
+    private BlockPos jukebox;
+    @Shadow
+    private boolean partyParrot;
 
-    @Shadow private boolean partyParrot;
     @Unique
-    private BlockPos musicPos;
-
+    private BlockPos etched$musicPos;
     @Unique
-    private boolean dancing;
+    private boolean etched$dancing;
 
     public ParrotMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -42,18 +40,18 @@ public abstract class ParrotMixin extends Entity {
 
     @Inject(method = "aiStep", at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     public void capture(CallbackInfo ci) {
-        this.musicPos = this.jukebox;
-        this.dancing = this.partyParrot;
+        this.etched$musicPos = this.jukebox;
+        this.etched$dancing = this.partyParrot;
     }
 
     @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/ShoulderRidingEntity;aiStep()V"))
     public void addAudioProviders(CallbackInfo ci) {
-        if (this.musicPos == null || !this.musicPos.closerToCenterThan(this.position(), 3.46) || !this.level.getBlockState(this.musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
+        if (this.etched$musicPos == null || !this.etched$musicPos.closerToCenterThan(this.position(), 3.46) || !this.level.getBlockState(this.etched$musicPos).is(Blocks.JUKEBOX) && !this.level.getBlockState(this.etched$musicPos).is(EtchedTags.AUDIO_PROVIDER)) {
             this.partyParrot = false;
             this.jukebox = null;
         } else {
-            this.partyParrot = this.dancing;
-            this.jukebox = this.musicPos;
+            this.partyParrot = this.etched$dancing;
+            this.jukebox = this.etched$musicPos;
         }
 
         if (this.level.isClientSide()) {

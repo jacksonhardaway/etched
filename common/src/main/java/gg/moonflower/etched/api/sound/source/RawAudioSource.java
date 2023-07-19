@@ -2,7 +2,7 @@ package gg.moonflower.etched.api.sound.source;
 
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.client.sound.SoundCache;
-import gg.moonflower.pollen.api.util.AsyncInputStream;
+import gg.moonflower.etched.core.util.AsyncInputStream;
 import net.minecraft.Util;
 import net.minecraft.util.HttpUtil;
 import org.jetbrains.annotations.Nullable;

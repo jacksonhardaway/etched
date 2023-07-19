@@ -1,6 +1,6 @@
 package gg.moonflower.etched.core;
 
-import gg.moonflower.pollen.api.config.PollinatedConfigBuilder;
+import gg.moonflower.pollen.api.config.v1.PollinatedConfigBuilder;
 
 public class EtchedConfig {
 

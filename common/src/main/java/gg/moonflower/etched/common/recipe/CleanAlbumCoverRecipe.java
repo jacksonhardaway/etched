@@ -2,7 +2,7 @@ package gg.moonflower.etched.common.recipe;
 
 import gg.moonflower.etched.common.item.AlbumCoverItem;
 import gg.moonflower.etched.core.registry.EtchedRecipes;
-import gg.moonflower.pollen.api.crafting.grindstone.PollenGrindstoneRecipe;
+import gg.moonflower.pollen.api.crafting.v1.PollenGrindstoneRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -57,7 +57,7 @@ public class CleanAlbumCoverRecipe implements PollenGrindstoneRecipe {
 
     @Override
     public ResourceLocation getId() {
-        return id;
+        return this.id;
     }
 
     @Override

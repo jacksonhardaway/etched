@@ -8,7 +8,7 @@ import gg.moonflower.etched.api.sound.source.RawAudioSource;
 import gg.moonflower.etched.api.sound.source.StreamingAudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.client.render.item.AlbumTextureCache;
-import gg.moonflower.pollen.pinwheel.api.client.FileCache;
+import gg.moonflower.pollen.api.download.v1.FileCache;
 import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;

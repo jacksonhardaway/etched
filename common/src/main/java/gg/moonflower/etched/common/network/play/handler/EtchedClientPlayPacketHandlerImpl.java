@@ -7,13 +7,11 @@ import gg.moonflower.etched.client.screen.AlbumJukeboxScreen;
 import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.client.screen.RadioScreen;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
-import gg.moonflower.etched.common.entity.MinecartJukebox;
 import gg.moonflower.etched.common.network.play.*;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
-import gg.moonflower.pollen.api.network.packet.PollinatedPacketContext;
+import gg.moonflower.pollen.api.network.v1.packet.PollinatedPacketContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.resources.sounds.MinecartSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
@@ -53,26 +51,6 @@ public class EtchedClientPlayPacketHandlerImpl implements EtchedClientPlayPacket
                 return;
 
             SoundTracker.playBlockRecord(pos, pkt.getTracks(), 0);
-        });
-    }
-
-    @Override
-    public void handleAddMinecartJukeboxPacket(ClientboundAddMinecartJukeboxPacket pkt, PollinatedPacketContext ctx) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null)
-            return;
-
-        ctx.enqueueWork(() -> {
-            MinecartJukebox entity = new MinecartJukebox(level, pkt.getX(), pkt.getY(), pkt.getZ());
-            int i = pkt.getId();
-            entity.setPacketCoordinates(pkt.getX(), pkt.getY(), pkt.getZ());
-            entity.moveTo(pkt.getX(), pkt.getY(), pkt.getZ());
-            entity.setXRot((float) (pkt.getxRot() * 360) / 256.0F);
-            entity.setYRot((float) (pkt.getyRot() * 360) / 256.0F);
-            entity.setId(i);
-            entity.setUUID(pkt.getUUID());
-            level.putNonPlayerEntity(i, entity);
-            Minecraft.getInstance().getSoundManager().play(new MinecartSoundInstance(entity));
         });
     }
 

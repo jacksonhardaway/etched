@@ -1,26 +1,26 @@
-dependencies {
-    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
-    // Do NOT use other classes from fabric loader
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-
-    implementation "javazoom:jlayer:1.0.1"
-    modApi("gg.moonflower:pollen:${rootProject.pollen_version}")
-}
-
 architectury {
-    common("forge", "fabric")
+    common(rootProject.enabled_platforms.split(","))
 }
 
-publishing {
-    publications {
-        mavenCommon(MavenPublication) {
-            artifactId = project.archivesBaseName
-            artifact remapJar
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
-        }
+loom {
+    accessWidenerPath = file("src/main/resources/${project.mod_id}.accesswidener")
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    modApi "dev.architectury:architectury:${rootProject.architectury_version}"
+    modApi "gg.moonflower:pollen-common:${rootProject.pollen_version}"
+
+    implementation "gg.moonflower.pinwheel:pinwheel:1.1.0"
+    implementation("gg.moonflower:molang-compiler:3.0.1")
+    implementation "org.joml:joml:1.10.5"
+    implementation "javazoom:jlayer:1.0.1"
+}
+
+processResources {
+    inputs.property "mod_id", project.mod_id
+
+    filesMatching(["architectury.common.json"]) {
+        expand "mod_id": project.mod_id
     }
 }
-
-loom.disableDeprecatedPomGeneration(publishing.publications.mavenCommon)

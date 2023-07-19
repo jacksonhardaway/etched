@@ -3,10 +3,10 @@ package gg.moonflower.etched.common.blockentity;
 import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.block.RadioBlock;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
-import gg.moonflower.pollen.api.util.NbtConstants;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Clearable;
@@ -51,7 +51,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
     @Override
     public void load(CompoundTag nbt) {
         super.load(nbt);
-        this.url = nbt.contains("Url", NbtConstants.STRING) ? nbt.getString("Url") : null;
+        this.url = nbt.contains("Url", Tag.TAG_STRING) ? nbt.getString("Url") : null;
         if (this.loaded)
             SoundTracker.playRadio(this.url, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos());
     }

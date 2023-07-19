@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(NoteBlock.class)
 public abstract class NoteBlockMixin extends Block {
+
     public NoteBlockMixin(Properties properties) {
         super(properties);
     }

@@ -5,14 +5,13 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.architectury.registry.ReloadListenerRegistry;
 import gg.moonflower.etched.api.record.AlbumCover;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.common.item.AlbumCoverItem;
 import gg.moonflower.etched.core.Etched;
-import gg.moonflower.pollen.api.client.render.DynamicItemRenderer;
-import gg.moonflower.pollen.api.event.events.network.ClientNetworkEvents;
-import gg.moonflower.pollen.api.registry.resource.PollinatedPreparableReloadListener;
-import gg.moonflower.pollen.api.registry.resource.ResourceRegistry;
+import gg.moonflower.pollen.api.event.network.v1.ClientNetworkEvent;
+import gg.moonflower.pollen.api.render.item.v1.DynamicItemRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -33,21 +32,23 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Ocelot
  */
-public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<AlbumCoverItemRenderer.CoverData> implements DynamicItemRenderer, PollinatedPreparableReloadListener {
+public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<AlbumCoverItemRenderer.CoverData> implements DynamicItemRenderer, PreparableReloadListener {
 
     public static final AlbumCoverItemRenderer INSTANCE = new AlbumCoverItemRenderer();
     public static final String FOLDER_NAME = Etched.MOD_ID + "_album_cover";
@@ -68,8 +69,8 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
     }
 
     public static void init() {
-        ResourceRegistry.registerReloadListener(PackType.CLIENT_RESOURCES, INSTANCE);
-        ClientNetworkEvents.LOGOUT.register((controller, player, connection) -> INSTANCE.close());
+        ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, INSTANCE, new ResourceLocation(Etched.MOD_ID, "builtin_album_cover"));
+        ClientNetworkEvent.DISCONNECT.register((controller, player, connection) -> INSTANCE.close());
     }
 
     public static NativeImage getOverlayImage() {
@@ -77,15 +78,15 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
     }
 
     private static void renderModelLists(BakedModel model, int combinedLight, int combinedOverlay, PoseStack matrixStack, VertexConsumer buffer) {
-        Random random = new Random();
+        RandomSource randomsource = RandomSource.create();
 
         for (Direction direction : Direction.values()) {
-            random.setSeed(42L);
-            renderQuadList(matrixStack, buffer, model.getQuads(null, direction, random), combinedLight, combinedOverlay);
+            randomsource.setSeed(42L);
+            renderQuadList(matrixStack, buffer, model.getQuads(null, direction, randomsource), combinedLight, combinedOverlay);
         }
 
-        random.setSeed(42L);
-        renderQuadList(matrixStack, buffer, model.getQuads(null, null, random), combinedLight, combinedOverlay);
+        randomsource.setSeed(42L);
+        renderQuadList(matrixStack, buffer, model.getQuads(null, null, randomsource), combinedLight, combinedOverlay);
     }
 
     private static void renderQuadList(PoseStack matrixStack, VertexConsumer buffer, List<BakedQuad> quads, int combinedLight, int combinedOverlay) {
@@ -96,8 +97,10 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
     }
 
     private static NativeImage getCoverOverlay(ResourceManager resourceManager) {
-        try (Resource resource = resourceManager.getResource(AlbumCoverItemRenderer.ALBUM_COVER_OVERLAY)) {
-            return NativeImage.read(resource.getInputStream());
+        try {
+            try (InputStream stream = resourceManager.getResourceOrThrow(AlbumCoverItemRenderer.ALBUM_COVER_OVERLAY).open()) {
+                return NativeImage.read(stream);
+            }
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -157,11 +160,6 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
         matrixStack.translate(0.5D, 0.5D, 0.5D);
         model.render(stack, transformType, matrixStack, buffer, packedLight, combinedOverlay);
         matrixStack.popPose();
-    }
-
-    @Override
-    public ResourceLocation getPollenId() {
-        return new ResourceLocation(Etched.MOD_ID, "builtin_album_cover");
     }
 
     public static class CoverData {
@@ -266,9 +264,9 @@ public class AlbumCoverItemRenderer extends SimplePreparableReloadListener<Album
 
         static Optional<ModelData> of(AlbumCover cover) {
             if (cover instanceof ModelAlbumCover)
-                return Optional.of(new BakedModelData(((ModelAlbumCover) cover).getModel()));
+                return Optional.of(new BakedModelData(((ModelAlbumCover) cover).model()));
             if (cover instanceof ImageAlbumCover)
-                return Optional.of(new DynamicModelData(((ImageAlbumCover) cover).getImage()));
+                return Optional.of(new DynamicModelData(((ImageAlbumCover) cover).image()));
             return Optional.empty();
         }
 

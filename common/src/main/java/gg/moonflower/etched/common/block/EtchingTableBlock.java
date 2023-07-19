@@ -5,7 +5,6 @@ import gg.moonflower.etched.core.Etched;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -31,7 +30,7 @@ public class EtchingTableBlock extends Block {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 6.0D, 14.0D);
-    private static final Component CONTAINER_TITLE = new TranslatableComponent("container." + Etched.MOD_ID + ".etching_table");
+    private static final Component CONTAINER_TITLE = Component.translatable("container." + Etched.MOD_ID + ".etching_table");
 
     public EtchingTableBlock(Properties properties) {
         super(properties);

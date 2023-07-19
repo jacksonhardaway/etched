@@ -1,30 +1,34 @@
 {
   "schemaVersion": 1,
-  "id": "${id}",
-  "version": "${version}",
-  "name": "${name}",
-  "description": "A new form of entertainment.",
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "icon": "${mod_id}.icon.png",
   "authors": [ "Moonflower" ],
-  "contributors": [ "Jackson", "Ocelot", "Farcr (Art)", "Echolite (Art)", "AstraZoey (Sound Design)" ],
+  "contributors": [ "Ocelot", "Jackson", "Farcr (Art)", "Echolite (Art)", "AstraZoey (Sound Design)" ],
   "contact": {
-    "homepage": "https://www.moonflower.gg",
-	"issues": "https://github.com/MoonflowerTeam/${repo}/issues",
-    "sources": "https://github.com/MoonflowerTeam/${repo}/"
+    "homepage": "https://www.moonflower.gg/",
+    "issues": "https://github.com/MoonflowerTeam/${archives_base_name}/issues",
+    "sources": "https://github.com/MoonflowerTeam/${archives_base_name}/"
   },
-  "icon": "icon.png",
   "license": "GPLv3",
   "environment": "*",
-  "mixins": [
-    "${id}-common.mixins.json",
-    "${id}.mixins.json"
-  ],
   "entrypoints": {
     "main": [
       "gg.moonflower.etched.core.fabric.EtchedFabric"
+    ],
+    "client": [
+      "gg.moonflower.etched.core.fabric.EtchedFabricClient"
     ]
   },
+  "mixins": [
+    "${mod_id}-common.mixins.json",
+    "${mod_id}.mixins.json"
+  ],
   "depends": {
-    "minecraft": ">=1.18.2 <1.19",
-    "pollen": ">=1.4 <2.0.0"
+    "fabric": "*",
+    "minecraft": "~${minecraft_version}",
+    "pollen": "2.x"
   }
 }

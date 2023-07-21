@@ -19,9 +19,6 @@ public abstract class SoundEngineMixin {
 
     @Inject(method = "tickNonPaused", at = @At(value = "INVOKE", target = "Ljava/util/Map;remove(Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     public void onSoundRemoved(CallbackInfo ci, Iterator<?> iterator, Map.Entry<?, ?> entry, ChannelAccess.ChannelHandle channelHandle2, SoundInstance soundInstance) {
-        if (soundInstance instanceof WrappedSoundInstance wrapped) {
-            soundInstance = wrapped.getParent();
-        }
         if (soundInstance instanceof SoundStopListener listener) {
             listener.onStop();
         }

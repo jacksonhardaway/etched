@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
 
@@ -21,9 +20,10 @@ public abstract class ItemStackMixin {
     @Shadow
     public abstract Item getItem();
 
-    @Inject(method = "getTooltipLines", at = @At("TAIL"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
-    public void addBoomboxStatus(Player player, TooltipFlag isAdvanced, CallbackInfoReturnable<List<Component>> cir, List<Component> lines) {
-        if (this.getItem() instanceof BoomboxItem && BoomboxItem.isPaused((ItemStack) (Object) this))
-            lines.add(BoomboxItem.PAUSED);
+    @Inject(method = "getTooltipLines", at = @At("TAIL"))
+    public void addBoomboxStatus(Player player, TooltipFlag isAdvanced, CallbackInfoReturnable<List<Component>> cir) {
+        if (this.getItem() instanceof BoomboxItem && BoomboxItem.isPaused((ItemStack) (Object) this)) {
+            cir.getReturnValue().add(BoomboxItem.PAUSED);
+        }
     }
 }

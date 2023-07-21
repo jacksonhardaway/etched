@@ -37,7 +37,7 @@ public abstract class VillagerMixin extends AbstractVillager implements Villager
     public void aiStep() {
         if (this.level.isClientSide()) {
             if (this.getPose() != Pose.STANDING) {
-                this.dancing = false;
+                this.etched$dancing = false;
                 return;
             }
 

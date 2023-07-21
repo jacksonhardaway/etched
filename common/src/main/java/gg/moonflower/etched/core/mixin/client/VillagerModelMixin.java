@@ -46,10 +46,12 @@ public abstract class VillagerModelMixin<T extends Entity> {
     @Final
     private ModelPart root;
 
+    @Unique
     private PartPose getOrigin(String name) {
         return ORIGINS.computeIfAbsent(name, s -> this.root().getChild(name).storePose());
     }
 
+    @Unique
     private void reset(ModelPart part, String name) {
         part.loadPose(getOrigin(name));
     }

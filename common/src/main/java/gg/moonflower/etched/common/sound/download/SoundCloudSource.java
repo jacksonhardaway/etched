@@ -76,7 +76,7 @@ public class SoundCloudSource implements SoundDownloadSource {
     }
 
     private <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, SourceRequest<T> function) throws IOException, JsonParseException {
-        try (InputStreamReader reader = new InputStreamReader(this.get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8.toString()), progressListener, proxy, 0, true))) {
+        try (InputStreamReader reader = new InputStreamReader(this.get("https://api-v2.soundcloud.com/resolve?url=" + URLEncoder.encode(url, StandardCharsets.UTF_8), progressListener, proxy, 0, true))) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 
             String kind = GsonHelper.getAsString(json, "kind");
@@ -107,8 +107,8 @@ public class SoundCloudSource implements SoundDownloadSource {
                 if ("progressive".equals(protocol))
                     progressiveIndex = i;
                 if ("hls".equals(protocol)) {
-                    try (InputStreamReader r = new InputStreamReader(this.get(GsonHelper.getAsString(transcodingJson, "url"), null, proxy, 0, true))) {
-                        try (InputStreamReader reader = new InputStreamReader(this.get(GsonHelper.getAsString(new JsonParser().parse(r).getAsJsonObject(), "url"), null, proxy, 0, false))) {
+                    try (InputStreamReader urlReader = new InputStreamReader(this.get(GsonHelper.getAsString(transcodingJson, "url"), null, proxy, 0, true))) {
+                        try (InputStreamReader reader = new InputStreamReader(this.get(GsonHelper.getAsString(JsonParser.parseReader(urlReader).getAsJsonObject(), "url"), null, proxy, 0, false))) {
                             return M3uParser.parse(reader);
                         }
                     }
@@ -117,7 +117,7 @@ public class SoundCloudSource implements SoundDownloadSource {
             if (progressiveIndex == -1)
                 throw new IOException("Could not find an audio source");
             try (InputStreamReader reader = new InputStreamReader(this.get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url"), null, proxy, 0, true))) {
-                return Collections.singletonList(new URL(GsonHelper.getAsString(new JsonParser().parse(reader).getAsJsonObject(), "url")));
+                return Collections.singletonList(new URL(GsonHelper.getAsString(JsonParser.parseReader(reader).getAsJsonObject(), "url")));
             }
         });
     }

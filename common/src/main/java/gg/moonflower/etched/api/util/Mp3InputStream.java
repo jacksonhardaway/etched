@@ -28,8 +28,9 @@ public class Mp3InputStream extends InputStream {
         this.stream = new Bitstream(source);
         this.decoder = new Decoder();
         this.buffer = ByteBuffer.allocate(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
-        if (this.fillBuffer())
+        if (this.fillBuffer()) {
             throw new IOException("Failed to find header");
+        }
     }
 
     /**
@@ -43,8 +44,10 @@ public class Mp3InputStream extends InputStream {
 
         try {
             Header header = this.stream.readFrame();
-            if (header == null) // EOF
+            if (header == null) { // EOF
+                this.buffer.flip();
                 return true;
+            }
 
             if (this.output == null) {
                 int channels = header.mode() == Header.SINGLE_CHANNEL ? 1 : 2;
@@ -54,11 +57,13 @@ public class Mp3InputStream extends InputStream {
             }
 
             Obuffer decoderOutput = this.decoder.decodeFrame(header, this.stream);
-            if (decoderOutput != this.output)
+            if (decoderOutput != this.output) {
                 throw new IOException("Output buffers are different.");
+            }
 
-            for (short value : this.output.getBuffer())
+            for (short value : this.output.getBuffer()) {
                 this.buffer.putShort(value);
+            }
             this.buffer.flip();
         } catch (JavaLayerException e) {
             throw new IOException(e);
@@ -70,23 +75,26 @@ public class Mp3InputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        if (!this.buffer.hasRemaining() && this.fillBuffer())
+        if (!this.buffer.hasRemaining() && this.fillBuffer()) {
             return -1;
+        }
         return ((int) this.buffer.get()) & 0xFF;
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        int readAmount = 0;
+        int read = 0;
+        while (read < len) {
+            if (!this.buffer.hasRemaining() && this.fillBuffer()) {
+                return read > 0 ? read : -1;
+            }
 
-        boolean eof = false;
-        while (readAmount < len && (this.buffer.hasRemaining() || !(eof = this.fillBuffer()))) {
-            int readLength = Math.min(this.buffer.remaining(), len - readAmount);
-            this.buffer.get(b, off + readAmount, readLength);
-            readAmount += readLength;
+            int readLength = Math.min(this.buffer.remaining(), len - read);
+            this.buffer.get(b, off + read, readLength);
+            read += readLength;
         }
 
-        return eof ? -1 : readAmount;
+        return read;
     }
 
     @Override

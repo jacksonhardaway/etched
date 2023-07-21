@@ -1,7 +1,5 @@
 package gg.moonflower.etched.api.util;
 
-import net.minecraft.Util;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -45,7 +43,11 @@ public class StreamingInputStream extends InputStream {
     }
 
     private InputStream getCurrentStream() {
-        return this.queue.get(this.position).join();
+        try {
+            return this.queue.get(this.position).get();
+        } catch (Exception e) {
+            return InputStream.nullInputStream();
+        }
     }
 
     @Override
@@ -68,7 +70,7 @@ public class StreamingInputStream extends InputStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (this.index == -1)
-            throw new IOException("EOF");
+            return -1;
         if (this.position >= this.urls.length)
             return -1;
 
@@ -104,13 +106,13 @@ public class StreamingInputStream extends InputStream {
     @Override
     public void close() {
         for (CompletableFuture<InputStream> future : this.queue) {
-            future.thenAcceptAsync(stream -> {
+            future.thenAccept(stream -> {
                 try {
                     stream.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }, Util.backgroundExecutor());
+            });
         }
         this.queue.clear();
         this.index = -1;

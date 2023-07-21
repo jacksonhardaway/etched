@@ -11,6 +11,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.Level;
@@ -35,6 +36,11 @@ public abstract class VillagerMixin extends AbstractVillager implements Villager
     @Override
     public void aiStep() {
         if (this.level.isClientSide()) {
+            if (this.getPose() != Pose.STANDING) {
+                this.dancing = false;
+                return;
+            }
+
             List<Entity> entities = this.level.getEntities(this, this.getBoundingBox().inflate(3.45), entity -> {
                 if (!entity.isAlive() || entity.isSpectator())
                     return false;

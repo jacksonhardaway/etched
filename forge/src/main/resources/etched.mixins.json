@@ -9,8 +9,7 @@
     "client.StopListeningSoundMixin"
   ],
   "mixins": [
-    "EntityMixin",
-    "RecordItemAccessor"
+    "EntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

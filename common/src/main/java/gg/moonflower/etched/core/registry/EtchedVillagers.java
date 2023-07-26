@@ -29,7 +29,7 @@ public class EtchedVillagers {
     public static final PollinatedVillagerRegistry REGISTRY = PollinatedVillagerRegistry.create(Etched.MOD_ID);
 
     public static final RegistrySupplier<PoiType> BARD_POI = REGISTRY.registerPoiType("bard", () -> new PoiType(ImmutableSet.<BlockState>builder().addAll(Blocks.NOTE_BLOCK.getStateDefinition().getPossibleStates()).build(), 1, 1));
-    public static final RegistrySupplier<VillagerProfession> BARD = REGISTRY.register("bard", () -> new VillagerProfession(Etched.MOD_ID + ":bard", poi -> poi.is(BARD_POI.getId()), poi -> poi.is(BARD_POI.getId()), ImmutableSet.of(), ImmutableSet.of(), EtchedSounds.UI_ETCHER_TAKE_RESULT.get()));
+    public static final RegistrySupplier<VillagerProfession> BARD = REGISTRY.register("bard", () -> new VillagerProfession(Etched.MOD_ID + ":bard", poi -> poi.is(BARD_POI.getId()), poi -> poi.is(BARD_POI.getId()), ImmutableSet.of(), ImmutableSet.of(), null));
 
     public static void registerVillages() {
         PlainVillagePools.bootstrap();

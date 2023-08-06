@@ -75,6 +75,11 @@ public abstract class VillagerMixin extends AbstractVillager implements Villager
 
     @Override
     public void setRecordPlayingNearby(BlockPos pos, boolean isPartying) {
+        if (this.getPose() != Pose.STANDING) {
+            this.etched$dancing = false;
+            return;
+        }
+
         this.etched$musicPos = pos;
         this.etched$dancing = isPartying;
     }

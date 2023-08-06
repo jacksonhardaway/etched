@@ -11,6 +11,7 @@ import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.GuiAccessor;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
 import gg.moonflower.etched.core.registry.EtchedTags;
+import gg.moonflower.pollen.api.event.network.v1.ClientNetworkEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -50,7 +51,12 @@ import java.util.function.DoubleSupplier;
 public class SoundTracker {
 
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
+    private static final Set<String> FAILED_URLS = new HashSet<>();
     private static final Component RADIO = Component.translatable("sound_source." + Etched.MOD_ID + ".radio");
+
+    static {
+        ClientNetworkEvent.DISCONNECT.register((multiPlayerGameMode, localPlayer, connection) -> FAILED_URLS.clear());
+    }
 
     private static synchronized void setRecordPlayingNearby(Level level, BlockPos pos, boolean playing) {
         BlockState state = level.getBlockState(pos);
@@ -156,6 +162,7 @@ public class SoundTracker {
             @Override
             public void onFail() {
                 PlayableRecord.showMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title));
+                FAILED_URLS.add(url);
             }
         }, type);
     }
@@ -191,11 +198,12 @@ public class SoundTracker {
         }
 
         TrackData trackData = tracks[track];
-        if (trackData.getUrl() == null || !TrackData.isValidURL(trackData.getUrl())) {
+        String url = trackData.getUrl();
+        if (!TrackData.isValidURL(url) || FAILED_URLS.contains(url)) {
             playBlockRecord(pos, tracks, track + 1);
             return;
         }
-        playRecord(pos, StopListeningSound.create(getEtchedRecord(trackData.getUrl(), trackData.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> {
+        playRecord(pos, StopListeningSound.create(getEtchedRecord(url, trackData.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> {
             if (!((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords().containsKey(pos))
                 return;
             playBlockRecord(pos, tracks, track + 1);
@@ -280,16 +288,16 @@ public class SoundTracker {
             setRecordPlayingNearby(level, pos, false);
         }
 
-        if (!state.hasProperty(RadioBlock.POWERED) || state.getValue(RadioBlock.POWERED)) // Something must already be playing since it would otherwise be -1 and a change would occur
+        if (FAILED_URLS.contains(url)) {
             return;
+        }
+        if (!state.hasProperty(RadioBlock.POWERED) || state.getValue(RadioBlock.POWERED)) { // Something must already be playing since it would otherwise be -1 and a change would occur
+            return;
+        }
 
-        if (TrackData.isValidURL(url))
+        if (TrackData.isValidURL(url)) {
             playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level.getBlockState(pos), level, pos)))); // Get the new block state
-    }
-
-    @Deprecated
-    public static void playRadio(@Nullable String url, ClientLevel level, BlockPos pos) {
-        playRadio(url, level.getBlockState(pos), level, pos);
+        }
     }
 
     /**
@@ -331,8 +339,9 @@ public class SoundTracker {
             if (optional.isPresent()) {
                 TrackData[] tracks = optional.get();
                 TrackData track = jukebox.getTrack() < 0 || jukebox.getTrack() >= tracks.length ? tracks[0] : tracks[jukebox.getTrack()];
-                if (TrackData.isValidURL(track.getUrl())) {
-                    sound = StopListeningSound.create(getEtchedRecord(track.getUrl(), track.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
+                String url = track.getUrl();
+                if (TrackData.isValidURL(url) && !FAILED_URLS.contains(url)) {
+                    sound = StopListeningSound.create(getEtchedRecord(url, track.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }
             }
         }
@@ -342,11 +351,6 @@ public class SoundTracker {
 
         playRecord(pos, sound);
         setRecordPlayingNearby(level, pos, true);
-    }
-
-    @Deprecated
-    public static void playAlbum(AlbumJukeboxBlockEntity jukebox, ClientLevel level, BlockPos pos, boolean force) {
-        playAlbum(jukebox, jukebox.getBlockState(), level, pos, force);
     }
 
     private static class DownloadTextComponent implements Component {

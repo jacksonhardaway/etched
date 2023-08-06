@@ -5,6 +5,7 @@ package gg.moonflower.etched.api.sound;
  *
  * @author Ocelot
  */
+@FunctionalInterface
 public interface SoundStopListener {
 
     /**

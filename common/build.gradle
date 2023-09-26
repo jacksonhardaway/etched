@@ -11,7 +11,7 @@ dependencies {
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
     modApi "gg.moonflower:pollen-common:${rootProject.pollen_version}"
 
-    implementation "gg.moonflower.pinwheel:pinwheel:1.1.0"
+    implementation "gg.moonflower.pinwheel:pinwheel:1.2.0.3"
     implementation("gg.moonflower:molang-compiler:3.0.1")
     implementation "org.joml:joml:1.10.5"
     implementation "javazoom:jlayer:1.0.1"

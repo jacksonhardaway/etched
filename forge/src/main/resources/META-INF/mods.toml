@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[${forge_major_version},)"
+loaderVersion = "[${forge_loader_version},)"
 issueTrackerURL = "https://github.com/MoonflowerTeam/${archives_base_name}/issues"
 license = "GPLv3"
 
@@ -19,7 +19,7 @@ catalogueImageIcon="${mod_id}.icon.png"
 [[dependencies.${mod_id}]]
 modId = "forge"
 mandatory = true
-versionRange = "[${forge_major_version},)"
+versionRange = "[${forge_loader_version},)"
 ordering = "AFTER"
 side = "BOTH"
 
@@ -28,11 +28,4 @@ modId = "minecraft"
 mandatory = true
 versionRange = "[${minecraft_version},)"
 ordering = "AFTER"
-side = "BOTH"
-
-[[dependencies.${mod_id}]]
-modId = "pollen"
-mandatory = true
-versionRange = "[2.0.0,3.0.0)"
-ordering = "BEFORE"
 side = "BOTH"

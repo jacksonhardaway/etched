@@ -38,9 +38,6 @@ dependencies {
     modRuntimeOnly "me.djtheredstoner:DevAuth-forge-latest:${rootProject.devauth_version}"
 
     shadowCommon(implementation("javazoom:jlayer:1.0.1"))
-
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 
 processResources {

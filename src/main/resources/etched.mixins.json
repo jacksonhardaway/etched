@@ -25,9 +25,7 @@
     "RecordItemMixin",
     "SoundEventAccessor",
     "StructureTemplatePoolAccessor",
-    "VillagerGoalPackagesMixin",
-    "grindstone.GrindstoneMenuMixin",
-    "grindstone.GrindstoneMenuRepairSlotMixin"
+    "VillagerGoalPackagesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

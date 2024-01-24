@@ -124,7 +124,7 @@ public final class SoundSourceManager {
                 LOGGER.error("Failed to connect to " + source.getApiName() + " API", e);
                 return Optional.empty();
             }
-        }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s, false).thenApplyAsync(path -> {
+        }), HttpUtil.DOWNLOAD_EXECUTOR).thenCompose(coverUrl -> coverUrl.map(s -> ALBUM_COVER_CACHE.requestResource(s).thenApplyAsync(path -> {
             try (InputStream is = Files.newInputStream(path)) {
                 return AlbumCover.of(NativeImage.read(is));
             } catch (Exception e) {

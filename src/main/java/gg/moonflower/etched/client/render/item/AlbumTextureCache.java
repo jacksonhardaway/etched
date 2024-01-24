@@ -32,7 +32,7 @@ public class AlbumTextureCache {
         this.cacheTimeUnit = cacheTimeUnit;
     }
 
-    public CompletableFuture<Path> requestResource(String url, boolean ignoreMissing) {
+    public CompletableFuture<Path> requestResource(String url) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return AlbumCoverCache.getPath(url, this.cacheTime, this.cacheTimeUnit, s -> {
@@ -47,16 +47,12 @@ public class AlbumTextureCache {
                             }
                         };
                     } catch (IOException e) {
-                        if (!ignoreMissing) {
-                            LOGGER.error("Failed to read data from '" + url + "'", e);
-                        }
+                        LOGGER.error("Failed to read data from '" + url + "'", e);
                         return null;
                     }
                 });
             } catch (Exception e) {
-                if (!ignoreMissing) {
-                    LOGGER.error("Failed to fetch resource from '" + url + "'", e);
-                }
+                LOGGER.error("Failed to fetch resource from '" + url + "'", e);
                 return null;
             }
         }, this.executor);

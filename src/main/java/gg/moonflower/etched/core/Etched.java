@@ -22,12 +22,15 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.GrindstoneEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -81,6 +84,8 @@ public class Etched {
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, clientSpec);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, serverSpec);
+
+        MinecraftForge.EVENT_BUS.addListener(Etched::onGrindstoneChange);
     }
 
     private static void init(FMLCommonSetupEvent event) {
@@ -171,5 +176,22 @@ public class Etched {
             }
             return -1;
         }, EtchedItems.ETCHED_MUSIC_DISC.get());
+    }
+
+    private static void onGrindstoneChange(GrindstoneEvent.OnPlaceItem event) {
+        ItemStack top = event.getTopItem();
+        ItemStack bottom = event.getBottomItem();
+
+        if (top.isEmpty() == bottom.isEmpty()) {
+            return;
+        }
+
+        ItemStack stack = top.isEmpty() ? bottom : top;
+        if (AlbumCoverItem.getCoverStack(stack).isPresent()) {
+            ItemStack result = stack.copy();
+            result.setCount(1);
+            AlbumCoverItem.setCover(result, ItemStack.EMPTY);
+            event.setOutput(result);
+        }
     }
 }

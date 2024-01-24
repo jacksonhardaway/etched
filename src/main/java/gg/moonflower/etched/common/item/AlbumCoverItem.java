@@ -229,6 +229,11 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
         return getRecords(stack).stream().filter(record -> record.getItem() instanceof PlayableRecord).mapToInt(record -> ((PlayableRecord) record.getItem()).getTrackCount(record)).sum();
     }
 
+    @Override
+    public boolean canGrindstoneRepair(ItemStack stack) {
+        return getCoverStack(stack).isPresent();
+    }
+
     public static Optional<ItemStack> getCoverStack(ItemStack stack) {
         if (stack.getItem() != EtchedItems.ALBUM_COVER.get()) {
             return Optional.empty();

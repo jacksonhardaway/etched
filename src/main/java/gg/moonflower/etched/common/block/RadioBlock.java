@@ -100,7 +100,7 @@ public class RadioBlock extends BaseEntityBlock {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof RadioBlockEntity) {
                 if (((RadioBlockEntity) blockEntity).isPlaying()) {
-                    level.levelEvent(1010, pos, 0);
+                    level.levelEvent(1011, pos, 0);
                 }
                 Clearable.tryClear(blockEntity);
             }

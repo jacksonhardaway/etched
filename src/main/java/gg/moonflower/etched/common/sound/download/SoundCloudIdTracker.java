@@ -35,8 +35,9 @@ public final class SoundCloudIdTracker {
 
     private static String getLastMatchWithinLimit(Matcher m) {
         String lastMatch = null;
-        for (int i = 0; m.find() && i < 9; i++)
+        for (int i = 0; m.find() && i < 9; i++) {
             lastMatch = m.group();
+        }
         return lastMatch;
     }
 
@@ -53,12 +54,14 @@ public final class SoundCloudIdTracker {
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
             }
 
-            if (httpURLConnection.getResponseCode() != 200)
+            if (httpURLConnection.getResponseCode() != 200) {
                 throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
+            }
 
             String result = getLastMatchWithinLimit(PAGE_APP_SCRIPT_PATTERN.matcher(IOUtils.toString(httpURLConnection.getInputStream(), StandardCharsets.UTF_8)));
-            if (result == null)
+            if (result == null) {
                 throw new IllegalStateException("Could not find application script from main page.");
+            }
 
             return result;
         } catch (IOException e) {
@@ -79,8 +82,9 @@ public final class SoundCloudIdTracker {
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
             }
 
-            if (httpURLConnection.getResponseCode() != 200)
+            if (httpURLConnection.getResponseCode() != 200) {
                 throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
+            }
 
             Matcher clientIdMatcher = APP_SCRIPT_CLIENT_ID_PATTERN.matcher(IOUtils.toString(httpURLConnection.getInputStream(), StandardCharsets.UTF_8));
             return clientIdMatcher.find() ? clientIdMatcher.group(1) : null;
@@ -91,15 +95,17 @@ public final class SoundCloudIdTracker {
     }
 
     private static synchronized void findIdFromSite(Proxy proxy) {
-        if (currentId != null)
+        if (currentId != null) {
             return;
+        }
         if (currentRequest == null || currentRequest.isDone()) {
             currentRequest = CompletableFuture.supplyAsync(() -> {
                 SoundCloudSource.LOGGER.info("Retrieving sound cloud id");
                 try {
                     String clientId = findIdFromScript(findScriptUrl(proxy), proxy);
-                    if (clientId == null)
+                    if (clientId == null) {
                         throw new IOException("Failed to find client id from soundcloud script");
+                    }
 
                     return clientId;
                 } catch (Throwable e) {

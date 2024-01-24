@@ -22,8 +22,9 @@ public class ChannelMixin {
 
     @Inject(method = "stop", at = @At("HEAD"))
     public void stop(CallbackInfo ci) {
-        if (!this.loaded.get())
+        if (!this.loaded.get()) {
             this.stopped.set(true);
+        }
     }
 
     @Inject(method = "play", at = @At("HEAD"), cancellable = true)
@@ -36,8 +37,9 @@ public class ChannelMixin {
 
     @Inject(method = "stopped", at = @At("TAIL"), cancellable = true)
     public void stopped(CallbackInfoReturnable<Boolean> cir) {
-        if (!cir.getReturnValue() && this.stopped.get())
+        if (!cir.getReturnValue() && this.stopped.get()) {
             cir.setReturnValue(true);
+        }
     }
 
     @Inject(method = "attachStaticBuffer", at = @At("HEAD"))

@@ -112,6 +112,6 @@ public class Mp3InputStream extends InputStream {
     }
 
     public AudioFormat getFormat() {
-        return format;
+        return this.format;
     }
 }

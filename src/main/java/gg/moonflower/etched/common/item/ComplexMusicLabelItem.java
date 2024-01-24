@@ -20,8 +20,9 @@ public class ComplexMusicLabelItem extends SimpleMusicLabelItem {
     }
 
     public static void setColor(ItemStack stack, int primary, int secondary) {
-        if (!(stack.getItem() instanceof ComplexMusicLabelItem))
+        if (!(stack.getItem() instanceof ComplexMusicLabelItem)) {
             return;
+        }
 
         CompoundTag tag = stack.getOrCreateTagElement("Label");
         tag.putInt("PrimaryColor", primary);

@@ -41,8 +41,9 @@ public class BoomboxContainer implements Container {
 
     @Override
     public ItemStack getItem(int index) {
-        if (index < 0 || index >= this.keys.size())
+        if (index < 0 || index >= this.keys.size()) {
             return ItemStack.EMPTY;
+        }
         return this.keys.get(index);
     }
 
@@ -62,8 +63,9 @@ public class BoomboxContainer implements Container {
 
     @Override
     public void setItem(int index, ItemStack stack) {
-        if (index < 0 || index >= this.keys.size())
+        if (index < 0 || index >= this.keys.size()) {
             return;
+        }
         this.keys.set(index, stack);
         this.update();
     }

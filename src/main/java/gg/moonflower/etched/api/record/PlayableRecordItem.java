@@ -5,7 +5,6 @@ import gg.moonflower.etched.core.Etched;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
@@ -69,21 +68,11 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
         this.getAlbum(stack).ifPresent(track -> {
-            list.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-//            Component brand = SoundSourceManager.getBrandText(track.getUrl())
-//                    .map(component -> Component.literal("  ").append(component.copy()))
-//                    .<Component>map(component -> this.getTrackCount(stack) > 1 ? component.append(" ").append(ALBUM) : component)
-//                    .orElse(this.getTrackCount(stack) > 1 ? ALBUM : Component.empty());
-
             boolean album = this.getTrackCount(stack) > 1;
+            list.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
             Component brand = SoundSourceManager.getBrandText(track.getUrl())
-                    .<Component>map(component -> {
-                        MutableComponent append = Component.literal("  ").append(component.copy());
-                        if (album) {
-                            append.append(" ").append(ALBUM);
-                        }
-                        return append;
-                    })
+                    .map(component -> Component.literal("  ").append(component.copy()))
+                    .<Component>map(component -> album ? component.append(" ").append(ALBUM) : component)
                     .orElse(album ? ALBUM : Component.empty());
             list.add(brand);
         });
@@ -91,6 +80,6 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
 
     @Override
     public CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
-        return CompletableFuture.completedFuture(AlbumCover.EMPTY);//this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY));
+        return this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY));
     }
 }

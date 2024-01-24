@@ -44,8 +44,9 @@ public class EtchingTableBlock extends Block {
 
     @Override
     public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
-        if (level.isClientSide())
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
+        }
         player.openMenu(blockState.getMenuProvider(level, blockPos));
         // TODO: stats
         return InteractionResult.CONSUME;

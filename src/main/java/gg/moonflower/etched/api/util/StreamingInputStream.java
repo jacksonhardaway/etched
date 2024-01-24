@@ -52,10 +52,12 @@ public class StreamingInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        if (this.index == -1)
+        if (this.index == -1) {
             throw new IOException("EOF");
-        if (this.position >= this.urls.length)
+        }
+        if (this.position >= this.urls.length) {
             return -1;
+        }
 
         InputStream currentStream = this.getCurrentStream();
         int result = currentStream.read();
@@ -69,10 +71,12 @@ public class StreamingInputStream extends InputStream {
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        if (this.index == -1)
+        if (this.index == -1) {
             return -1;
-        if (this.position >= this.urls.length)
+        }
+        if (this.position >= this.urls.length) {
             return -1;
+        }
 
         InputStream currentStream = this.getCurrentStream();
         int result = currentStream.read(b, off, len);
@@ -87,10 +91,12 @@ public class StreamingInputStream extends InputStream {
 
     @Override
     public long skip(long n) throws IOException {
-        if (this.index == -1)
+        if (this.index == -1) {
             throw new IOException("EOF");
-        if (this.position >= this.urls.length)
+        }
+        if (this.position >= this.urls.length) {
             return 0;
+        }
 
         InputStream currentStream = this.getCurrentStream();
         long result = currentStream.skip(n);

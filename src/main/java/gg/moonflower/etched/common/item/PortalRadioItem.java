@@ -26,9 +26,9 @@ public class PortalRadioItem extends BlockItem {
         return this.canPlace(context, blockState) ? blockState : null;
     }
 
-//    @Override
-//    public void registerBlocks(Map<Block, Item> map, Item item) {
-//    }
+    @Override
+    public void registerBlocks(Map<Block, Item> map, Item item) {
+    }
 
     @Override
     public String getDescriptionId() {

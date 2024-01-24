@@ -29,8 +29,9 @@ public class AccumulatingDownloadProgressListener implements DownloadProgressLis
     @Override
     public void progressStartDownload(float size) {
         this.sizesReceived++;
-        if (this.sizesReceived >= this.count)
+        if (this.sizesReceived >= this.count) {
             this.parent.progressStartDownload(size);
+        }
     }
 
     @Override
@@ -39,17 +40,20 @@ public class AccumulatingDownloadProgressListener implements DownloadProgressLis
 
     @Override
     public void progressStartLoading() {
-        if (this.sizesReceived >= this.count)
+        if (this.sizesReceived >= this.count) {
             this.parent.progressStartLoading();
+        }
     }
 
     @Override
     public void onSuccess() {
         this.success++;
-        if (this.sizesReceived >= this.count)
+        if (this.sizesReceived >= this.count) {
             this.parent.progressStage((float) this.success / (float) this.sizesReceived);
-        if (this.success >= this.count)
+        }
+        if (this.success >= this.count) {
             this.parent.onSuccess();
+        }
     }
 
     @Override

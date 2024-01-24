@@ -21,8 +21,9 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
 
     @Override
     public void beginning() throws IOException {
-        if (this.position > this.header.length)
+        if (this.position > this.header.length) {
             throw new IOException("Stream has already passed header (position: " + this.position + ", length: " + this.header.length + "). Can no longer go to beginning");
+        }
         this.position = 0;
     }
 
@@ -43,8 +44,9 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
             int readLength = Math.min(this.header.length - this.position, len);
             System.arraycopy(this.header, this.position, b, off, readLength);
             this.position += readLength;
-            if (len == readLength)
+            if (len == readLength) {
                 return readLength;
+            }
 
             int read = this.source.read(b, off + readLength, len - readLength);
             if (read != -1) {
@@ -55,8 +57,9 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
         }
 
         int read = this.source.read(b, off, len);
-        if (read != -1)
+        if (read != -1) {
             this.position += read;
+        }
         return read;
     }
 
@@ -64,15 +67,16 @@ public class HeaderInputStream extends InputStream implements SeekingStream {
     public long skip(long n) throws IOException {
         if (this.position < this.header.length) {
             long skipLength = Math.min(this.header.length - this.position, n);
-            this.position += skipLength;
-            if (n == skipLength)
+            this.position += (int) skipLength;
+            if (n == skipLength) {
                 return skipLength;
+            }
 
             return this.source.skip(n - skipLength) + skipLength;
         }
 
         long skipped = this.source.skip(n);
-        this.position += skipped;
+        this.position += (int) skipped;
         return this.source.skip(n);
     }
 

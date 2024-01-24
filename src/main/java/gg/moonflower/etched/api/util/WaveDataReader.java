@@ -67,7 +67,9 @@ public class WaveDataReader {
                     // else not 'fmt', skip this chunk
                     length = rllong(dis);
                     nread += 4;
-                    if (length % 2 > 0) length++;
+                    if (length % 2 > 0) {
+                        length++;
+                    }
                     nread += dis.skipBytes(length);
                 }
             } catch (EOFException eof) {
@@ -89,13 +91,13 @@ public class WaveDataReader {
         wav_type = rlshort(dis);
         nread += 2;
 
-        if (wav_type == WAVE_FORMAT_PCM)
+        if (wav_type == WAVE_FORMAT_PCM) {
             encoding = AudioFormat.Encoding.PCM_SIGNED;  // if 8-bit, we need PCM_UNSIGNED, below...
-        else if (wav_type == WAVE_FORMAT_ALAW)
+        } else if (wav_type == WAVE_FORMAT_ALAW) {
             encoding = AudioFormat.Encoding.ALAW;
-        else if (wav_type == WAVE_FORMAT_MULAW)
+        } else if (wav_type == WAVE_FORMAT_MULAW) {
             encoding = AudioFormat.Encoding.ULAW;
-        else {
+        } else {
             // we don't support any other WAVE formats....
             throw new UnsupportedAudioFileException("Not a supported WAV file");
         }
@@ -126,8 +128,9 @@ public class WaveDataReader {
         }
 
         // if sampleSizeInBits==8, we need to use PCM_UNSIGNED
-        if ((sampleSizeInBits == 8) && encoding.equals(AudioFormat.Encoding.PCM_SIGNED))
+        if ((sampleSizeInBits == 8) && encoding.equals(AudioFormat.Encoding.PCM_SIGNED)) {
             encoding = AudioFormat.Encoding.PCM_UNSIGNED;
+        }
 
         // skip any difference between the length of the format chunk
         // and what we read
@@ -138,8 +141,9 @@ public class WaveDataReader {
 
         // $$jb: 07.28.99: endLength>nread, not length>nread.
         //       This fixes #4257986
-        if (endLength > nread)
+        if (endLength > nread) {
             dis.skipBytes(endLength - nread);
+        }
 
         // we have a format now, so find the "data" chunk
         // we break out of this loop either by hitting EOF or finding "data"
@@ -156,7 +160,9 @@ public class WaveDataReader {
                     // else not 'data', skip this chunk
                     int thisLength = rllong(dis);
                     nread += 4;
-                    if (thisLength % 2 > 0) thisLength++;
+                    if (thisLength % 2 > 0) {
+                        thisLength++;
+                    }
                     nread += dis.skipBytes(thisLength);
                 }
             } catch (EOFException eof) {

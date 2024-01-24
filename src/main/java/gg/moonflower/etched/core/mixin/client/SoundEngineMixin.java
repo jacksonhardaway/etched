@@ -1,7 +1,6 @@
 package gg.moonflower.etched.core.mixin.client;
 
 import gg.moonflower.etched.api.sound.SoundStopListener;
-import gg.moonflower.etched.api.sound.WrappedSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.ChannelAccess;
 import net.minecraft.client.sounds.SoundEngine;

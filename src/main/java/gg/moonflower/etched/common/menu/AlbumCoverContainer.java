@@ -27,8 +27,9 @@ public class AlbumCoverContainer implements Container {
         this.records = NonNullList.withSize(AlbumCoverItem.MAX_RECORDS, ItemStack.EMPTY);
 
         List<ItemStack> keys = AlbumCoverItem.getRecords(this.albumCover);
-        for (int i = 0; i < keys.size(); i++)
+        for (int i = 0; i < keys.size(); i++) {
             this.records.set(i, keys.get(i));
+        }
     }
 
     private void update() {
@@ -47,8 +48,9 @@ public class AlbumCoverContainer implements Container {
 
     @Override
     public ItemStack getItem(int index) {
-        if (index < 0 || index >= this.records.size())
+        if (index < 0 || index >= this.records.size()) {
             return ItemStack.EMPTY;
+        }
         return this.records.get(index);
     }
 
@@ -68,8 +70,9 @@ public class AlbumCoverContainer implements Container {
 
     @Override
     public void setItem(int index, ItemStack stack) {
-        if (index < 0 || index >= this.records.size())
+        if (index < 0 || index >= this.records.size()) {
             return;
+        }
         this.records.set(index, stack);
         this.update();
     }

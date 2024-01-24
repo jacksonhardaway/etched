@@ -3,6 +3,6 @@
   "textures": {
     "layer0": "etched:item/etched_music_disc",
     "layer1": "etched:item/cross_label_top",
-	"layer2": "etched:item/cross_label_bottom"
+    "layer2": "etched:item/cross_label_bottom"
   }
 }

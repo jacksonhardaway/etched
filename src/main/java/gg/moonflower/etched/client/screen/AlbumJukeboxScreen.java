@@ -47,11 +47,10 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
         }
 
         BlockEntity blockEntity = level.getBlockEntity(this.menu.getPos());
-        if (!(blockEntity instanceof AlbumJukeboxBlockEntity) || !((AlbumJukeboxBlockEntity) blockEntity).isPlaying()) {
+        if (!(blockEntity instanceof AlbumJukeboxBlockEntity albumJukebox) || !((AlbumJukeboxBlockEntity) blockEntity).isPlaying()) {
             return;
         }
 
-        AlbumJukeboxBlockEntity albumJukebox = (AlbumJukeboxBlockEntity) blockEntity;
         int oldIndex = albumJukebox.getPlayingIndex();
         int oldTrack = albumJukebox.getTrack();
         if (next) {

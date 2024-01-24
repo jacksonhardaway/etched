@@ -176,11 +176,10 @@ public class RadioBlock extends BaseEntityBlock {
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof RadioBlockEntity)) {
+        if (!(blockEntity instanceof RadioBlockEntity radio)) {
             return;
         }
 
-        RadioBlockEntity radio = ((RadioBlockEntity) blockEntity);
         if (radio.getUrl() == null) {
             return;
         }

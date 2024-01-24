@@ -34,20 +34,23 @@ public final class M3uParser {
     public static List<URL> parse(InputStreamReader reader) throws IOException {
         Iterator<String> filtered = IOUtils.readLines(reader).stream().filter(line -> !line.isEmpty()).map(String::trim).iterator();
 
-        if (!filtered.hasNext())
+        if (!filtered.hasNext()) {
             return Collections.emptyList();
+        }
 
         List<URL> entries = new LinkedList<>();
 
         String currentLine;
         while (filtered.hasNext()) {
             currentLine = filtered.next();
-            if (currentLine.equals(EXTENDED_HEADER) || INFO_PATTERN.matcher(currentLine).matches())
+            if (currentLine.equals(EXTENDED_HEADER) || INFO_PATTERN.matcher(currentLine).matches()) {
                 continue;
+            }
 
             while (currentLine.startsWith("#")) {
-                if (!filtered.hasNext())
+                if (!filtered.hasNext()) {
                     return entries;
+                }
                 currentLine = filtered.next();
             }
 

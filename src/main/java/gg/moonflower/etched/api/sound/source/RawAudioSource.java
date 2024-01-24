@@ -29,8 +29,9 @@ public class RawAudioSource implements AudioSource {
 
     @Override
     public CompletableFuture<InputStream> openStream() {
-        if (this.stream != null)
+        if (this.stream != null) {
             return this.stream;
+        }
         return this.stream = this.locationFuture.thenApplyAsync(stream -> {
             try {
                 return stream.get();

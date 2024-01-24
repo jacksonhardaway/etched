@@ -65,7 +65,7 @@ public class EtchedMusicDiscItem extends PlayableRecordItem {
     public Optional<TrackData> getAlbum(ItemStack stack) {
         CompoundTag nbt = stack.getTag();
         if (nbt == null || !nbt.contains("Album", Tag.TAG_COMPOUND) && !nbt.contains("Music", Tag.TAG_LIST)) {
-            return getMusic(stack).filter(data -> data.length > 0).map(data -> data[0]);
+            return this.getMusic(stack).filter(data -> data.length > 0).map(data -> data[0]);
         }
         return TrackData.isValid(nbt.getCompound("Album")) ? TrackData.CODEC.parse(NbtOps.INSTANCE, nbt.getCompound("Album")).result() : Optional.empty();
     }
@@ -267,14 +267,14 @@ public class EtchedMusicDiscItem extends PlayableRecordItem {
          * @return A pair of {@link ResourceLocation} for a top and bottom texture. If the pattern is simple, both locations are the same.
          */
         public Pair<ResourceLocation, ResourceLocation> getTextures() {
-            return textures;
+            return this.textures;
         }
 
         /**
          * @return Whether the label pattern supports two colors.
          */
         public boolean isSimple() {
-            return simple;
+            return this.simple;
         }
 
         /**

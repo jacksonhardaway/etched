@@ -38,8 +38,9 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
 
     @Override
     public void tick() {
-        if (this.entity == null)
+        if (this.entity == null) {
             return;
+        }
 
         if (!this.entity.isAlive()) {
             this.stopped = true;

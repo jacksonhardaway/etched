@@ -22,8 +22,9 @@ public class ProgressTrackingInputStream extends InputStream {
         this.parent = parent;
         this.size = size;
         this.listener = listener;
-        if (this.listener != null)
+        if (this.listener != null) {
             this.listener.progressStartDownload(size / 1024.0F / 1024.0F);
+        }
     }
 
     @Override
@@ -31,8 +32,9 @@ public class ProgressTrackingInputStream extends InputStream {
         int result = this.parent.read();
         if (result != -1) {
             this.read++;
-            if (this.listener != null)
+            if (this.listener != null) {
                 this.listener.progressStage((float) this.read / (float) this.size);
+            }
         }
         return result;
     }
@@ -42,8 +44,9 @@ public class ProgressTrackingInputStream extends InputStream {
         int read = this.parent.read(b, off, len);
         if (read != -1) {
             this.read += read;
-            if (this.listener != null)
+            if (this.listener != null) {
                 this.listener.progressStage((float) this.read / (float) this.size);
+            }
         }
         return read;
     }
@@ -74,6 +77,6 @@ public class ProgressTrackingInputStream extends InputStream {
     }
 
     public int getRead() {
-        return read;
+        return this.read;
     }
 }

@@ -50,8 +50,9 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, AlbumJukeboxBlockEntity entity) {
-        if (level == null || !level.isClientSide())
+        if (level == null || !level.isClientSide()) {
             return;
+        }
 
         if (!entity.loaded) {
             entity.loaded = true;
@@ -84,8 +85,9 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     private void updatePlaying() {
-        if (this.level == null)
+        if (this.level == null) {
             return;
+        }
         this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
     }
 
@@ -93,18 +95,21 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     public void load(CompoundTag nbt) {
         super.load(nbt);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(nbt))
+        if (!this.tryLoadLootTable(nbt)) {
             ContainerHelper.loadAllItems(nbt, this.items);
-        if (this.loaded)
+        }
+        if (this.loaded) {
             SoundTracker.playAlbum(this, this.getBlockState(), (ClientLevel) this.level, this.getBlockPos(), false);
+        }
     }
 
     @Override
     public void saveAdditional(CompoundTag nbt) {
         super.saveAdditional(nbt);
 
-        if (!this.trySaveLootTable(nbt))
+        if (!this.trySaveLootTable(nbt)) {
             ContainerHelper.saveAllItems(nbt, this.items);
+        }
     }
 
     @Override
@@ -142,8 +147,9 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     public ItemStack removeItem(int index, int amount) {
         ItemStack stack = super.removeItem(index, amount);
         this.updateState();
-        if (!stack.isEmpty())
+        if (!stack.isEmpty()) {
             this.updatePlaying();
+        }
         return stack;
     }
 
@@ -151,8 +157,9 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     public ItemStack removeItemNoUpdate(int index) {
         ItemStack stack = super.removeItemNoUpdate(index);
         this.updateState();
-        if (!stack.isEmpty())
+        if (!stack.isEmpty()) {
             this.updatePlaying();
+        }
         return stack;
     }
 
@@ -196,11 +203,11 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     }
 
     public int getPlayingIndex() {
-        return playingIndex;
+        return this.playingIndex;
     }
 
     public int getTrack() {
-        return track;
+        return this.track;
     }
 
     /**
@@ -216,8 +223,9 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
 
         if (this.recalculatePlayingIndex(false)) {
             int tracks = PlayableRecord.getStackTrackCount(this.playingStack);
-            if (this.track >= tracks)
+            if (this.track >= tracks) {
                 this.track = 0;
+            }
             return true;
         }
 
@@ -241,8 +249,9 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
             this.track--;
         } else {
             this.playingIndex--;
-            if (this.playingIndex < 0)
+            if (this.playingIndex < 0) {
                 this.playingIndex = this.getContainerSize() - 1;
+            }
             this.nextPlayingIndex(true);
             this.track = Math.max(0, this.playingIndex < 0 || this.playingIndex >= this.getContainerSize() ? 0 : PlayableRecord.getStackTrackCount(this.getItem(this.playingIndex)) - 1);
             this.playingStack = ItemStack.EMPTY;
@@ -308,8 +317,9 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
      */
     public boolean recalculatePlayingIndex(boolean reverse) {
         if (this.isEmpty()) {
-            if (this.playingIndex == -1)
+            if (this.playingIndex == -1) {
                 return false;
+            }
             this.playingIndex = -1;
             this.track = 0;
             return true;

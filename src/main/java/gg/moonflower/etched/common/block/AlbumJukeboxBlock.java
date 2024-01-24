@@ -31,7 +31,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.Random;
 
 /**
  * @author Ocelot
@@ -49,12 +48,14 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     @Override
     public InteractionResult use(BlockState blockState, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
-        if (level.isClientSide())
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
+        }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof AlbumJukeboxBlockEntity)
+        if (blockEntity instanceof AlbumJukeboxBlockEntity) {
             player.openMenu((AlbumJukeboxBlockEntity) blockEntity);
+        }
         // TODO: stats
         return InteractionResult.CONSUME;
     }
@@ -80,8 +81,9 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
         if (!state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof Container) {
-                if (!((Container) blockEntity).isEmpty())
+                if (!((Container) blockEntity).isEmpty()) {
                     level.levelEvent(1010, pos, 0);
+                }
                 Containers.dropContents(level, pos, (Container) blockEntity);
                 level.updateNeighbourForOutputSignal(pos, this);
             }
@@ -128,21 +130,24 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (!Etched.CLIENT_CONFIG.showNotes.get() || !level.getBlockState(pos.above()).isAir())
+        if (!Etched.CLIENT_CONFIG.showNotes.get() || !level.getBlockState(pos.above()).isAir()) {
             return;
+        }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof AlbumJukeboxBlockEntity))
+        if (!(blockEntity instanceof AlbumJukeboxBlockEntity jukebox)) {
             return;
+        }
 
-        AlbumJukeboxBlockEntity jukebox = ((AlbumJukeboxBlockEntity) blockEntity);
-        if (jukebox.getPlayingIndex() <= -1)
+        if (jukebox.getPlayingIndex() <= -1) {
             return;
+        }
 
         Minecraft minecraft = Minecraft.getInstance();
         Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingRecords();
-        if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos)))
+        if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos))) {
             level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 1.2D, pos.getZ() + 0.5D, random.nextInt(25) / 24D, 0, 0);
+        }
     }
 
     @Override

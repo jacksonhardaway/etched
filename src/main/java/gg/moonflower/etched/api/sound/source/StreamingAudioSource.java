@@ -31,8 +31,9 @@ public class StreamingAudioSource implements AudioSource {
     public StreamingAudioSource(String hash, URL[] urls, @Nullable DownloadProgressListener progressListener, boolean temporary, AudioFileType type) throws IOException {
         this.type = type;
         this.locations = new Path[urls.length];
-        for (int i = 0; i < urls.length; i++)
+        for (int i = 0; i < urls.length; i++) {
             this.locations[i] = SoundCache.resolveFilePath(DigestUtils.sha1Hex(hash + i), temporary);
+        }
         this.urls = urls;
         int files = Math.min(urls.length, 3);
         DownloadProgressListener accumulatingListener = progressListener != null ? new AccumulatingDownloadProgressListener(progressListener, files) : null;
@@ -41,8 +42,9 @@ public class StreamingAudioSource implements AudioSource {
 
     @Override
     public CompletableFuture<InputStream> openStream() {
-        if (this.stream != null)
+        if (this.stream != null) {
             return this.stream;
+        }
         return this.stream = this.downloadFuture.thenApplyAsync(__ -> {
             try {
                 return new StreamingInputStream(this.urls, i -> CompletableFuture.supplyAsync(() -> AudioSource.downloadTo(this.locations[i], this.urls[i], null, this.type), HttpUtil.DOWNLOAD_EXECUTOR).thenApplyAsync(stream -> {

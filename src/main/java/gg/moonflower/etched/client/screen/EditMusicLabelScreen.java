@@ -121,8 +121,8 @@ public class EditMusicLabelScreen extends Screen {
         int topPos = (this.height - this.imageHeight) / 2;
 
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
-        graphics.drawString(this.font, TITLE_COMPONENT, leftPos + 7, topPos + 77, 4210752);
-        graphics.drawString(this.font, AUTHOR_COMPONENT, leftPos + 7, topPos + 77 + 30, 4210752);
+        graphics.drawString(this.font, TITLE_COMPONENT, leftPos + 7, topPos + 77, 4210752, false);
+        graphics.drawString(this.font, AUTHOR_COMPONENT, leftPos + 7, topPos + 77 + 30, 4210752, false);
 
         int primaryLabelColor = 0xFFFFFF;
         int secondaryLabelColor = primaryLabelColor;

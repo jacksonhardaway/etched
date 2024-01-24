@@ -30,8 +30,7 @@ public class HumanoidModelMixin<T extends LivingEntity> {
 
     @Inject(method = "poseRightArm", at = @At("HEAD"), cancellable = true)
     public void poseRightArm(T livingEntity, CallbackInfo ci) {
-        if (livingEntity instanceof Player) {
-            Player player = (Player) livingEntity;
+        if (livingEntity instanceof Player player) {
             InteractionHand playingHand = BoomboxItem.getPlayingHand(livingEntity);
             if ((livingEntity.getMainArm() == HumanoidArm.RIGHT && playingHand == InteractionHand.MAIN_HAND) ||
                     (livingEntity.getMainArm() == HumanoidArm.LEFT && playingHand == InteractionHand.OFF_HAND)) {
@@ -45,8 +44,7 @@ public class HumanoidModelMixin<T extends LivingEntity> {
 
     @Inject(method = "poseLeftArm", at = @At("HEAD"), cancellable = true)
     public void poseLeftArm(T livingEntity, CallbackInfo ci) {
-        if (livingEntity instanceof Player) {
-            Player player = (Player) livingEntity;
+        if (livingEntity instanceof Player player) {
             InteractionHand playingHand = BoomboxItem.getPlayingHand(livingEntity);
             if ((livingEntity.getMainArm() == HumanoidArm.LEFT && playingHand == InteractionHand.MAIN_HAND) ||
                     (livingEntity.getMainArm() == HumanoidArm.RIGHT && playingHand == InteractionHand.OFF_HAND)) {
@@ -63,8 +61,9 @@ public class HumanoidModelMixin<T extends LivingEntity> {
         InteractionHand playingHand = BoomboxItem.getPlayingHand(livingEntity);
         boolean leftArm = ((livingEntity.getMainArm() == HumanoidArm.LEFT && playingHand == InteractionHand.MAIN_HAND) || (livingEntity.getMainArm() == HumanoidArm.RIGHT && playingHand == InteractionHand.OFF_HAND)) && arm == HumanoidArm.LEFT;
         boolean rightArm = ((livingEntity.getMainArm() == HumanoidArm.RIGHT && playingHand == InteractionHand.MAIN_HAND) || (livingEntity.getMainArm() == HumanoidArm.LEFT && playingHand == InteractionHand.OFF_HAND)) && arm == HumanoidArm.RIGHT;
-        if (leftArm || rightArm)
+        if (leftArm || rightArm) {
             ci.cancel();
+        }
     }
 
 }

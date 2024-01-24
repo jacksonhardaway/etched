@@ -1,4 +1,3 @@
-
 package gg.moonflower.etched.client.render.item;
 
 import com.mojang.blaze3d.platform.NativeImage;

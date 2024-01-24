@@ -84,6 +84,7 @@ processResources {
 
 shadowJar {
     configurations = [project.configurations.shadowCommon]
+    relocate "javazoom", "gg.moonflower.etched.javazoom"
     archiveClassifier = "dev-shadow"
 }
 

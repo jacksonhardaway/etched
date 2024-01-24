@@ -1,9 +1,9 @@
 package gg.moonflower.etched.api.sound.download;
 
 import com.google.gson.JsonParseException;
-import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.core.Etched;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;

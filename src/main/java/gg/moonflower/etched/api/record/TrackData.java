@@ -26,8 +26,9 @@ public class TrackData {
             Codec.STRING.fieldOf("Url").forGetter(TrackData::getUrl),
             Codec.STRING.optionalFieldOf("Author", EMPTY.getArtist()).forGetter(TrackData::getArtist),
             Codec.STRING.optionalFieldOf("Title", Component.Serializer.toJson(EMPTY.getTitle())).<Component>xmap(json -> {
-                if (!json.startsWith("{"))
+                if (!json.startsWith("{")) {
                     return Component.literal(json);
+                }
                 try {
                     return Component.Serializer.fromJson(json);
                 } catch (JsonParseException e) {
@@ -59,10 +60,12 @@ public class TrackData {
      * @return Whether the data is valid
      */
     public static boolean isValidURL(@Nullable String url) {
-        if (url == null)
+        if (url == null) {
             return false;
-        if (isLocalSound(url))
+        }
+        if (isLocalSound(url)) {
             return true;
+        }
         try {
             String scheme = new URI(url).getScheme();
             return "http".equals(scheme) || "https".equals(scheme);
@@ -78,24 +81,31 @@ public class TrackData {
      * @return Whether that sound can be played as a local sound event
      */
     public static boolean isLocalSound(@Nullable String url) {
-        if (url == null)
+        if (url == null) {
             return false;
+        }
         String[] parts = url.split(":");
-        if (parts.length > 2)
+        if (parts.length > 2) {
             return false;
-        for (String part : parts)
-            if (!RESOURCE_LOCATION_PATTERN.matcher(part).matches())
+        }
+        for (String part : parts) {
+            if (!RESOURCE_LOCATION_PATTERN.matcher(part).matches()) {
                 return false;
+            }
+        }
         return true;
     }
 
     public CompoundTag save(CompoundTag nbt) {
-        if (this.url != null)
+        if (this.url != null) {
             nbt.putString("Url", this.url);
-        if (this.title != null)
+        }
+        if (this.title != null) {
             nbt.putString("Title", Component.Serializer.toJson(this.title));
-        if (this.artist != null)
+        }
+        if (this.artist != null) {
             nbt.putString("Author", this.artist);
+        }
         return nbt;
     }
 
@@ -103,21 +113,21 @@ public class TrackData {
      * @return The URL for the track
      */
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     /**
      * @return The name of the artist
      */
     public String getArtist() {
-        return artist;
+        return this.artist;
     }
 
     /**
      * @return The title of the track
      */
     public Component getTitle() {
-        return title;
+        return this.title;
     }
 
     public TrackData withUrl(String url) {

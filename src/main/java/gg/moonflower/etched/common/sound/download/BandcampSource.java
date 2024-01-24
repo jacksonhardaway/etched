@@ -37,8 +37,9 @@ public class BandcampSource implements SoundDownloadSource {
 
     private InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
         HttpURLConnection httpURLConnection;
-        if (progressListener != null)
+        if (progressListener != null) {
             progressListener.progressStartRequest(Component.translatable("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
+        }
 
         try {
             URL uRL = new URL(url);
@@ -46,13 +47,15 @@ public class BandcampSource implements SoundDownloadSource {
             httpURLConnection.setInstanceFollowRedirects(true);
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
-            for (Map.Entry<String, String> entry : map.entrySet())
+            for (Map.Entry<String, String> entry : map.entrySet()) {
                 httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
+            }
 
             long size = httpURLConnection.getContentLengthLong();
             int response = httpURLConnection.getResponseCode();
-            if (response != 200)
+            if (response != 200) {
                 throw new IOException(response + " " + httpURLConnection.getResponseMessage());
+            }
 
             return size != -1 && progressListener != null ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
         } catch (IOException e) {
@@ -63,16 +66,18 @@ public class BandcampSource implements SoundDownloadSource {
     }
 
     private <T> T resolve(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, SourceRequest<T> function) throws IOException, JsonParseException {
-        try (InputStream stream = get(url, progressListener, proxy)) {
+        try (InputStream stream = this.get(url, progressListener, proxy)) {
             Matcher dataMatcher = DATA_PATTERN.matcher(IOUtils.toString(stream, StandardCharsets.UTF_8));
             String raw = dataMatcher.find() ? dataMatcher.group(1) : null;
-            if (raw == null)
+            if (raw == null) {
                 throw new IOException("Failed to find properties");
+            }
 
             JsonObject json = new JsonParser().parse(StringEscapeUtils.unescapeHtml4(raw)).getAsJsonObject();
             String type = GsonHelper.getAsString(GsonHelper.getAsJsonObject(json, "current"), "type");
-            if (!"track".equals(type) && !"album".equals(type))
+            if (!"track".equals(type) && !"album".equals(type)) {
                 throw new IOException("URL is not a track or album");
+            }
 
             return function.process(json);
         }
@@ -80,24 +85,27 @@ public class BandcampSource implements SoundDownloadSource {
 
     @Nullable
     private String getTrackUrl(JsonObject fileJson) {
-        if (fileJson.has("mp3-128"))
+        if (fileJson.has("mp3-128")) {
             return GsonHelper.getAsString(fileJson, "mp3-128");
+        }
         return null;
     }
 
     @Override
     public List<URL> resolveUrl(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException {
-        return resolve(url, progressListener, proxy, json -> {
-            if (progressListener != null)
+        return this.resolve(url, progressListener, proxy, json -> {
+            if (progressListener != null) {
                 progressListener.progressStartRequest(RESOLVING_TRACKS);
+            }
             JsonArray trackInfoArray = GsonHelper.getAsJsonArray(json, "trackinfo");
             List<URL> trackUrls = new ArrayList<>(trackInfoArray.size());
             for (int i = 0; i < trackInfoArray.size(); i++) {
                 JsonObject trackInfoJson = GsonHelper.convertToJsonObject(trackInfoArray.get(i), "trackinfo[" + i + "]");
                 JsonObject fileJson = GsonHelper.getAsJsonObject(trackInfoJson, "file");
                 String trackUrl = this.getTrackUrl(fileJson);
-                if (trackUrl != null)
+                if (trackUrl != null) {
                     trackUrls.add(new URL(trackUrl));
+                }
             }
             return trackUrls;
         });
@@ -107,8 +115,9 @@ public class BandcampSource implements SoundDownloadSource {
     public TrackData[] resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
         return this.resolve(url, progressListener, proxy, json -> {
             int urlEnd = url.indexOf(".com/");
-            if (urlEnd == -1)
+            if (urlEnd == -1) {
                 urlEnd = url.length() - 4;
+            }
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
             String artist = StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(json, "artist"));
             String title = StringEscapeUtils.unescapeHtml4(GsonHelper.getAsString(current, "title"));
@@ -135,8 +144,9 @@ public class BandcampSource implements SoundDownloadSource {
     public Optional<String> resolveAlbumCover(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, ResourceManager resourceManager) throws IOException {
         return this.resolve(url, progressListener, proxy, json -> {
             JsonObject current = GsonHelper.getAsJsonObject(json, "current");
-            if (!current.has("art_id") || current.get("art_id").isJsonNull())
+            if (!current.has("art_id") || current.get("art_id").isJsonNull()) {
                 return Optional.empty();
+            }
             return Optional.of("https://f4.bcbits.com/img/a" + current.get("art_id") + "_1.jpg");
         });
     }

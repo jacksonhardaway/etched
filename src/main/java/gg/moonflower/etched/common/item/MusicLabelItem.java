@@ -16,8 +16,9 @@ public class MusicLabelItem extends SimpleMusicLabelItem implements DyeableLeath
     }
 
     public static int getLabelColor(ItemStack stack) {
-        if (stack.getItem() instanceof MusicLabelItem)
+        if (stack.getItem() instanceof MusicLabelItem) {
             return ((MusicLabelItem) stack.getItem()).getColor(stack);
+        }
         return -1;
     }
 }

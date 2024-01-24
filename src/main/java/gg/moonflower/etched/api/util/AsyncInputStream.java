@@ -56,11 +56,14 @@ public class AsyncInputStream extends InputStream {
                     }
 
                     if (!initialWait.isDone() && (this.closed || this.readBytes.size() >= buffers)) // Complete initial wait if enough is read or buffer is closed
+                    {
                         initialWait.complete(null);
+                    }
                 }
             } catch (IOException e) {
-                if (!initialWait.isDone())
+                if (!initialWait.isDone()) {
                     initialWait.completeExceptionally(e);
+                }
                 throw new CompletionException(e);
             }
         }, readExecutor);
@@ -78,15 +81,20 @@ public class AsyncInputStream extends InputStream {
 
     private void appendBuffer(byte[] data) {
         if (this.closed) // If closed, no point in adding new buffers
+        {
             return;
+        }
         this.waitFuture.join();
         if (this.closed) // close() unlocks this thread after closed has been set
+        {
             return;
+        }
         try {
             this.lock.lock();
             this.readBytes.add(data);
-            if (this.readBytes.size() >= this.maxBuffers)
+            if (this.readBytes.size() >= this.maxBuffers) {
                 this.waitFuture = new CompletableFuture<>(); // Enough data has been read, wait until some is read
+            }
         } finally {
             this.lock.unlock();
         }
@@ -99,8 +107,9 @@ public class AsyncInputStream extends InputStream {
         try {
             this.lock.lock();
             this.pointer = 0;
-            if (!this.waitFuture.isDone() && this.readBytes.size() < this.maxBuffers)
+            if (!this.waitFuture.isDone() && this.readBytes.size() < this.maxBuffers) {
                 this.waitFuture.complete(null); // Unlock read thread after enough data is read
+            }
             if (this.readBytes.isEmpty()) {
                 this.currentData = null;
                 return true;
@@ -129,21 +138,24 @@ public class AsyncInputStream extends InputStream {
     @Override
     public int read() throws IOException {
         this.rethrowException();
-        if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer())
+        if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer()) {
             return -1;
+        }
         return this.currentData[this.pointer++] & 0xFF;
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         this.rethrowException();
-        if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer())
+        if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer()) {
             return -1;
+        }
 
         int readCount = 0;
         while (readCount < len) {
-            if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer())
+            if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer()) {
                 return readCount;
+            }
 
             int readSize = Math.min(this.currentData.length - this.pointer, len - readCount);
             System.arraycopy(this.currentData, this.pointer, b, off, readSize);
@@ -156,13 +168,15 @@ public class AsyncInputStream extends InputStream {
 
     @Override
     public long skip(long n) {
-        if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer())
+        if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer()) {
             return 0;
+        }
 
         long result = 0;
         while (result < n) {
-            if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer())
+            if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer()) {
                 return result;
+            }
 
             long readSize = Math.min(this.currentData.length - this.pointer, n - result);
             result += readSize;

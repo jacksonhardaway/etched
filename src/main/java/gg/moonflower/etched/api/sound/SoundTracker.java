@@ -89,8 +89,9 @@ public class SoundTracker {
         if (instance == null) {
             SoundInstance old = ENTITY_PLAYING_SOUNDS.remove(entity);
             if (old != null) {
-                if (old instanceof StopListeningSound)
+                if (old instanceof StopListeningSound) {
                     ((StopListeningSound) old).stopListening();
+                }
                 soundManager.stop(old);
             }
         } else {
@@ -116,8 +117,9 @@ public class SoundTracker {
                 if (!entity.isAlive() || !ENTITY_PLAYING_SOUNDS.containsKey(entity.getId())) {
                     this.clearComponent();
                 } else {
-                    if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ()))
+                    if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ())) {
                         PlayableRecord.showMessage(title);
+                    }
                 }
             }
 
@@ -193,8 +195,9 @@ public class SoundTracker {
 
     public static void playBlockRecord(BlockPos pos, TrackData[] tracks, int track) {
         ClientLevel level = Minecraft.getInstance().level;
-        if (level == null)
+        if (level == null) {
             return;
+        }
 
         if (track >= tracks.length) {
             setRecordPlayingNearby(level, pos, false);
@@ -226,24 +229,28 @@ public class SoundTracker {
      */
     public static void playEntityRecord(ItemStack record, int entityId, int track, int attenuationDistance, boolean loop) {
         ClientLevel level = Minecraft.getInstance().level;
-        if (level == null)
+        if (level == null) {
             return;
+        }
 
         Entity entity = level.getEntity(entityId);
-        if (entity == null)
+        if (entity == null) {
             return;
+        }
 
         Optional<? extends SoundInstance> sound = ((PlayableRecord) record.getItem()).createEntitySound(record, entity, track, attenuationDistance);
         if (sound.isEmpty()) {
-            if (loop && track != 0)
+            if (loop && track != 0) {
                 playEntityRecord(record, entityId, 0, attenuationDistance, true);
+            }
             return;
         }
 
         SoundInstance entitySound = ENTITY_PLAYING_SOUNDS.remove(entity.getId());
         if (entitySound != null) {
-            if (entitySound instanceof StopListeningSound)
+            if (entitySound instanceof StopListeningSound) {
                 ((StopListeningSound) entitySound).stopListening();
+            }
             Minecraft.getInstance().getSoundManager().stop(entitySound);
         }
 
@@ -268,8 +275,9 @@ public class SoundTracker {
      */
     public static void playBoombox(int entityId, ItemStack record) {
         setEntitySound(entityId, null);
-        if (!record.isEmpty())
+        if (!record.isEmpty()) {
             playEntityRecord(record, entityId, 0, 8, true);
+        }
     }
 
     /**
@@ -286,8 +294,9 @@ public class SoundTracker {
 
         SoundInstance soundInstance = playingRecords.get(pos);
         if (soundInstance != null) {
-            if (soundInstance instanceof StopListeningSound)
+            if (soundInstance instanceof StopListeningSound) {
                 ((StopListeningSound) soundInstance).stopListening();
+            }
             soundManager.stop(soundInstance);
             playingRecords.remove(pos);
             setRecordPlayingNearby(level, pos, false);
@@ -323,8 +332,9 @@ public class SoundTracker {
 
         SoundInstance soundInstance = playingRecords.get(pos);
         if (soundInstance != null) {
-            if (soundInstance instanceof StopListeningSound)
+            if (soundInstance instanceof StopListeningSound) {
                 ((StopListeningSound) soundInstance).stopListening();
+            }
             soundManager.stop(soundInstance);
             playingRecords.remove(pos);
             setRecordPlayingNearby(level, pos, false);
@@ -402,9 +412,15 @@ public class SoundTracker {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || this.getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || this.getClass() != o.getClass()) {
+                return false;
+            }
+            if (!super.equals(o)) {
+                return false;
+            }
 
             DownloadTextComponent that = (DownloadTextComponent) o;
             return this.contents.equals(that.contents);
@@ -450,8 +466,9 @@ public class SoundTracker {
         }
 
         private void setComponent(Component text) {
-            if (this.component == null && (Minecraft.getInstance().level == null || !Minecraft.getInstance().level.getBlockState(this.getPos().move(Direction.UP)).isAir() || !PlayableRecord.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble())))
+            if (this.component == null && (Minecraft.getInstance().level == null || !Minecraft.getInstance().level.getBlockState(this.getPos().move(Direction.UP)).isAir() || !PlayableRecord.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))) {
                 return;
+            }
 
             if (this.component == null) {
                 this.component = new DownloadTextComponent();

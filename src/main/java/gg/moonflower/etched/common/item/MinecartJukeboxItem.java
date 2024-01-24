@@ -43,8 +43,9 @@ public class MinecartJukeboxItem extends Item {
                     k = 0.1D;
                 }
             } else {
-                if (!blockState.isAir() || !level.getBlockState(blockPos.below()).is(BlockTags.RAILS))
+                if (!blockState.isAir() || !level.getBlockState(blockPos.below()).is(BlockTags.RAILS)) {
                     return this.defaultDispenseItemBehavior.dispense(source, stack);
+                }
 
                 BlockState blockState2 = level.getBlockState(blockPos.below());
                 RailShape railShape2 = blockState2.getBlock() instanceof BaseRailBlock ? blockState2.getValue(((BaseRailBlock) blockState2.getBlock()).getShapeProperty()) : RailShape.NORTH_SOUTH;
@@ -56,8 +57,9 @@ public class MinecartJukeboxItem extends Item {
             }
 
             MinecartJukebox jukeboxMinecart = new MinecartJukebox(level, d, e + k, f);
-            if (stack.hasCustomHoverName())
+            if (stack.hasCustomHoverName()) {
                 jukeboxMinecart.setCustomName(stack.getHoverName());
+            }
 
             level.addFreshEntity(jukeboxMinecart);
             stack.shrink(1);
@@ -79,19 +81,22 @@ public class MinecartJukeboxItem extends Item {
         Level level = useOnContext.getLevel();
         BlockPos blockPos = useOnContext.getClickedPos();
         BlockState blockState = level.getBlockState(blockPos);
-        if (!blockState.is(BlockTags.RAILS))
+        if (!blockState.is(BlockTags.RAILS)) {
             return InteractionResult.FAIL;
+        }
 
         ItemStack stack = useOnContext.getItemInHand();
         if (!level.isClientSide()) {
             RailShape railShape = blockState.getBlock() instanceof BaseRailBlock ? blockState.getValue(((BaseRailBlock) blockState.getBlock()).getShapeProperty()) : RailShape.NORTH_SOUTH;
             double d = 0.0D;
-            if (railShape.isAscending())
+            if (railShape.isAscending()) {
                 d = 0.5D;
+            }
 
             MinecartJukebox jukeboxMinecart = new MinecartJukebox(level, blockPos.getX() + 0.5D, blockPos.getY() + 0.0625D + d, blockPos.getZ() + 0.5D);
-            if (stack.hasCustomHoverName())
+            if (stack.hasCustomHoverName()) {
                 jukeboxMinecart.setCustomName(stack.getHoverName());
+            }
 
             level.addFreshEntity(jukeboxMinecart);
         }

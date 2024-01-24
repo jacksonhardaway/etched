@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "tag": "minecraft:music_discs"
+  },
+  "result": "etched:blank_music_disc",
+  "experience": 0.2,
+  "cookingtime": 200
+}

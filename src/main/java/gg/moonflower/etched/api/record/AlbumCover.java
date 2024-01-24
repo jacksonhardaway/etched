@@ -1,6 +1,8 @@
 package gg.moonflower.etched.api.record;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import gg.moonflower.etched.client.render.item.ImageAlbumCover;
+import gg.moonflower.etched.client.render.item.ModelAlbumCover;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 

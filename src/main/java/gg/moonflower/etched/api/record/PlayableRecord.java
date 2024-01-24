@@ -1,6 +1,8 @@
 package gg.moonflower.etched.api.record;
 
 import gg.moonflower.etched.api.sound.SoundTracker;
+import gg.moonflower.etched.common.network.EtchedMessages;
+import gg.moonflower.etched.common.network.play.ClientboundPlayEntityMusicPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -10,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.net.Proxy;
 import java.util.Optional;
@@ -63,7 +66,7 @@ public interface PlayableRecord {
      * @param restart Whether to restart the track from the beginning or start a new playback
      */
     static void playEntityRecord(Entity entity, ItemStack record, boolean restart) {
-        EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayEntityMusicPacket(record, entity, restart));
+        EtchedMessages.PLAY.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), new ClientboundPlayEntityMusicPacket(record, entity, restart));
     }
 
     /**
@@ -72,7 +75,7 @@ public interface PlayableRecord {
      * @param entity The entity to stop playing records
      */
     static void stopEntityRecord(Entity entity) {
-        EtchedMessages.PLAY.sendToTracking(entity, new ClientboundPlayEntityMusicPacket(entity));
+        EtchedMessages.PLAY.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), new ClientboundPlayEntityMusicPacket(entity));
     }
 
     /**
@@ -82,8 +85,9 @@ public interface PlayableRecord {
      * @return The tracks on that record
      */
     static Optional<gg.moonflower.etched.api.record.TrackData[]> getStackMusic(ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
+        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord)) {
             return Optional.empty();
+        }
         return ((PlayableRecord) stack.getItem()).getMusic(stack);
     }
 
@@ -94,8 +98,9 @@ public interface PlayableRecord {
      * @return The album track on that record
      */
     static Optional<gg.moonflower.etched.api.record.TrackData> getStackAlbum(ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
+        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord)) {
             return Optional.empty();
+        }
         return ((PlayableRecord) stack.getItem()).getAlbum(stack);
     }
 
@@ -106,8 +111,9 @@ public interface PlayableRecord {
      * @return The number of tracks on the record
      */
     static int getStackTrackCount(ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord))
+        if (stack.isEmpty() || !(stack.getItem() instanceof PlayableRecord)) {
             return 0;
+        }
         return ((PlayableRecord) stack.getItem()).getTrackCount(stack);
     }
 

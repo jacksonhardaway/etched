@@ -1,13 +1,11 @@
 package gg.moonflower.etched.api.record;
 
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
-import gg.moonflower.etched.common.network.EtchedMessages;
-import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
@@ -19,7 +17,10 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.JukeboxBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
@@ -35,24 +36,31 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext ctx) {
-        Level level = ctx.getLevel();
-        BlockPos pos = ctx.getClickedPos();
+    public InteractionResult useOn(UseOnContext context) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
         BlockState state = level.getBlockState(pos);
-        if (!state.is(Blocks.JUKEBOX) || state.getValue(JukeboxBlock.HAS_RECORD))
+        if (!state.is(Blocks.JUKEBOX) || state.getValue(JukeboxBlock.HAS_RECORD)) {
             return InteractionResult.PASS;
+        }
 
-        ItemStack stack = ctx.getItemInHand();
-        if (!this.getMusic(stack).isPresent())
+        ItemStack stack = context.getItemInHand();
+        if (!this.getMusic(stack).isPresent()) {
             return InteractionResult.PASS;
+        }
 
         if (!level.isClientSide()) {
-            ((JukeboxBlock) Blocks.JUKEBOX).setRecord(ctx.getPlayer(), level, pos, state, stack);
-            EtchedMessages.PLAY.sendToNear((ServerLevel) level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64, new ClientboundPlayMusicPacket(stack.copy(), pos));
+            Player player = context.getPlayer();
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof JukeboxBlockEntity jukeboxblockentity) {
+                jukeboxblockentity.setFirstItem(stack.copy());
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            }
+
             stack.shrink(1);
-            Player player = ctx.getPlayer();
-            if (player != null)
+            if (player != null) {
                 player.awardStat(Stats.PLAY_RECORD);
+            }
         }
 
         return InteractionResult.sidedSuccess(level.isClientSide());
@@ -62,16 +70,27 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
         this.getAlbum(stack).ifPresent(track -> {
             list.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
+//            Component brand = SoundSourceManager.getBrandText(track.getUrl())
+//                    .map(component -> Component.literal("  ").append(component.copy()))
+//                    .<Component>map(component -> this.getTrackCount(stack) > 1 ? component.append(" ").append(ALBUM) : component)
+//                    .orElse(this.getTrackCount(stack) > 1 ? ALBUM : Component.empty());
+
+            boolean album = this.getTrackCount(stack) > 1;
             Component brand = SoundSourceManager.getBrandText(track.getUrl())
-                    .map(component -> Component.literal("  ").append(component.copy()))
-                    .<Component>map(component -> getTrackCount(stack) > 1 ? component.append(" ").append(ALBUM) : component)
-                    .orElse(getTrackCount(stack) > 1 ? ALBUM : Component.empty());
+                    .<Component>map(component -> {
+                        MutableComponent append = Component.literal("  ").append(component.copy());
+                        if (album) {
+                            append.append(" ").append(ALBUM);
+                        }
+                        return append;
+                    })
+                    .orElse(album ? ALBUM : Component.empty());
             list.add(brand);
         });
     }
 
     @Override
     public CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
-        return this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY));
+        return CompletableFuture.completedFuture(AlbumCover.EMPTY);//this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY));
     }
 }

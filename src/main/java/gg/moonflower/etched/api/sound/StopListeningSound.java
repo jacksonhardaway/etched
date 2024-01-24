@@ -3,11 +3,15 @@ package gg.moonflower.etched.api.sound;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
+import net.minecraft.client.sounds.AudioStream;
+import net.minecraft.client.sounds.SoundBufferLibrary;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.client.sounds.WeighedSoundEvents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Wrapper for {@link SoundInstance} that respects {@link SoundStopListener}.
@@ -106,8 +110,24 @@ public class StopListeningSound implements SoundInstance, SoundStopListener, Wra
     }
 
     @Override
+    public boolean canStartSilent() {
+        return this.source.canStartSilent();
+    }
+
+    @Override
+    public boolean canPlaySound() {
+        return this.source.canPlaySound();
+    }
+
+    @Override
+    public CompletableFuture<AudioStream> getStream(SoundBufferLibrary soundBuffers, Sound sound, boolean looping) {
+        return this.source.getStream(soundBuffers, sound, looping);
+    }
+
+    @Override
     public void onStop() {
-        if (!this.ignoringEvents)
+        if (!this.ignoringEvents) {
             this.listener.onStop();
+        }
     }
 }

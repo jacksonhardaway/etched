@@ -1,0 +1,32 @@
+{
+  "required": true,
+  "package": "gg.moonflower.etched.core.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "client": [
+    "client.ChannelMixin",
+    "client.ClientLivingEntityMixin",
+    "client.GuiAccessor",
+    "client.GuiMixin",
+    "client.HumanoidModelMixin",
+    "client.ItemRendererMixin",
+    "client.ItemStackMixin",
+    "client.LevelRendererAccessor",
+    "client.ParrotMixin",
+    "client.SoundEngineMixin"
+  ],
+  "mixins": [
+    "JukeboxBlockEntityMixin",
+    "JukeboxBlockMixin",
+    "NoteBlockMixin",
+    "RecordItemMixin",
+    "SoundEventAccessor",
+    "StructureTemplatePoolAccessor",
+    "VillagerGoalPackagesMixin",
+    "grindstone.GrindstoneMenuMixin",
+    "grindstone.GrindstoneMenuRepairSlotMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

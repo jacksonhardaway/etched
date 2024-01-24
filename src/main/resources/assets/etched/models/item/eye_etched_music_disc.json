@@ -1,0 +1,9 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "etched:item/etched_music_disc",
+    "layer1": "etched:item/eye_label_top",
+    "layer2": "etched:item/eye_label_bottom"
+	
+  }
+}

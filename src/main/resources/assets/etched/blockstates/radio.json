@@ -1,0 +1,124 @@
+{
+  "variants": {
+    "rotation=0,portal=false": {
+      "model": "etched:block/radio",
+      "y": 180
+    },
+    "rotation=1,portal=false": {
+      "model": "etched:block/radio_675",
+      "y": 270
+    },
+    "rotation=2,portal=false": {
+      "model": "etched:block/radio_45",
+      "y": 270
+    },
+    "rotation=3,portal=false": {
+      "model": "etched:block/radio_225",
+      "y": 270
+    },
+    "rotation=4,portal=false": {
+      "model": "etched:block/radio",
+      "y": 270
+    },
+    "rotation=5,portal=false": {
+      "model": "etched:block/radio_675"
+    },
+    "rotation=6,portal=false": {
+      "model": "etched:block/radio_45"
+    },
+    "rotation=7,portal=false": {
+      "model": "etched:block/radio_225"
+    },
+    "rotation=8,portal=false": {
+      "model": "etched:block/radio"
+    },
+    "rotation=9,portal=false": {
+      "model": "etched:block/radio_675",
+      "y": 90
+    },
+    "rotation=10,portal=false": {
+      "model": "etched:block/radio_45",
+      "y": 90
+    },
+    "rotation=11,portal=false": {
+      "model": "etched:block/radio_225",
+      "y": 90
+    },
+    "rotation=12,portal=false": {
+      "model": "etched:block/radio",
+      "y": 90
+    },
+    "rotation=13,portal=false": {
+      "model": "etched:block/radio_675",
+      "y": 180
+    },
+    "rotation=14,portal=false": {
+      "model": "etched:block/radio_45",
+      "y": 180
+    },
+    "rotation=15,portal=false": {
+      "model": "etched:block/radio_225",
+      "y": 180
+    },
+    "rotation=0,portal=true": {
+      "model": "etched:block/portal_radio",
+      "y": 180
+    },
+    "rotation=1,portal=true": {
+      "model": "etched:block/portal_radio_675",
+      "y": 270
+    },
+    "rotation=2,portal=true": {
+      "model": "etched:block/portal_radio_45",
+      "y": 270
+    },
+    "rotation=3,portal=true": {
+      "model": "etched:block/portal_radio_225",
+      "y": 270
+    },
+    "rotation=4,portal=true": {
+      "model": "etched:block/portal_radio",
+      "y": 270
+    },
+    "rotation=5,portal=true": {
+      "model": "etched:block/portal_radio_675"
+    },
+    "rotation=6,portal=true": {
+      "model": "etched:block/portal_radio_45"
+    },
+    "rotation=7,portal=true": {
+      "model": "etched:block/portal_radio_225"
+    },
+    "rotation=8,portal=true": {
+      "model": "etched:block/portal_radio"
+    },
+    "rotation=9,portal=true": {
+      "model": "etched:block/portal_radio_675",
+      "y": 90
+    },
+    "rotation=10,portal=true": {
+      "model": "etched:block/portal_radio_45",
+      "y": 90
+    },
+    "rotation=11,portal=true": {
+      "model": "etched:block/portal_radio_225",
+      "y": 90
+    },
+    "rotation=12,portal=true": {
+      "model": "etched:block/portal_radio",
+      "y": 90
+    },
+    "rotation=13,portal=true": {
+      "model": "etched:block/portal_radio_675",
+      "y": 180
+    },
+    "rotation=14,portal=true": {
+      "model": "etched:block/portal_radio_45",
+      "y": 180
+    },
+    "rotation=15,portal=true": {
+      "model": "etched:block/portal_radio_225",
+      "y": 180
+    }
+  }
+}

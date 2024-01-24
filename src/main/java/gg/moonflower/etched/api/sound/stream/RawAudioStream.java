@@ -30,11 +30,9 @@ public class RawAudioStream implements AudioStream {
         if (two_bytes_data) {
             ShortBuffer dest_short = dest.asShortBuffer();
             ShortBuffer src_short = src.asShortBuffer();
-            while (src_short.hasRemaining())
-                dest_short.put(src_short.get());
+            dest_short.put(src_short);
         } else {
-            while (src.hasRemaining())
-                dest.put(src.get());
+            dest.put(src);
         }
         dest.rewind();
         return dest;

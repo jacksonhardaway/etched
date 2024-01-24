@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "etched:album_jukebox",
+    "etched:radio",
+    "minecraft:jukebox"
+  ]
+}

@@ -6,6 +6,8 @@ import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
 import gg.moonflower.etched.api.util.*;
+import gg.moonflower.etched.client.sound.EmptyAudioStream;
+import gg.moonflower.etched.client.sound.SoundCache;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;

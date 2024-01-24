@@ -1,0 +1,15 @@
+{
+  "ui.etching_table.take_result": {
+    "sounds": [
+      {
+        "name": "etched:ui/etching_table/take_result1",
+        "volume": 0.25
+      },
+      {
+        "name": "etched:ui/etching_table/take_result2",
+        "volume": 0.25
+      }
+    ],
+    "subtitle": "subtitles.etched.ui.etching_table.take_result"
+  }
+}

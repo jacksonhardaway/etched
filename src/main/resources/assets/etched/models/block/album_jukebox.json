@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "etched:block/album_jukebox_side",
+    "north": "etched:block/album_jukebox_front",
+    "south": "etched:block/album_jukebox_side",
+    "east": "etched:block/album_jukebox_side",
+    "west": "etched:block/album_jukebox_side",
+    "up": "etched:block/album_jukebox_top",
+    "down": "etched:block/album_jukebox_side"
+  }
+}

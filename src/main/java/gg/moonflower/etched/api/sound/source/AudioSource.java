@@ -1,10 +1,10 @@
 package gg.moonflower.etched.api.sound.source;
 
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
+import gg.moonflower.etched.api.util.AsyncInputStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.client.sound.SoundCache;
-import gg.moonflower.etched.core.util.AsyncInputStream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.HttpUtil;
@@ -19,6 +19,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
@@ -40,8 +41,9 @@ public interface AudioSource {
     }
 
     static AsyncInputStream.InputStreamSupplier downloadTo(Path file, URL url, @Nullable DownloadProgressListener progressListener, AudioFileType type) {
-        if (progressListener != null)
+        if (progressListener != null) {
             progressListener.progressStartRequest(Component.translatable("resourcepack.requesting"));
+        }
 
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -64,10 +66,11 @@ public interface AudioSource {
                         String value = entry.length > 1 ? entry[1].trim() : null;
                         switch (name) {
                             case "max-age": {
-                                if (cachePriority > 0)
+                                if (cachePriority > 0) {
                                     break;
+                                }
                                 try {
-                                    cacheTime = Integer.parseInt(value);
+                                    cacheTime = Integer.parseInt(Objects.requireNonNull(value));
                                 } catch (NumberFormatException e) {
                                     LOGGER.error("Invalid max-age: " + value);
                                 }
@@ -76,7 +79,7 @@ public interface AudioSource {
                             case "s-maxage": {
                                 cachePriority = 1;
                                 try {
-                                    cacheTime = Integer.parseInt(value);
+                                    cacheTime = Integer.parseInt(Objects.requireNonNull(value));
                                 } catch (NumberFormatException e) {
                                     LOGGER.error("Invalid s-maxage: " + value);
                                 }
@@ -111,33 +114,39 @@ public interface AudioSource {
             }
 
             if (contentLength <= 0 || cacheTime <= 0 || !cache) {
-                if (!type.isStream())
+                if (!type.isStream()) {
                     throw new IOException("The provided URL is a stream, but that is not supported");
+                }
                 Files.deleteIfExists(file);
                 return () -> new AsyncInputStream(url::openStream, 8192, 8, HttpUtil.DOWNLOAD_EXECUTOR);
             }
 
-            if (!type.isFile())
+            if (!type.isFile()) {
                 throw new IOException("The provided URL is a file, but that is not supported");
-            if (SoundCache.isValid(file, file.getFileName().toString()))
+            }
+            if (SoundCache.isValid(file, file.getFileName().toString())) {
                 return () -> Files.newInputStream(file.toFile().toPath());
-            if (contentLength > 104857600)
+            }
+            if (contentLength > 104857600) {
                 throw new IOException("Filesize is bigger than maximum allowed (file is " + contentLength + ", limit is 104857600)");
+            }
 
             SoundCache.updateCache(file, file.getFileName().toString(), cacheTime, TimeUnit.SECONDS, new ProgressTrackingInputStream(connection.getInputStream(), contentLength, progressListener) {
                 @Override
                 public int read() throws IOException {
                     int value = super.read();
-                    if (this.getRead() > 104857600)
+                    if (this.getRead() > 104857600) {
                         throw new IOException("Filesize was bigger than maximum allowed (got >= " + this.getRead() + ", limit was 104857600)");
+                    }
                     return value;
                 }
 
                 @Override
                 public int read(byte[] b, int off, int len) throws IOException {
                     int value = super.read(b, off, len);
-                    if (this.getRead() > 104857600)
+                    if (this.getRead() > 104857600) {
                         throw new IOException("Filesize was bigger than maximum allowed (got >= " + this.getRead() + ", limit was 104857600)");
+                    }
                     return value;
                 }
             });
@@ -167,11 +176,11 @@ public interface AudioSource {
         }
 
         public boolean isFile() {
-            return file;
+            return this.file;
         }
 
         public boolean isStream() {
-            return stream;
+            return this.stream;
         }
     }
 }

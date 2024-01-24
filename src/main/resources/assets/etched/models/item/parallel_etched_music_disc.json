@@ -1,0 +1,8 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "etched:item/etched_music_disc",
+    "layer1": "etched:item/parallel_label_top",
+    "layer2": "etched:item/parallel_label_bottom"
+  }
+}

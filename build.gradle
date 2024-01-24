@@ -1,6 +1,5 @@
 plugins {
-    id "dev.architectury.loom" version "1.3-SNAPSHOT"
-    id 'io.github.juuxel.loom-vineflower' version '1.11.0'
+    id "dev.architectury.loom" version "1.4-SNAPSHOT"
     id "com.github.johnrengelman.shadow" version "8.1.1"
     id "maven-publish"
 }
@@ -20,7 +19,6 @@ loom {
         extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
 
         mixinConfigs = [
-                "${project.mod_id}-common.mixins.json",
                 "${project.mod_id}.mixins.json"
         ]
     }
@@ -28,15 +26,19 @@ loom {
 
 repositories {
     mavenLocal()
+//    maven {
+//        // location of the maven that hosts JEI files since January 2023
+//        name = "Jared's maven"
+//        url = "https://maven.blamejared.com/"
+//    }
+//    maven {
+//        // location of a maven mirror for JEI files, as a fallback
+//        name = "ModMaven"
+//        url = "https://modmaven.dev"
+//    }
     maven {
-        // location of the maven that hosts JEI files since January 2023
-        name = "Jared's maven"
-        url = "https://maven.blamejared.com/"
-    }
-    maven {
-        // location of a maven mirror for JEI files, as a fallback
-        name = "ModMaven"
-        url = "https://modmaven.dev"
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
     }
 }
 
@@ -46,11 +48,15 @@ configurations {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.parchment_version}@zip")
+    }
 
     forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
 
     shadowCommon(implementation("javazoom:jlayer:1.0.1"))
+    forgeRuntimeLibrary("javazoom:jlayer:1.0.1")
 }
 
 processResources {

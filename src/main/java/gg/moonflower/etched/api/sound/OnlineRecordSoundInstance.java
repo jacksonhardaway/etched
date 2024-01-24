@@ -52,6 +52,6 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
 
     @Override
     public boolean isStopped() {
-        return stopped;
+        return this.stopped;
     }
 }

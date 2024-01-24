@@ -56,21 +56,24 @@ public final class SoundSourceManager {
      * @throws MalformedURLException If any error occurs when resolving URLs
      */
     public static CompletableFuture<AudioSource> getAudioSource(String url, @Nullable DownloadProgressListener listener, Proxy proxy, AudioSource.AudioFileType type) throws MalformedURLException {
-        Optional<SoundDownloadSource> source = SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst();
+        Optional<SoundDownloadSource> sourceOptional = SOURCES.stream().filter(s -> s.isValidUrl(url)).findFirst();
 
-        return (source.isPresent() ? CompletableFuture.supplyAsync(() -> {
+        return (sourceOptional.isPresent() ? CompletableFuture.supplyAsync(() -> {
+            SoundDownloadSource source = sourceOptional.get();
             try {
-                return source.get().resolveUrl(url, listener, proxy).toArray(new URL[0]);
+                return source.resolveUrl(url, listener, proxy).toArray(new URL[0]);
             } catch (Exception e) {
-                throw new CompletionException("Failed to connect to " + source.get().getApiName() + " API", e);
+                throw new CompletionException("Failed to connect to " + source.getApiName() + " API", e);
             }
         }, HttpUtil.DOWNLOAD_EXECUTOR) : CompletableFuture.completedFuture(new URL[]{new URL(url)})).thenApplyAsync(urls -> {
             try {
-                if (urls.length == 0)
+                if (urls.length == 0) {
                     throw new IOException("No audio data was found at the source!");
-                if (urls.length == 1)
-                    return new RawAudioSource(DigestUtils.sha1Hex(url), urls[0], listener, source.map(s -> s.isTemporary(url)).orElse(false), type);
-                return new StreamingAudioSource(DigestUtils.sha1Hex(url), urls, listener, source.map(s -> s.isTemporary(url)).orElse(false), type);
+                }
+                if (urls.length == 1) {
+                    return new RawAudioSource(DigestUtils.sha1Hex(url), urls[0], listener, sourceOptional.map(s -> s.isTemporary(url)).orElse(false), type);
+                }
+                return new StreamingAudioSource(DigestUtils.sha1Hex(url), urls, listener, sourceOptional.map(s -> s.isTemporary(url)).orElse(false), type);
             } catch (Exception e) {
                 throw new CompletionException(e);
             }

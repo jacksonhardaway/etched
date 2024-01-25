@@ -6,19 +6,14 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
+ * @param url The URL to set in the etching table
  * @author Jackson
  */
 @ApiStatus.Internal
-public class ServerboundSetUrlPacket implements EtchedPacket {
-
-    private final String url;
-
-    public ServerboundSetUrlPacket(String url) {
-        this.url = url;
-    }
+public record ServerboundSetUrlPacket(String url) implements EtchedPacket {
 
     public ServerboundSetUrlPacket(FriendlyByteBuf buf) {
-        this.url = buf.readUtf();
+        this(buf.readUtf());
     }
 
     @Override
@@ -29,13 +24,6 @@ public class ServerboundSetUrlPacket implements EtchedPacket {
     @Override
     public void processPacket(NetworkEvent.Context ctx) {
         EtchedServerPlayPacketHandler.handleSetUrl(this, ctx);
-    }
-
-    /**
-     * @return The URL to set in the etching table
-     */
-    public String getUrl() {
-        return this.url;
     }
 
 }

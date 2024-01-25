@@ -15,6 +15,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -51,8 +53,9 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
         return true;
     }
 
+    @OnlyIn(Dist.CLIENT)
     @Override
-    public Optional<? extends SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track) {
+    public Optional<? extends SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track, int attenuationDistance) {
         if (track != 0 || !(stack.getItem() instanceof RecordItem)) {
             return Optional.empty();
         }
@@ -63,6 +66,7 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
         return Optional.of(new EntityRecordSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
     }
 
+    @OnlyIn(Dist.CLIENT)
     @Override
     public CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
         ResourceLocation key = ForgeRegistries.ITEMS.getKey(this);

@@ -100,7 +100,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             if (this.discStack.isEmpty() && !stack.isEmpty()) {
                 this.url.setValue("");
             }
-            PlayableRecord.getStackAlbum(stack).ifPresent(track -> this.url.setValue(track.getUrl()));
+            PlayableRecord.getStackAlbum(stack).ifPresent(track -> this.url.setValue(track.url()));
             this.discStack = stack;
         }
 

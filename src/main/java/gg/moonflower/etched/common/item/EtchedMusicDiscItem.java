@@ -189,10 +189,8 @@ public class EtchedMusicDiscItem extends PlayableRecordItem {
      */
     public static void setMusic(ItemStack stack, TrackData... tracks) {
         if (tracks.length == 0) {
-            if (stack.getTag() != null) {
-                stack.getTag().remove("Music");
-                stack.getTag().remove("Album");
-            }
+            stack.removeTagKey("Music");
+            stack.removeTagKey("Album");
         } else if (tracks.length == 1) {
             CompoundTag nbt = stack.getOrCreateTag();
             nbt.put("Music", tracks[0].save(new CompoundTag()));
@@ -216,9 +214,7 @@ public class EtchedMusicDiscItem extends PlayableRecordItem {
      */
     public static void setPattern(ItemStack stack, @Nullable LabelPattern pattern) {
         if (pattern == null) {
-            if (stack.getTag() != null) {
-                stack.getTag().remove("Pattern");
-            }
+            stack.removeTagKey("Pattern");
         } else {
             stack.getOrCreateTag().putByte("Pattern", (byte) pattern.ordinal());
         }
@@ -257,9 +253,11 @@ public class EtchedMusicDiscItem extends PlayableRecordItem {
 
         LabelPattern(boolean simple) {
             this.simple = simple;
+
+            String name = this.name().toLowerCase(Locale.ROOT);
             this.textures = Pair.of(
-                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_top") + ".png"),
-                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + this.name().toLowerCase(Locale.ROOT) + "_label" + (simple ? "" : "_bottom") + ".png")
+                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + name + "_label" + (simple ? "" : "_top") + ".png"),
+                    new ResourceLocation(Etched.MOD_ID, "textures/item/" + name + "_label" + (simple ? "" : "_bottom") + ".png")
             );
         }
 

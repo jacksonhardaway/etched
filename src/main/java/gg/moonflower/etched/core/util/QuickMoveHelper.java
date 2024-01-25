@@ -14,6 +14,7 @@ import java.util.List;
  *
  * @author Ocelot
  */
+@Deprecated
 public class QuickMoveHelper {
 
     private final List<Action> actions;

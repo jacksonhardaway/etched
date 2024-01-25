@@ -5,23 +5,16 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.ApiStatus;
 
+/**
+ * @param slot   The slot the music label is in
+ * @param author The new author
+ * @param title  The new title
+ */
 @ApiStatus.Internal
-public class ServerboundEditMusicLabelPacket implements EtchedPacket {
-
-    private final int slot;
-    private final String author;
-    private final String title;
-
-    public ServerboundEditMusicLabelPacket(int slot, String author, String title) {
-        this.slot = slot;
-        this.author = author;
-        this.title = title;
-    }
+public record ServerboundEditMusicLabelPacket(int slot, String author, String title) implements EtchedPacket {
 
     public ServerboundEditMusicLabelPacket(FriendlyByteBuf buf) {
-        this.slot = buf.readVarInt();
-        this.author = buf.readUtf(128);
-        this.title = buf.readUtf(128);
+        this(buf.readVarInt(), buf.readUtf(128), buf.readUtf(128));
     }
 
     @Override
@@ -34,23 +27,5 @@ public class ServerboundEditMusicLabelPacket implements EtchedPacket {
     @Override
     public void processPacket(NetworkEvent.Context ctx) {
         EtchedServerPlayPacketHandler.handleEditMusicLabel(this, ctx);
-    }
-
-    /**
-     * @return The slot the music label is in
-     */
-    public int getSlot() {
-        return this.slot;
-    }
-
-    /**
-     * @return The new author
-     */
-    public String getAuthor() {
-        return this.author;
-    }
-
-    public String getTitle() {
-        return this.title;
     }
 }

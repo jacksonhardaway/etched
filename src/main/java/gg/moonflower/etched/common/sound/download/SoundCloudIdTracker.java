@@ -71,8 +71,7 @@ public final class SoundCloudIdTracker {
         }
     }
 
-    @Nullable
-    private static String findIdFromScript(String url, Proxy proxy) {
+    private static @Nullable String findIdFromScript(String url, Proxy proxy) {
         try {
             HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection(proxy);
             httpURLConnection.setInstanceFollowRedirects(true);

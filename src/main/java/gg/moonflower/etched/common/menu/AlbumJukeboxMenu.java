@@ -95,7 +95,7 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
     public boolean setPlayingTrack(Level level, SetAlbumJukeboxTrackPacket pkt) {
         BlockEntity blockEntity = level.getBlockEntity(this.pos);
         if (blockEntity instanceof AlbumJukeboxBlockEntity) {
-            return ((AlbumJukeboxBlockEntity) blockEntity).setPlayingIndex(pkt.getPlayingIndex(), pkt.getTrack());
+            return ((AlbumJukeboxBlockEntity) blockEntity).setPlayingIndex(pkt.playingIndex(), pkt.track());
         }
         return false;
     }

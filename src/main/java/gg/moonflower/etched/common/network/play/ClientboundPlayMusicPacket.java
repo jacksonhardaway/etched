@@ -10,22 +10,15 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
+ * @param record The record to play
+ * @param pos    The position the music disk is playing at
  * @author Ocelot
  */
 @ApiStatus.Internal
-public class ClientboundPlayMusicPacket implements EtchedPacket {
-
-    private final ItemStack record;
-    private final BlockPos pos;
-
-    public ClientboundPlayMusicPacket(ItemStack record, BlockPos pos) {
-        this.record = record;
-        this.pos = pos;
-    }
+public record ClientboundPlayMusicPacket(ItemStack record, BlockPos pos) implements EtchedPacket {
 
     public ClientboundPlayMusicPacket(FriendlyByteBuf buf) {
-        this.record = buf.readItem();
-        this.pos = buf.readBlockPos();
+        this(buf.readItem(), buf.readBlockPos());
     }
 
     @Override
@@ -42,14 +35,7 @@ public class ClientboundPlayMusicPacket implements EtchedPacket {
     /**
      * @return The tracks to play in sequence
      */
-    public TrackData[] getTracks() {
+    public TrackData[] tracks() {
         return PlayableRecord.getStackMusic(this.record).orElseGet(() -> new TrackData[0]);
-    }
-
-    /**
-     * @return The position the music disk is playing at
-     */
-    public BlockPos getPos() {
-        return this.pos;
     }
 }

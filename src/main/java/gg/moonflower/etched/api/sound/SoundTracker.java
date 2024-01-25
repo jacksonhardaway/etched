@@ -205,7 +205,7 @@ public class SoundTracker {
         }
 
         TrackData trackData = tracks[track];
-        String url = trackData.getUrl();
+        String url = trackData.url();
         if (!TrackData.isValidURL(url) || FAILED_URLS.contains(url)) {
             playBlockRecord(pos, tracks, track + 1);
             return;
@@ -357,7 +357,7 @@ public class SoundTracker {
             if (optional.isPresent()) {
                 TrackData[] tracks = optional.get();
                 TrackData track = jukebox.getTrack() < 0 || jukebox.getTrack() >= tracks.length ? tracks[0] : tracks[jukebox.getTrack()];
-                String url = track.getUrl();
+                String url = track.url();
                 if (TrackData.isValidURL(url) && !FAILED_URLS.contains(url)) {
                     sound = StopListeningSound.create(getEtchedRecord(url, track.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos)));
                 }

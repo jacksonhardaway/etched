@@ -70,7 +70,7 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
         this.getAlbum(stack).ifPresent(track -> {
             boolean album = this.getTrackCount(stack) > 1;
             list.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-            Component brand = SoundSourceManager.getBrandText(track.getUrl())
+            Component brand = SoundSourceManager.getBrandText(track.url())
                     .map(component -> Component.literal("  ").append(component.copy()))
                     .<Component>map(component -> album ? component.append(" ").append(ALBUM) : component)
                     .orElse(album ? ALBUM : Component.empty());
@@ -80,6 +80,6 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
 
     @Override
     public CompletableFuture<AlbumCover> getAlbumCover(ItemStack stack, Proxy proxy, ResourceManager resourceManager) {
-        return this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.getUrl(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY));
+        return this.getAlbum(stack).map(data -> SoundSourceManager.resolveAlbumCover(data.url(), null, proxy, resourceManager)).orElseGet(() -> CompletableFuture.completedFuture(AlbumCover.EMPTY));
     }
 }

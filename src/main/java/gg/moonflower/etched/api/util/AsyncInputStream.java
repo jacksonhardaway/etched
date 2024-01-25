@@ -55,8 +55,7 @@ public class AsyncInputStream extends InputStream {
                         }
                     }
 
-                    if (!initialWait.isDone() && (this.closed || this.readBytes.size() >= buffers)) // Complete initial wait if enough is read or buffer is closed
-                    {
+                    if (!initialWait.isDone() && (this.closed || this.readBytes.size() >= buffers)) { // Complete initial wait if enough is read or buffer is closed
                         initialWait.complete(null);
                     }
                 }
@@ -80,13 +79,11 @@ public class AsyncInputStream extends InputStream {
     }
 
     private void appendBuffer(byte[] data) {
-        if (this.closed) // If closed, no point in adding new buffers
-        {
+        if (this.closed) { // If closed, no point in adding new buffers
             return;
         }
         this.waitFuture.join();
-        if (this.closed) // close() unlocks this thread after closed has been set
-        {
+        if (this.closed) { // close() unlocks this thread after closed has been set
             return;
         }
         try {

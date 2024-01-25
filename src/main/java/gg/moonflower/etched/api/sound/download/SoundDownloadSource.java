@@ -12,10 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.net.Proxy;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * A source for audio to download from besides a direct URL.
@@ -60,7 +57,7 @@ public interface SoundDownloadSource {
      * @throws IOException        If any error occurs with requests
      * @throws JsonParseException If any error occurs when parsing
      */
-    TrackData[] resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
+    List<TrackData> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException;
 
     /**
      * Resolves the input stream to the cover for the specified album.

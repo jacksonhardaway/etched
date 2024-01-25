@@ -1,17 +1,21 @@
 package gg.moonflower.etched.core.mixin;
 
+import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ClientboundPlayMusicPacket;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.ticks.ContainerSingleItem;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +39,18 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Con
 
     @Shadow
     public abstract void startPlaying();
+
+    @Shadow
+    public abstract boolean isRecordPlaying();
+
+    @Shadow
+    protected abstract boolean shouldSendJukeboxPlayingEvent();
+
+    @Shadow
+    private int ticksSinceLastEvent;
+
+    @Shadow
+    protected abstract void spawnMusicParticles(Level level, BlockPos pos);
 
     public JukeboxBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -62,6 +78,25 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity implements Con
     public void canPlaceItem(int index, ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         if (!cir.getReturnValueZ()) {
             cir.setReturnValue(stack.is(EtchedItems.ALBUM_COVER.get()) && this.getItem(index).isEmpty());
+        }
+    }
+
+    @Inject(method = "tick", at = @At("HEAD"))
+    public void tick(Level level, BlockPos pos, BlockState state, CallbackInfo ci) {
+        if (this.isRecordPlaying()) {
+            Item item = this.getFirstItem().getItem();
+            if (!(item instanceof RecordItem) && item instanceof PlayableRecord) {
+                ++this.ticksSinceLastEvent;
+
+                // Allow music particles and events to play for custom records
+                if (this.shouldSendJukeboxPlayingEvent()) {
+                    this.ticksSinceLastEvent = 0;
+                    level.gameEvent(GameEvent.JUKEBOX_PLAY, pos, GameEvent.Context.of(state));
+                    this.spawnMusicParticles(level, pos);
+                } else {
+                    this.ticksSinceLastEvent--;
+                }
+            }
         }
     }
 }

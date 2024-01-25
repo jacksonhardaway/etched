@@ -6,19 +6,14 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
+ * @param exception The exception to set in the etching table
  * @author Jackson
  */
 @ApiStatus.Internal
-public class ClientboundInvalidEtchUrlPacket implements EtchedPacket {
-
-    private final String exception;
-
-    public ClientboundInvalidEtchUrlPacket(String exception) {
-        this.exception = exception;
-    }
+public record ClientboundInvalidEtchUrlPacket(String exception) implements EtchedPacket {
 
     public ClientboundInvalidEtchUrlPacket(FriendlyByteBuf buf) {
-        this.exception = buf.readUtf(32767);
+        this(buf.readUtf());
     }
 
     @Override
@@ -29,12 +24,5 @@ public class ClientboundInvalidEtchUrlPacket implements EtchedPacket {
     @Override
     public void processPacket(NetworkEvent.Context ctx) {
         EtchedClientPlayPacketHandler.handleSetInvalidEtch(this, ctx);
-    }
-
-    /**
-     * @return The exception to set in the etching table
-     */
-    public String getException() {
-        return this.exception;
     }
 }

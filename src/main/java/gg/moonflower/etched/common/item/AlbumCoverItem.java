@@ -201,7 +201,7 @@ public class AlbumCoverItem extends PlayableRecordItem implements ContainerItem 
         singleRecord.save(recordTag);
         recordsNbt.add(recordTag);
 
-        if (!getCoverStack(albumCover).isPresent()) {
+        if (getCoverStack(albumCover).isEmpty()) {
             getRecords(albumCover).stream().filter(stack -> !stack.isEmpty()).findFirst().ifPresent(stack -> setCover(albumCover, stack));
         }
     }

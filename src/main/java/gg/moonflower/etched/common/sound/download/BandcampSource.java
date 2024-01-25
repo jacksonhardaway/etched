@@ -73,7 +73,7 @@ public class BandcampSource implements SoundDownloadSource {
                 throw new IOException("Failed to find properties");
             }
 
-            JsonObject json = new JsonParser().parse(StringEscapeUtils.unescapeHtml4(raw)).getAsJsonObject();
+            JsonObject json = JsonParser.parseString(StringEscapeUtils.unescapeHtml4(raw)).getAsJsonObject();
             String type = GsonHelper.getAsString(GsonHelper.getAsJsonObject(json, "current"), "type");
             if (!"track".equals(type) && !"album".equals(type)) {
                 throw new IOException("URL is not a track or album");
@@ -112,7 +112,7 @@ public class BandcampSource implements SoundDownloadSource {
     }
 
     @Override
-    public TrackData[] resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
+    public List<TrackData> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
         return this.resolve(url, progressListener, proxy, json -> {
             int urlEnd = url.indexOf(".com/");
             if (urlEnd == -1) {
@@ -134,9 +134,9 @@ public class BandcampSource implements SoundDownloadSource {
 
                     tracks.add(new TrackData(trackUrl, trackArtist, Component.literal(trackTitle)));
                 }
-                return tracks.toArray(new TrackData[0]);
+                return tracks;
             }
-            return new TrackData[]{new TrackData(url, artist, Component.literal(title))};
+            return Collections.singletonList(new TrackData(url, artist, Component.literal(title)));
         });
     }
 

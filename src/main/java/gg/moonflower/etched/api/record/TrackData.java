@@ -16,16 +16,19 @@ import java.util.regex.Pattern;
 /**
  * Information about track metadata for discs
  *
+ * @param url The URL for the track
+ * @param artist The name of the artist
+ * @param title The title of the track
  * @author Ocelot
  * @since 2.0.0
  */
-public class TrackData {
+public record TrackData(String url, String artist, Component title) {
 
     public static final TrackData EMPTY = new TrackData(null, "Unknown", Component.literal("Custom Music"));
     public static final Codec<TrackData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("Url").forGetter(TrackData::getUrl),
-            Codec.STRING.optionalFieldOf("Author", EMPTY.getArtist()).forGetter(TrackData::getArtist),
-            Codec.STRING.optionalFieldOf("Title", Component.Serializer.toJson(EMPTY.getTitle())).<Component>xmap(json -> {
+            Codec.STRING.fieldOf("Url").forGetter(TrackData::url),
+            Codec.STRING.optionalFieldOf("Author", EMPTY.artist()).forGetter(TrackData::artist),
+            Codec.STRING.optionalFieldOf("Title", Component.Serializer.toJson(EMPTY.title())).<Component>xmap(json -> {
                 if (!json.startsWith("{")) {
                     return Component.literal(json);
                 }
@@ -34,20 +37,10 @@ public class TrackData {
                 } catch (JsonParseException e) {
                     return Component.literal(json);
                 }
-            }, Component.Serializer::toJson).forGetter(TrackData::getTitle)
+            }, Component.Serializer::toJson).forGetter(TrackData::title)
     ).apply(instance, TrackData::new));
 
     private static final Pattern RESOURCE_LOCATION_PATTERN = Pattern.compile("[a-z0-9_.-]+");
-
-    private final String url;
-    private final String artist;
-    private final Component title;
-
-    public TrackData(String url, String artist, Component title) {
-        this.url = url;
-        this.artist = artist;
-        this.title = title;
-    }
 
     public static boolean isValid(CompoundTag nbt) {
         return nbt.contains("Url", Tag.TAG_STRING) && isValidURL(nbt.getString("Url"));
@@ -107,27 +100,6 @@ public class TrackData {
             nbt.putString("Author", this.artist);
         }
         return nbt;
-    }
-
-    /**
-     * @return The URL for the track
-     */
-    public String getUrl() {
-        return this.url;
-    }
-
-    /**
-     * @return The name of the artist
-     */
-    public String getArtist() {
-        return this.artist;
-    }
-
-    /**
-     * @return The title of the track
-     */
-    public Component getTitle() {
-        return this.title;
     }
 
     public TrackData withUrl(String url) {

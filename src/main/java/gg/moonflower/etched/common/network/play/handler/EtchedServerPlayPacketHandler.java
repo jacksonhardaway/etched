@@ -29,14 +29,14 @@ public class EtchedServerPlayPacketHandler {
         }
 
         if (player.containerMenu instanceof EtchingMenu menu) {
-            ctx.enqueueWork(() -> menu.setUrl(pkt.getUrl()));
+            ctx.enqueueWork(() -> menu.setUrl(pkt.url()));
         } else if (player.containerMenu instanceof RadioMenu menu) {
-            ctx.enqueueWork(() -> menu.setUrl(pkt.getUrl()));
+            ctx.enqueueWork(() -> menu.setUrl(pkt.url()));
         }
     }
 
     public static void handleEditMusicLabel(ServerboundEditMusicLabelPacket pkt, NetworkEvent.Context ctx) {
-        int slot = pkt.getSlot();
+        int slot = pkt.slot();
         if (!Inventory.isHotbarSlot(slot) && slot != 40) {
             return;
         }
@@ -52,8 +52,8 @@ public class EtchedServerPlayPacketHandler {
         }
 
         ctx.enqueueWork(() -> {
-            SimpleMusicLabelItem.setTitle(labelStack, StringUtils.normalizeSpace(pkt.getTitle()));
-            SimpleMusicLabelItem.setAuthor(labelStack, StringUtils.normalizeSpace(pkt.getAuthor()));
+            SimpleMusicLabelItem.setTitle(labelStack, StringUtils.normalizeSpace(pkt.title()));
+            SimpleMusicLabelItem.setAuthor(labelStack, StringUtils.normalizeSpace(pkt.author()));
         });
     }
 
@@ -67,7 +67,7 @@ public class EtchedServerPlayPacketHandler {
             ctx.enqueueWork(() -> {
                 ServerLevel level = player.serverLevel();
                 if (menu.setPlayingTrack(level, pkt)) {
-                    EtchedMessages.PLAY.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(menu.getPos())), new SetAlbumJukeboxTrackPacket(pkt.getPlayingIndex(), pkt.getTrack()));
+                    EtchedMessages.PLAY.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(menu.getPos())), new SetAlbumJukeboxTrackPacket(pkt.playingIndex(), pkt.track()));
                 }
             });
         }

@@ -7,22 +7,15 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
+ * @param playingIndex The playing index to set the jukebox to
+ * @param track        The track to set the jukebox to
  * @author Ocelot
  */
 @ApiStatus.Internal
-public class SetAlbumJukeboxTrackPacket implements EtchedPacket {
-
-    private final int playingIndex;
-    private final int track;
-
-    public SetAlbumJukeboxTrackPacket(int playingIndex, int track) {
-        this.playingIndex = playingIndex;
-        this.track = track;
-    }
+public record SetAlbumJukeboxTrackPacket(int playingIndex, int track) implements EtchedPacket {
 
     public SetAlbumJukeboxTrackPacket(FriendlyByteBuf buf) {
-        this.playingIndex = buf.readVarInt();
-        this.track = buf.readVarInt();
+        this(buf.readVarInt(), buf.readVarInt());
     }
 
     @Override
@@ -37,19 +30,5 @@ public class SetAlbumJukeboxTrackPacket implements EtchedPacket {
             case CLIENT -> EtchedClientPlayPacketHandler.handleSetAlbumJukeboxTrack(this, ctx);
             case SERVER -> EtchedServerPlayPacketHandler.handleSetAlbumJukeboxTrack(this, ctx);
         }
-    }
-
-    /**
-     * @return The playing index to set the jukebox to
-     */
-    public int getPlayingIndex() {
-        return this.playingIndex;
-    }
-
-    /**
-     * @return The track to set the jukebox to
-     */
-    public int getTrack() {
-        return this.track;
     }
 }

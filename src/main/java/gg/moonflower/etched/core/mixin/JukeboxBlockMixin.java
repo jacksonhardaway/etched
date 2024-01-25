@@ -1,13 +1,7 @@
 package gg.moonflower.etched.core.mixin;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
-import gg.moonflower.etched.core.Etched;
-import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.Level;
@@ -19,8 +13,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Map;
 
 @Mixin(JukeboxBlock.class)
 public abstract class JukeboxBlockMixin extends BaseEntityBlock {
@@ -39,14 +31,14 @@ public abstract class JukeboxBlockMixin extends BaseEntityBlock {
         }
     }
 
-    @Override
-    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (state.getValue(JukeboxBlock.HAS_RECORD) && Etched.CLIENT_CONFIG.showNotes.get() && level.getBlockState(pos.above()).isAir()) {
-            Minecraft minecraft = Minecraft.getInstance();
-            Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingRecords();
-            if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos))) {
-                level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 1.2D, pos.getZ() + 0.5D, random.nextInt(25) / 24D, 0, 0);
-            }
-        }
-    }
+//    @Override
+//    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+//        if (state.getValue(JukeboxBlock.HAS_RECORD) && Etched.CLIENT_CONFIG.showNotes.get() && level.getBlockState(pos.above()).isAir()) {
+//            Minecraft minecraft = Minecraft.getInstance();
+//            Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingRecords();
+//            if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos))) {
+//                level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 1.2D, pos.getZ() + 0.5D, random.nextInt(25) / 24D, 0, 0);
+//            }
+//        }
+//    }
 }

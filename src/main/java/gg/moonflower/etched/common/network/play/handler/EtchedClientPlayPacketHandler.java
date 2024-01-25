@@ -13,7 +13,6 @@ import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -32,23 +31,23 @@ public class EtchedClientPlayPacketHandler {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static void handlePlayMusicPacket(ClientboundPlayMusicPacket pkt, NetworkEvent.Context ctx) {
-        ClientLevel level = Minecraft.getInstance().level;
+        Minecraft client = Minecraft.getInstance();
+        ClientLevel level = client.level;
         if (level == null) {
             return;
         }
 
-        SoundManager soundManager = Minecraft.getInstance().getSoundManager();
-        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingRecords();
-
-        BlockPos pos = pkt.getPos();
-        SoundInstance soundInstance = playingRecords.get(pos);
         ctx.enqueueWork(() -> {
+            BlockPos pos = pkt.pos();
+            Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) client.levelRenderer).getPlayingRecords();
+            SoundInstance soundInstance = playingRecords.get(pos);
+
             if (soundInstance != null) {
-                soundManager.stop(soundInstance);
+                client.getSoundManager().stop(soundInstance);
                 playingRecords.remove(pos);
             }
 
-            TrackData[] tracks = pkt.getTracks();
+            TrackData[] tracks = pkt.tracks();
             if (tracks.length == 0) {
                 return;
             }
@@ -58,20 +57,20 @@ public class EtchedClientPlayPacketHandler {
     }
 
     public static void handlePlayEntityMusicPacket(ClientboundPlayEntityMusicPacket pkt, NetworkEvent.Context ctx) {
-        ClientLevel level = Minecraft.getInstance().level;
+        Minecraft client = Minecraft.getInstance();
+        ClientLevel level = client.level;
         if (level == null) {
             return;
         }
 
-        int entityId = pkt.getEntityId();
-        SoundManager soundManager = Minecraft.getInstance().getSoundManager();
-        SoundInstance soundInstance = SoundTracker.getEntitySound(entityId);
         ctx.enqueueWork(() -> {
+            int entityId = pkt.getEntityId();
+            SoundInstance soundInstance = SoundTracker.getEntitySound(entityId);
             if (soundInstance != null) {
                 if (soundInstance instanceof StopListeningSound) {
                     ((StopListeningSound) soundInstance).stopListening();
                 }
-                if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.RESTART && soundManager.isActive(soundInstance)) {
+                if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.RESTART && client.getSoundManager().isActive(soundInstance)) {
                     return;
                 }
                 SoundTracker.setEntitySound(entityId, null);
@@ -99,7 +98,7 @@ public class EtchedClientPlayPacketHandler {
                 return;
             }
 
-            SoundInstance entitySound = StopListeningSound.create(sound.get(), () -> Minecraft.getInstance().tell(() -> {
+            SoundInstance entitySound = StopListeningSound.create(sound.get(), () -> client.tell(() -> {
                 SoundTracker.setEntitySound(entityId, null);
                 SoundTracker.playEntityRecord(record, entityId, 1, false);
             }));
@@ -111,7 +110,7 @@ public class EtchedClientPlayPacketHandler {
     public static void handleSetInvalidEtch(ClientboundInvalidEtchUrlPacket pkt, NetworkEvent.Context ctx) {
         ctx.enqueueWork(() -> {
             if (Minecraft.getInstance().screen instanceof EtchingScreen screen) {
-                screen.setReason(pkt.getException());
+                screen.setReason(pkt.exception());
             }
         });
     }
@@ -119,19 +118,19 @@ public class EtchedClientPlayPacketHandler {
     public static void handleSetUrl(ClientboundSetUrlPacket pkt, NetworkEvent.Context ctx) {
         ctx.enqueueWork(() -> {
             if (Minecraft.getInstance().screen instanceof RadioScreen screen) {
-                screen.receiveUrl(pkt.getUrl());
+                screen.receiveUrl(pkt.url());
             }
         });
     }
 
     public static void handleSetAlbumJukeboxTrack(SetAlbumJukeboxTrackPacket pkt, NetworkEvent.Context ctx) {
-        Minecraft minecraft = Minecraft.getInstance();
         ctx.enqueueWork(() -> {
-            if (minecraft.level != null && minecraft.screen instanceof AlbumJukeboxScreen screen) {
+            Minecraft client = Minecraft.getInstance();
+            if (client.level != null && client.screen instanceof AlbumJukeboxScreen screen) {
                 BlockPos pos = screen.getMenu().getPos();
-                if (screen.getMenu().setPlayingTrack(minecraft.level, pkt)) {
-                    AlbumJukeboxBlockEntity entity = (AlbumJukeboxBlockEntity) Objects.requireNonNull(minecraft.level.getBlockEntity(pos));
-                    SoundTracker.playAlbum(entity, entity.getBlockState(), minecraft.level, pos, true);
+                if (screen.getMenu().setPlayingTrack(client.level, pkt)) {
+                    AlbumJukeboxBlockEntity entity = (AlbumJukeboxBlockEntity) Objects.requireNonNull(client.level.getBlockEntity(pos));
+                    SoundTracker.playAlbum(entity, entity.getBlockState(), client.level, pos, true);
                 }
             }
         });

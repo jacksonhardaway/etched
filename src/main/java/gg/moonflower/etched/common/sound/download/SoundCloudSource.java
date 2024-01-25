@@ -131,7 +131,7 @@ public class SoundCloudSource implements SoundDownloadSource {
     }
 
     @Override
-    public TrackData[] resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
+    public List<TrackData> resolveTracks(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy) throws IOException, JsonParseException {
         return this.resolve(url, progressListener, proxy, json -> {
             JsonObject user = GsonHelper.getAsJsonObject(json, "user");
             String artist = GsonHelper.getAsString(user, "username");
@@ -145,8 +145,7 @@ public class SoundCloudSource implements SoundDownloadSource {
                 for (int i = 0; i < tracksJson.size(); i++) {
                     try {
                         JsonObject trackJson = GsonHelper.convertToJsonObject(tracksJson.get(i), "tracks[" + i + "]");
-                        if (!trackJson.has("permalink_url")) // Paid song
-                        {
+                        if (!trackJson.has("permalink_url")) { // Paid song
                             continue;
                         }
                         JsonObject trackUser = GsonHelper.getAsJsonObject(trackJson, "user", user);
@@ -159,10 +158,10 @@ public class SoundCloudSource implements SoundDownloadSource {
                     }
                 }
 
-                return tracks.toArray(new TrackData[0]);
+                return tracks;
             }
 
-            return new TrackData[]{new TrackData(url, artist, Component.literal(title))};
+            return Collections.singletonList(new TrackData(url, artist, Component.literal(title)));
         });
     }
 

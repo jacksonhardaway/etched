@@ -7,19 +7,18 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 /**
+ * @param url The URL to set in the etching table
  * @author Ocelot
  */
 @ApiStatus.Internal
-public class ClientboundSetUrlPacket implements EtchedPacket {
-
-    private final String url;
+public record ClientboundSetUrlPacket(String url) implements EtchedPacket {
 
     public ClientboundSetUrlPacket(@Nullable String url) {
         this.url = url != null ? url : "";
     }
 
     public ClientboundSetUrlPacket(FriendlyByteBuf buf) {
-        this.url = buf.readUtf(32767);
+        this(buf.readUtf());
     }
 
     @Override
@@ -30,12 +29,5 @@ public class ClientboundSetUrlPacket implements EtchedPacket {
     @Override
     public void processPacket(NetworkEvent.Context ctx) {
         EtchedClientPlayPacketHandler.handleSetUrl(this, ctx);
-    }
-
-    /**
-     * @return The URL to set in the etching table
-     */
-    public String getUrl() {
-        return this.url;
     }
 }

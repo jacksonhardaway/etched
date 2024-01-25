@@ -271,7 +271,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
             if (discStack.getItem() == EtchedItems.ETCHED_MUSIC_DISC.get() || (!discStack.isEmpty() && !labelStack.isEmpty())) {
                 if (this.url == null && !discStack.isEmpty()) {
-                    this.url = PlayableRecord.getStackAlbum(discStack).map(TrackData::getUrl).orElse(null);
+                    this.url = PlayableRecord.getStackAlbum(discStack).map(TrackData::url).orElse(null);
                 }
                 if (!TrackData.isValidURL(this.url)) {
                     return;
@@ -339,7 +339,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
                     for (int i = 0; i < data.length; i++) {
                         TrackData trackData = data[i];
-                        if (trackData.getArtist().equals(TrackData.EMPTY.getArtist())) {
+                        if (trackData.artist().equals(TrackData.EMPTY.artist())) {
                             trackData = trackData.withArtist(MusicLabelItem.getAuthor(labelStack));
                         }
                         if (TrackData.isLocalSound(this.url)) {

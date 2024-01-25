@@ -118,14 +118,15 @@ public class SoundTracker {
                     this.clearComponent();
                 } else {
                     if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ())) {
-                        PlayableRecord.showMessage(title);
+                        Minecraft.getInstance().gui.setNowPlaying(title);
                     }
                 }
             }
 
             @Override
             public void onFail() {
-                PlayableRecord.showMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title));
+                Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
+                FAILED_URLS.add(url);
             }
         }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
@@ -158,7 +159,7 @@ public class SoundTracker {
                     this.clearComponent();
                 } else {
                     if (!hidden && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)) {
-                        PlayableRecord.showMessage(title);
+                        Minecraft.getInstance().gui.setNowPlaying(title);
                     }
                     setRecordPlayingNearby(level, pos, true);
                 }
@@ -166,7 +167,7 @@ public class SoundTracker {
 
             @Override
             public void onFail() {
-                PlayableRecord.showMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title));
+                Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
                 FAILED_URLS.add(url);
             }
         }, type);

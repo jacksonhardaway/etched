@@ -51,16 +51,6 @@ public interface PlayableRecord {
     }
 
     /**
-     * Displays the 'now playing' text on the screen.
-     *
-     * @param text The text to display as the record name
-     */
-    @OnlyIn(Dist.CLIENT)
-    static void showMessage(Component text) {
-        Minecraft.getInstance().gui.setNowPlaying(text);
-    }
-
-    /**
      * Sends a packet to the client notifying them to begin playing an entity record.
      *
      * @param entity  The entity playing the record

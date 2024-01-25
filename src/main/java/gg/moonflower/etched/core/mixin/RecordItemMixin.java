@@ -6,6 +6,7 @@ import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.client.render.item.AlbumCoverItemRenderer;
 import gg.moonflower.etched.client.sound.EntityRecordSoundInstance;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -56,14 +57,14 @@ public abstract class RecordItemMixin extends Item implements PlayableRecord {
     @OnlyIn(Dist.CLIENT)
     @Override
     public Optional<? extends SoundInstance> createEntitySound(ItemStack stack, Entity entity, int track, int attenuationDistance) {
-        if (track != 0 || !(stack.getItem() instanceof RecordItem)) {
+        if (track != 0 || !(stack.getItem() instanceof RecordItem record)) {
             return Optional.empty();
         }
 
         if (PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ())) {
-            PlayableRecord.showMessage(((RecordItem) stack.getItem()).getDisplayName());
+            Minecraft.getInstance().gui.setNowPlaying(record.getDisplayName());
         }
-        return Optional.of(new EntityRecordSoundInstance(((RecordItem) stack.getItem()).getSound(), entity));
+        return Optional.of(new EntityRecordSoundInstance(record.getSound(), entity));
     }
 
     @OnlyIn(Dist.CLIENT)

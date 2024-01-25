@@ -7,10 +7,12 @@ public class EtchedConfig {
     public static class Client {
 
         public final ForgeConfigSpec.BooleanValue showNotes;
+        public final ForgeConfigSpec.BooleanValue forceStereo;
 
         public Client(ForgeConfigSpec.Builder builder) {
             builder.push("Game Feel");
             this.showNotes = builder.comment("Displays note particles appear above jukeboxes while a record is playing.").define("Display Note Particles", true);
+            this.forceStereo = builder.comment("Always plays tracks in stereo even when in-world").define("Force Stereo", false);
             builder.pop();
         }
     }

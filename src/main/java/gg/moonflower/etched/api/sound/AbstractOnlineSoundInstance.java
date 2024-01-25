@@ -53,7 +53,7 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
         this.attenuationDistance = attenuationDistance;
         this.progressListener = progressListener;
         this.type = type;
-        this.stereo = stereo;
+        this.stereo = Etched.CLIENT_CONFIG.forceStereo.get() || stereo;
     }
 
     private static AudioStream getStream(AudioStream stream, Sound sound) {
@@ -87,9 +87,9 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
                 return future;
             }
 
-            return loader.getStream(weighedSoundEvents.getSound(this.random).getPath(), repeatInstantly).thenApply(MonoWrapper::new).handleAsync((stream, e) -> {
-                if (e != null) {
-                    e.printStackTrace();
+            return loader.getStream(weighedSoundEvents.getSound(this.random).getPath(), repeatInstantly).thenApply(MonoWrapper::new).handleAsync((stream, throwable) -> {
+                if (throwable != null) {
+                    LOGGER.error("Failed to load audio from client: {}", onlineSound.getURL(), throwable);
                     onlineSound.getProgressListener().onFail();
                     return EmptyAudioStream.INSTANCE;
                 }
@@ -135,20 +135,32 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
                             return getStream(repeatInstantly ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream.getFormat(), input), mp3InputStream) : new RawAudioStream(mp3InputStream.getFormat(), mp3InputStream), sound);
                         } catch (Exception e2) {
                             LOGGER.debug("Failed to load as MP3", e2);
-                            IOUtils.closeQuietly(is);
-                            e.printStackTrace();
-                            e1.printStackTrace();
-                            e2.printStackTrace();
-                            throw new CompletionException(new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3"));
+                            UnsupportedAudioFileException cause = new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3");
+
+                            try {
+                                is.close();
+                            } catch (Exception e3) {
+                                // Pass the exception along
+                                cause.addSuppressed(e3);
+                            }
+
+                            cause.addSuppressed(e);
+                            cause.addSuppressed(e1);
+                            cause.addSuppressed(e2);
+                            throw new CompletionException(cause);
                         }
                     }
                 }
             } catch (Exception e) {
                 throw new CompletionException(e);
             }
-        }, Util.backgroundExecutor()).handleAsync((stream, e) -> {
-            if (e != null) {
-                e.printStackTrace();
+        }, Util.backgroundExecutor()).handleAsync((stream, throwable) -> {
+            if (throwable != null) {
+                if (throwable instanceof CompletionException e) {
+                    throwable = e.getCause();
+                }
+
+                LOGGER.error("Failed to load audio from url: {}", onlineSound.getURL(), throwable);
                 onlineSound.getProgressListener().onFail();
                 return EmptyAudioStream.INSTANCE;
             }

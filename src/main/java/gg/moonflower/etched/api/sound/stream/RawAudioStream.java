@@ -52,10 +52,6 @@ public class RawAudioStream implements AudioStream {
             total += read;
         }
 
-        if (total == 0) {
-            return null;
-        }
-
         byte[] result = buf;
         if (buf.length != total) {
             result = new byte[total];

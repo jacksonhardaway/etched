@@ -33,10 +33,6 @@ public class MonoWrapper implements AudioStream {
     @Override
     public ByteBuffer read(int amount) throws IOException {
         ByteBuffer parent = this.source.read(amount * this.sourceChannels);
-        if (parent == null) {
-            return null;
-        }
-
         if (this.sourceChannels == 1) {
             return parent;
         }

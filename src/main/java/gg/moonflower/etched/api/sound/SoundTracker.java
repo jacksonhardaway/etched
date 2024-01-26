@@ -311,7 +311,9 @@ public class SoundTracker {
         }
 
         if (TrackData.isValidURL(url)) {
-            playRecord(pos, StopListeningSound.create(getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH), () -> Minecraft.getInstance().tell(() -> playRadio(url, level.getBlockState(pos), level, pos)))); // Get the new block state
+            AbstractOnlineSoundInstance record = getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH);
+            record.setLoop(true); // If the sound is a file, then just continue looping that specific track
+            playRecord(pos, record); // Get the new block state
         }
     }
 

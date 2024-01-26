@@ -7,7 +7,6 @@ import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.Mp3InputStream;
-import gg.moonflower.etched.api.util.SeekingStream;
 import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
 import gg.moonflower.etched.client.sound.SoundCache;
@@ -104,7 +103,7 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenCompose(AudioSource::openStream).thenApplyAsync(stream -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
-                InputStream is = new BufferedInputStream(stream, 8192);
+                InputStream is = new BufferedInputStream(stream);
 
                 // Try loading as OGG
                 try {

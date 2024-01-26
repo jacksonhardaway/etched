@@ -1,11 +1,20 @@
 package gg.moonflower.etched.core.registry;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.datafixers.util.Pair;
 import gg.moonflower.etched.core.Etched;
+import gg.moonflower.etched.core.mixin.StructureTemplatePoolAccessor;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.ProcessorLists;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -18,6 +27,10 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DeferredRegister;
@@ -25,11 +38,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -41,20 +52,6 @@ public class EtchedVillagers {
 
     public static final RegistryObject<PoiType> BARD_POI = POI_REGISTRY.register("bard", () -> new PoiType(ImmutableSet.<BlockState>builder().addAll(Blocks.NOTE_BLOCK.getStateDefinition().getPossibleStates()).build(), 1, 1));
     public static final RegistryObject<VillagerProfession> BARD = PROFESSION_REGISTRY.register("bard", () -> new VillagerProfession(Etched.MOD_ID + ":bard", poi -> poi.is(BARD_POI.getId()), poi -> poi.is(BARD_POI.getId()), ImmutableSet.of(), ImmutableSet.of(), null));
-
-//    public static void registerVillages() {
-//        PlainVillagePools.bootstrap();
-//        DesertVillagePools.bootstrap();
-//        SavannaVillagePools.bootstrap();
-//        SnowyVillagePools.bootstrap();
-//        TaigaVillagePools.bootstrap();
-//
-//        createVillagePiece("plains", "bard_house", 1, 2, ProcessorLists.MOSSIFY_10_PERCENT, ProcessorLists.ZOMBIE_PLAINS);
-//        createVillagePiece("desert", "bard_house", 1, 2, ProcessorLists.ZOMBIE_DESERT);
-//        createVillagePiece("savanna", "bard_house", 1, 4, ProcessorLists.ZOMBIE_SAVANNA);
-//        createVillagePiece("snowy", "bard_house", 1, 4, ProcessorLists.ZOMBIE_SNOWY);
-//        createVillagePiece("taiga", "bard_house", 1, 4, ProcessorLists.MOSSIFY_10_PERCENT, ProcessorLists.ZOMBIE_TAIGA);
-//    }
 
     @SubscribeEvent
     public static void onEvent(net.minecraftforge.event.village.VillagerTradesEvent event) {
@@ -107,30 +104,49 @@ public class EtchedVillagers {
         BuiltInRegistries.ITEM.getTag(ItemTags.MUSIC_DISCS).ifPresent(tag -> tag.stream().forEach(item -> tier5.add(item.value(), 10, 1, 4, 40, true)));
     }
 
-//    private static void createVillagePiece(String village, String name, int houseId, int weight, Holder<StructureProcessorList> zombieProcessor) {
-//        createVillagePiece(village, name, houseId, weight, ProcessorLists.EMPTY, zombieProcessor);
-//    }
+    @SubscribeEvent
+    public static void onEvent(ServerAboutToStartEvent event) {
+        RegistryAccess.Frozen access = event.getServer().registryAccess();
+        Optional<Registry<StructureTemplatePool>> templateRegistryOptional = access.registry(Registries.TEMPLATE_POOL);
+        Optional<Registry<StructureProcessorList>> processorListRegistyOptional = access.registry(Registries.PROCESSOR_LIST);
 
-//    private static void createVillagePiece(String village, String name, int houseId, int weight, Holder<StructureProcessorList> normalProcessor, Holder<StructureProcessorList> zombieProcessor) {
-//        EtchedVillagers.addToPool(new ResourceLocation("village/" + village + "/houses"), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), normalProcessor, weight);
-//        EtchedVillagers.addToPool(new ResourceLocation("village/" + village + "/zombie/houses"), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), zombieProcessor, weight);
-//    }
+        if (templateRegistryOptional.isEmpty() || processorListRegistyOptional.isEmpty()) {
+            return;
+        }
 
-//    private static void addToPool(ResourceLocation poolId, ResourceLocation pieceId, Holder<StructureProcessorList> processorList, int weight) {
-//        StructureTemplatePool pool = BuiltinRegistries.TEMPLATE_POOL.get(poolId);
-//        if (pool == null)
-//            return;
-//
-//        StructurePoolElement piece = StructurePoolElement.legacy(pieceId.toString(), processorList).apply(StructureTemplatePool.Projection.RIGID);
-//        List<StructurePoolElement> templates = ((StructureTemplatePoolAccessor) pool).getTemplates();
-//        List<Pair<StructurePoolElement, Integer>> rawTemplates = ((StructureTemplatePoolAccessor) pool).getRawTemplates();
-//        if (templates == null || rawTemplates == null)
-//            return;
-//
-//        for (int i = 0; i < weight; i++)
-//            templates.add(piece);
-//        rawTemplates.add(Pair.of(piece, weight));
-//    }
+        Registry<StructureTemplatePool> templatePools = templateRegistryOptional.get();
+        Registry<StructureProcessorList> processorLists = processorListRegistyOptional.get();
+        createVillagePiece(templatePools, processorLists, "plains", "bard_house", 1, 2, ProcessorLists.MOSSIFY_10_PERCENT, ProcessorLists.ZOMBIE_PLAINS);
+        createVillagePiece(templatePools, processorLists, "desert", "bard_house", 1, 2, ProcessorLists.ZOMBIE_DESERT);
+        createVillagePiece(templatePools, processorLists, "savanna", "bard_house", 1, 4, ProcessorLists.ZOMBIE_SAVANNA);
+        createVillagePiece(templatePools, processorLists, "snowy", "bard_house", 1, 4, ProcessorLists.ZOMBIE_SNOWY);
+        createVillagePiece(templatePools, processorLists, "taiga", "bard_house", 1, 4, ProcessorLists.MOSSIFY_10_PERCENT, ProcessorLists.ZOMBIE_TAIGA);
+    }
+
+    private static void createVillagePiece(Registry<StructureTemplatePool> templatePools, Registry<StructureProcessorList> processorLists, String village, String name, int houseId, int weight, ResourceKey<StructureProcessorList> zombieProcessor) {
+        createVillagePiece(templatePools, processorLists, village, name, houseId, weight, ProcessorLists.EMPTY, zombieProcessor);
+    }
+
+    private static void createVillagePiece(Registry<StructureTemplatePool> templatePools, Registry<StructureProcessorList> processorLists, String village, String name, int houseId, int weight, ResourceKey<StructureProcessorList> normalProcessor, ResourceKey<StructureProcessorList> zombieProcessor) {
+        EtchedVillagers.addToPool(templatePools.get(new ResourceLocation("village/" + village + "/houses")), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), processorLists.getHolder(normalProcessor).orElse(null), weight);
+        EtchedVillagers.addToPool(templatePools.get(new ResourceLocation("village/" + village + "/zombie/houses")), new ResourceLocation(Etched.MOD_ID, "village/" + village + "/houses/" + village + "_" + name + "_" + houseId), processorLists.getHolder(zombieProcessor).orElse(null), weight);
+    }
+
+    private static void addToPool(@Nullable StructureTemplatePool pool, ResourceLocation pieceId, @Nullable Holder<StructureProcessorList> processorList, int weight) {
+        if (pool == null || processorList == null) {
+            return;
+        }
+
+        StructurePoolElement piece = StructurePoolElement.legacy(pieceId.toString(), processorList).apply(StructureTemplatePool.Projection.RIGID);
+        List<StructurePoolElement> templates = ((StructureTemplatePoolAccessor) pool).getTemplates();
+        if (templates == null) {
+            return;
+        }
+
+        for (int i = 0; i < weight; i++) {
+            templates.add(piece);
+        }
+    }
 
     private static class TradeRegistry implements List<VillagerTrades.ItemListing> {
 

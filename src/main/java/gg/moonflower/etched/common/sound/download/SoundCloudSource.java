@@ -65,7 +65,6 @@ public class SoundCloudSource implements SoundDownloadSource {
 
             long size = httpURLConnection.getContentLengthLong();
             if (response != 200) {
-                System.out.println(httpURLConnection);
                 throw new IOException(response + " " + httpURLConnection.getResponseMessage());
             }
 

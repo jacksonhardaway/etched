@@ -20,7 +20,7 @@ public abstract class ClientLivingEntityMixin extends Entity {
     @Inject(method = "tick", at = @At("HEAD"))
     public void onTick(CallbackInfo ci) {
         if (this.level().isClientSide()) {
-            BoomboxItem.onLivingEntityUpdate((LivingEntity) (Object) this);
+            BoomboxItem.onLivingEntityUpdateClient((LivingEntity) (Object) this);
         }
     }
 }

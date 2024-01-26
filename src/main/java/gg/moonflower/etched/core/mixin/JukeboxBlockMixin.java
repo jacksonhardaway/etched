@@ -30,15 +30,4 @@ public abstract class JukeboxBlockMixin extends BaseEntityBlock {
             }
         }
     }
-
-//    @Override
-//    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-//        if (state.getValue(JukeboxBlock.HAS_RECORD) && Etched.CLIENT_CONFIG.showNotes.get() && level.getBlockState(pos.above()).isAir()) {
-//            Minecraft minecraft = Minecraft.getInstance();
-//            Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingRecords();
-//            if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos))) {
-//                level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 1.2D, pos.getZ() + 0.5D, random.nextInt(25) / 24D, 0, 0);
-//            }
-//        }
-//    }
 }

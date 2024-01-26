@@ -1,4 +1,4 @@
-package gg.moonflower.etched.common.entity.ai;
+package gg.moonflower.etched.common.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;

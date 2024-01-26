@@ -1,4 +1,4 @@
-package gg.moonflower.etched.core.util;
+package gg.moonflower.etched.client;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

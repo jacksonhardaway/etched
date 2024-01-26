@@ -8,7 +8,6 @@
     "client.ClientLivingEntityMixin",
     "client.ForgeIngameGuiMixin",
     "client.GuiAccessor",
-    "client.GuiMixin",
     "client.HumanoidModelMixin",
     "client.ItemRendererMixin",
     "client.ItemStackMixin",
@@ -18,12 +17,10 @@
     "client.SoundEngineMixin"
   ],
   "mixins": [
-    "EntityMixin",
     "JukeboxBlockEntityMixin",
     "JukeboxBlockMixin",
     "NoteBlockMixin",
     "RecordItemMixin",
-    "SoundEventAccessor",
     "StructureTemplatePoolAccessor",
     "VillagerGoalPackagesMixin"
   ],

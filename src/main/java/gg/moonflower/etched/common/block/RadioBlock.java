@@ -148,7 +148,6 @@ public class RadioBlock extends BaseEntityBlock {
         return state.setValue(ROTATION, mirror.mirror(state.getValue(ROTATION), 16));
     }
 
-    @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new RadioBlockEntity(pos, state);

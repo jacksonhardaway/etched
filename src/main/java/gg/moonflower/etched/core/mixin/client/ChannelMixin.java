@@ -16,39 +16,39 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ChannelMixin {
 
     @Unique
-    private final AtomicBoolean loaded = new AtomicBoolean(false);
+    private final AtomicBoolean etched$loaded = new AtomicBoolean(false);
     @Unique
-    private final AtomicBoolean stopped = new AtomicBoolean(false);
+    private final AtomicBoolean etched$stopped = new AtomicBoolean(false);
 
     @Inject(method = "stop", at = @At("HEAD"))
     public void stop(CallbackInfo ci) {
-        if (!this.loaded.get()) {
-            this.stopped.set(true);
+        if (!this.etched$loaded.get()) {
+            this.etched$stopped.set(true);
         }
     }
 
     @Inject(method = "play", at = @At("HEAD"), cancellable = true)
     public void play(CallbackInfo ci) {
-        if (this.stopped.get()) {
-            this.stopped.set(false);
+        if (this.etched$stopped.get()) {
+            this.etched$stopped.set(false);
             ci.cancel();
         }
     }
 
     @Inject(method = "stopped", at = @At("TAIL"), cancellable = true)
     public void stopped(CallbackInfoReturnable<Boolean> cir) {
-        if (!cir.getReturnValue() && this.stopped.get()) {
+        if (!cir.getReturnValue() && this.etched$stopped.get()) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "attachStaticBuffer", at = @At("HEAD"))
     public void attachStaticBuffer(SoundBuffer soundBuffer, CallbackInfo ci) {
-        this.loaded.set(true);
+        this.etched$loaded.set(true);
     }
 
     @Inject(method = "attachBufferStream", at = @At("HEAD"))
     public void attachBufferStream(AudioStream audioStream, CallbackInfo ci) {
-        this.loaded.set(true);
+        this.etched$loaded.set(true);
     }
 }

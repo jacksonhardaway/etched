@@ -45,7 +45,7 @@ public class BoomboxItem extends Item implements ContainerItem {
         super(properties);
     }
 
-    public static void onLivingEntityUpdate(LivingEntity entity) {
+    public static void onLivingEntityUpdateClient(LivingEntity entity) {
         ItemStack newPlayingRecord = ItemStack.EMPTY;
         ItemStack mainStack = entity.getMainHandItem();
         ItemStack offStack = entity.getOffhandItem();

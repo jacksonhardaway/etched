@@ -10,7 +10,6 @@ import gg.moonflower.etched.core.util.AlbumCoverCache;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.HttpUtil;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -72,9 +71,9 @@ public final class SoundSourceManager {
                     throw new IOException("No audio data was found at the source!");
                 }
                 if (urls.size() == 1) {
-                    return new RawAudioSource(DigestUtils.sha1Hex(url), urls.get(0), listener, sourceOptional.map(s -> s.isTemporary(url)).orElse(false), type);
+                    return new RawAudioSource(urls.get(0), listener, sourceOptional.map(s -> s.isTemporary(url)).orElse(false), type);
                 }
-                return new StreamingAudioSource(DigestUtils.sha1Hex(url), urls.toArray(URL[]::new), listener, sourceOptional.map(s -> s.isTemporary(url)).orElse(false), type);
+                return new StreamingAudioSource(urls.toArray(URL[]::new), listener, sourceOptional.map(s -> s.isTemporary(url)).orElse(false), type);
             } catch (Exception e) {
                 throw new CompletionException(e);
             }

@@ -5,7 +5,10 @@ import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
-import gg.moonflower.etched.api.util.*;
+import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.api.util.Mp3InputStream;
+import gg.moonflower.etched.api.util.SeekingStream;
+import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
 import gg.moonflower.etched.client.sound.SoundCache;
 import gg.moonflower.etched.core.Etched;
@@ -19,7 +22,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.valueproviders.ConstantFloat;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
@@ -76,7 +79,7 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
     @Override
     public CompletableFuture<AudioStream> getStream(SoundBufferLibrary loader, Sound sound, boolean repeatInstantly) {
         if (!(sound instanceof OnlineSound onlineSound)) {
-            return loader.getStream(sound.getPath(), repeatInstantly);
+            return super.getStream(loader, sound, repeatInstantly);
         }
 
         if (TrackData.isLocalSound(onlineSound.getURL())) {
@@ -101,33 +104,25 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenCompose(AudioSource::openStream).thenApplyAsync(stream -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
-                byte[] readHeader = new byte[8192]; // 8KB starting buffer
-                int read = IOUtils.read(stream, readHeader);
-
-                InputStream is;
-                if (read < readHeader.length) {
-                    byte[] header = new byte[read];
-                    System.arraycopy(readHeader, 0, header, 0, header.length);
-                    is = new HeaderInputStream(header, stream);
-                } else {
-                    is = new HeaderInputStream(readHeader, stream);
-                }
+                InputStream is = new BufferedInputStream(stream, 8192);
 
                 // Try loading as OGG
                 try {
+                    is.mark(4192);
                     return getStream(repeatInstantly ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is), sound);
                 } catch (Exception e) {
                     LOGGER.debug("Failed to load as OGG", e);
-                    ((SeekingStream) is).beginning();
+                    is.reset();
 
                     // Try loading as WAV
                     try {
+                        is.mark(4192);
                         AudioInputStream ais = WaveDataReader.getAudioInputStream(is);
                         AudioFormat format = ais.getFormat();
                         return getStream(repeatInstantly ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais), sound);
                     } catch (Exception e1) {
                         LOGGER.debug("Failed to load as WAV", e1);
-                        ((SeekingStream) is).beginning();
+                        is.reset();
 
                         // Try loading as MP3
                         try {

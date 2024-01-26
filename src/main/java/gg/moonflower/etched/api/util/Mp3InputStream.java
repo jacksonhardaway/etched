@@ -15,16 +15,13 @@ import java.nio.ByteOrder;
  */
 public class Mp3InputStream extends InputStream {
 
-    private final InputStream source;
     private final Bitstream stream;
     private final Decoder decoder;
     private final ByteBuffer buffer;
 
-    private SampleBuffer output;
     private AudioFormat format;
 
     public Mp3InputStream(InputStream source) throws IOException {
-        this.source = source;
         this.stream = new Bitstream(source);
         this.decoder = new Decoder();
         this.buffer = ByteBuffer.allocate(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
@@ -49,27 +46,22 @@ public class Mp3InputStream extends InputStream {
                 return true;
             }
 
-            if (this.output == null) {
+            if (this.format == null) {
                 int channels = header.mode() == Header.SINGLE_CHANNEL ? 1 : 2;
-                this.output = new SampleBuffer(header.sample_frequency(), channels);
-                this.decoder.setOutputBuffer(this.output);
-                this.format = new AudioFormat(header.frequency(), 16, channels, true, false);
+                this.format = new AudioFormat(header.frequency(), Short.SIZE, channels, true, false);
             }
 
-            Obuffer decoderOutput = this.decoder.decodeFrame(header, this.stream);
-            if (decoderOutput != this.output) {
-                throw new IOException("Output buffers are different.");
-            }
-
-            for (short value : this.output.getBuffer()) {
-                this.buffer.putShort(value);
-            }
+            SampleBuffer decoderOutput = (SampleBuffer) this.decoder.decodeFrame(header, this.stream);
+            short[] data = decoderOutput.getBuffer();
+            this.buffer.asShortBuffer().put(data);
+            this.buffer.position(data.length * Short.BYTES);
             this.buffer.flip();
-        } catch (JavaLayerException e) {
-            throw new IOException(e);
+        } catch (Throwable t) {
+            throw new IOException(t);
+        } finally {
+            this.stream.closeFrame();
         }
 
-        this.stream.closeFrame();
         return false;
     }
 
@@ -98,8 +90,8 @@ public class Mp3InputStream extends InputStream {
     }
 
     @Override
-    public int available() throws IOException {
-        return this.source.available();
+    public int available() {
+        return this.buffer.remaining();
     }
 
     @Override

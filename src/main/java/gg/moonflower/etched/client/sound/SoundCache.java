@@ -1,8 +1,7 @@
 package gg.moonflower.etched.client.sound;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
@@ -15,9 +14,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.lang.reflect.Type;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,24 +28,27 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Ocelot
+ * @see AudioSource#downloadTo(URL, boolean, DownloadProgressListener, AudioSource.AudioFileType)
  */
+@ApiStatus.Internal
 public final class SoundCache {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(CacheMetadata.class, new MetadataSerializer()).create();
     private static final Path CACHE_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
     private static final ReentrantLock DOWNLOAD_LOCK = new ReentrantLock();
     private static final ReentrantLock METADATA_LOCK = new ReentrantLock();
     private static final ReentrantLock IO_LOCK = new ReentrantLock();
+    private static final Type CACHE_METADATA_TYPE = new TypeToken<Map<String, CacheMetadata>>() {
+    }.getType();
 
     private static final Path CACHE_METADATA_LOCATION = CACHE_FOLDER.resolve("cache.json");
     private static final int METADATA_WRITE_TIME = 5000;
-    private static volatile JsonObject CACHE_METADATA = new JsonObject();
+    private static volatile Map<String, CacheMetadata> CACHE_METADATA = new HashMap<>();
     private static volatile long nextWriteTime = Long.MAX_VALUE;
 
     private static final Map<String, CompletableFuture<AudioSource>> DOWNLOADING = new HashMap<>();
@@ -76,7 +81,7 @@ public final class SoundCache {
         if (Files.exists(CACHE_METADATA_LOCATION)) {
             LOGGER.debug("Reading cache metadata from file.");
             try (InputStreamReader reader = new InputStreamReader(new FileInputStream(CACHE_METADATA_LOCATION.toFile()))) {
-                CACHE_METADATA = JsonParser.parseReader(reader).getAsJsonObject();
+                CACHE_METADATA = GSON.fromJson(reader, CACHE_METADATA_TYPE);
             } catch (Exception e) {
                 LOGGER.error("Failed to load cache metadata", e);
             }
@@ -107,6 +112,13 @@ public final class SoundCache {
 
     private static synchronized void writeMetadata() {
         LOGGER.debug("Writing cache metadata to file.");
+        try {
+            METADATA_LOCK.lock();
+            CACHE_METADATA.keySet().removeIf(name -> !Files.exists(CACHE_FOLDER.resolve(name)));
+        } finally {
+            METADATA_LOCK.unlock();
+        }
+
         try (FileOutputStream os = new FileOutputStream(CACHE_METADATA_LOCATION.toFile())) {
             if (!Files.exists(CACHE_FOLDER)) {
                 Files.createDirectory(CACHE_FOLDER);
@@ -142,10 +154,16 @@ public final class SoundCache {
                     throw new CompletionException(e);
                 }
                 return source;
-            }).thenApplyAsync(source -> {
-                DOWNLOADING.remove(url);
+            }).handle((source, throwable) -> {
+                Minecraft.getInstance().execute(() -> DOWNLOADING.remove(url));
+                if (throwable != null) {
+                    if (throwable instanceof CompletionException e) {
+                        throw e;
+                    }
+                    throw new CompletionException(throwable);
+                }
                 return source;
-            }, Minecraft.getInstance());
+            });
 
             DOWNLOADING.put(url, future);
             return future;
@@ -159,64 +177,99 @@ public final class SoundCache {
         }
     }
 
-    public static boolean isValid(Path soundFile, String url) {
-        String key = DigestUtils.md5Hex(url);
-        if (!Files.exists(soundFile)) {
-            return false;
-        }
-
-        if (CACHE_METADATA.has(key) && CACHE_METADATA.get(key).isJsonPrimitive() && CACHE_METADATA.get(key).getAsJsonPrimitive().isNumber()) {
-            long now = System.currentTimeMillis() / 1000L;
-            long expirationDate = CACHE_METADATA.get(key).getAsLong();
-            return expirationDate - now > 0;
-        }
-
-        return false;
+    public static @Nullable CacheMetadata getMetadata(String url) {
+        return CACHE_METADATA.get(DigestUtils.md5Hex(url));
     }
 
-    public static void updateCache(Path soundFile, String url, long timeout, TimeUnit unit, InputStream stream) {
+    public static void updateCacheMetadata(String url, @Nullable CacheMetadata metadata) {
         try {
-            try {
-                IO_LOCK.lock();
-                if (!Files.exists(CACHE_FOLDER)) {
-                    Files.createDirectory(CACHE_FOLDER);
-                }
-                Files.copy(stream, soundFile, StandardCopyOption.REPLACE_EXISTING);
-            } finally {
-                IO_LOCK.unlock();
+            METADATA_LOCK.lock();
+            String key = DigestUtils.md5Hex(url);
+            if (metadata != null) {
+                CACHE_METADATA.put(key, metadata);
+            } else {
+                CACHE_METADATA.remove(key);
             }
-
-            try {
-                METADATA_LOCK.lock();
-                CACHE_METADATA.addProperty(DigestUtils.md5Hex(url), System.currentTimeMillis() / 1000L + unit.toSeconds(timeout));
-                nextWriteTime = System.currentTimeMillis() + METADATA_WRITE_TIME;
-            } finally {
-                METADATA_LOCK.unlock();
-            }
-        } catch (Exception e) {
-            LOGGER.error("Failed to write sound: " + url, e);
+            nextWriteTime = System.currentTimeMillis() + METADATA_WRITE_TIME;
         } finally {
-            IOUtils.closeQuietly(stream);
+            METADATA_LOCK.unlock();
         }
     }
 
-    public static Path resolveFilePath(String hash, boolean temporary) throws IOException {
+    public static void updateCache(Path soundFile, String url, InputStream stream, CacheMetadata metadata) throws IOException {
+        try {
+            IO_LOCK.lock();
+            if (!Files.exists(CACHE_FOLDER)) {
+                Files.createDirectory(CACHE_FOLDER);
+            }
+            Files.copy(stream, soundFile, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            IO_LOCK.unlock();
+        }
+
+        updateCacheMetadata(url, metadata);
+    }
+
+    public static Path resolveFilePath(String url, boolean temporary) throws IOException {
+        String key = DigestUtils.md5Hex(url);
         if (temporary) {
-            return getTemporaryFile(hash);
+            if (files == null) {
+                throw new IllegalStateException("Shutdown in progress");
+            }
+            if (!files.containsKey(key)) {
+                files.put(key, Files.createTempFile(key, null));
+            }
+            return files.get(key);
         }
         if (!Files.exists(CACHE_FOLDER)) {
             Files.createDirectories(CACHE_FOLDER);
         }
-        return CACHE_FOLDER.resolve(hash);
+        return CACHE_FOLDER.resolve(key);
     }
 
-    private static Path getTemporaryFile(String hash) throws IOException {
-        if (files == null) {
-            throw new IllegalStateException("Shutdown in progress");
+    /**
+     * @param expiration   The date this object will expire at
+     * @param noCache      Whether the cache must validate the response with the server before reusing the cache
+     * @param staleIfError Whether a stale response can be used if the server returns an error
+     */
+    public record CacheMetadata(long expiration,
+                                boolean noCache,
+                                boolean staleIfError) {
+
+        public boolean isFresh() {
+            return this.expiration - System.currentTimeMillis() / 1000L > 0;
         }
-        if (!files.containsKey(hash)) {
-            files.put(hash, Files.createTempFile(hash, null));
+    }
+
+    private static class MetadataSerializer implements JsonDeserializer<CacheMetadata>, JsonSerializer<CacheMetadata> {
+
+        @Override
+        public CacheMetadata deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            if (json.isJsonObject()) {
+                JsonObject object = json.getAsJsonObject();
+                long expiration = object.get("expiration").getAsLong();
+                boolean noCache = object.get("noCache").getAsBoolean();
+                boolean staleIfError = object.get("staleIfError").getAsBoolean();
+                return new CacheMetadata(expiration, noCache, staleIfError);
+            }
+            return new CacheMetadata(json.getAsLong(), false, false);
         }
-        return files.get(hash);
+
+        @Override
+        public JsonElement serialize(CacheMetadata src, Type typeOfSrc, JsonSerializationContext context) {
+            if (!src.noCache && !src.staleIfError) {
+                return new JsonPrimitive(src.expiration);
+            }
+
+            JsonObject json = new JsonObject();
+            json.addProperty("expiration", src.expiration);
+            if (src.noCache) {
+                json.addProperty("noCache", true);
+            }
+            if (src.staleIfError) {
+                json.addProperty("staleIfError", true);
+            }
+            return json;
+        }
     }
 }

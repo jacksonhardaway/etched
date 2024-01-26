@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Sources of raw audio data to be played.
@@ -32,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
+    long MAX_SIZE = 100 * 1024 * 1024; // 100MB
 
     static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
@@ -40,21 +40,44 @@ public interface AudioSource {
         return map;
     }
 
-    static AsyncInputStream.InputStreamSupplier downloadTo(Path file, URL url, @Nullable DownloadProgressListener progressListener, AudioFileType type) {
+    static AsyncInputStream.InputStreamSupplier downloadTo(URL url, boolean temporary, @Nullable DownloadProgressListener progressListener, AudioFileType type) {
+        Path path;
+        try {
+            path = SoundCache.resolveFilePath(url.toString(), temporary);
+        } catch (Throwable t) {
+            throw new CompletionException(t);
+        }
+
+        String key = url.toString();
+        SoundCache.CacheMetadata metadata = SoundCache.getMetadata(key);
+        if (Files.exists(path) && metadata != null && metadata.isFresh() && !metadata.noCache()) {
+            return () -> Files.newInputStream(path);
+        }
+
         if (progressListener != null) {
             progressListener.progressStartRequest(Component.translatable("resourcepack.requesting"));
         }
-
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             getDownloadHeaders().forEach(connection::setRequestProperty);
+
+            int response = connection.getResponseCode();
+            if (response != 200) {
+                // There was a server error, but there is a valid local cache so use the cached value
+                if (Files.exists(path) && (metadata != null && (metadata.isFresh() || metadata.staleIfError()))) {
+                    return () -> Files.newInputStream(path);
+                }
+                throw new IOException("Failed to connect to " + url + ": " + response + ". " + connection.getResponseMessage());
+            }
 
             long contentLength = connection.getContentLengthLong();
 
             // Indicates a cache of "forever"
             long cacheTime = Long.MAX_VALUE;
             int cachePriority = 0;
-            boolean cache = true;
+            boolean noCache = false;
+            boolean staleIfError = false;
+            boolean noStore = false;
 
             String cacheControl = connection.getHeaderField("Cache-Control");
             if (cacheControl != null) {
@@ -65,7 +88,7 @@ public interface AudioSource {
                         String name = entry[0].trim();
                         String value = entry.length > 1 ? entry[1].trim() : null;
                         switch (name) {
-                            case "max-age": {
+                            case "max-age" -> {
                                 if (cachePriority > 0) {
                                     break;
                                 }
@@ -74,29 +97,26 @@ public interface AudioSource {
                                 } catch (NumberFormatException e) {
                                     LOGGER.error("Invalid max-age: " + value);
                                 }
-                                break;
                             }
-                            case "s-maxage": {
+                            case "s-maxage" -> {
                                 cachePriority = 1;
                                 try {
                                     cacheTime = Integer.parseInt(Objects.requireNonNull(value));
                                 } catch (NumberFormatException e) {
                                     LOGGER.error("Invalid s-maxage: " + value);
                                 }
-                                break;
                             }
+
                             // Skip must-revalidate
-                            // Skip no-cache because "hidden" files are already in the temp directory
-                            case "no-store": {
-                                cache = false;
-                                break;
-                            }
+                            case "no-cache" -> noCache = true;
+                            case "no-store" -> noStore = true;
+
                             // Skip private
                             // Skip public
                             // Skip no-transform
                             // Skip immutable
                             // Skip stale-while-revalidate
-                            // Skip stale-if-error
+                            case "stale-if-error" -> staleIfError = true;
                         }
                     } catch (Exception e) {
                         LOGGER.error("Invalid response header: {}", part, e);
@@ -113,30 +133,37 @@ public interface AudioSource {
                 }
             }
 
-            if (contentLength <= 0 || cacheTime <= 0 || !cache) {
+            // Handle streams
+            if (contentLength < 0 || cacheTime <= 0 || noStore) {
+                Files.deleteIfExists(path);
+                SoundCache.updateCacheMetadata(key, null);
                 if (!type.isStream()) {
                     throw new IOException("The provided URL is a stream, but that is not supported");
                 }
-                Files.deleteIfExists(file);
                 return () -> new AsyncInputStream(url::openStream, 8192, 8, HttpUtil.DOWNLOAD_EXECUTOR);
+            }
+
+            // The cached file is still fresh, so only the metadata needs to be updated
+            long expiration = cacheTime == Long.MAX_VALUE ? cacheTime : System.currentTimeMillis() / 1000L + cacheTime;
+            if (Files.exists(path) && metadata != null && metadata.isFresh()) {
+                SoundCache.updateCacheMetadata(key, new SoundCache.CacheMetadata(expiration, noCache, staleIfError));
+                return () -> Files.newInputStream(path);
             }
 
             if (!type.isFile()) {
                 throw new IOException("The provided URL is a file, but that is not supported");
             }
-            if (SoundCache.isValid(file, file.getFileName().toString())) {
-                return () -> Files.newInputStream(file.toFile().toPath());
-            }
-            if (contentLength > 104857600) {
-                throw new IOException("Filesize is bigger than maximum allowed (file is " + contentLength + ", limit is 104857600)");
+
+            if (contentLength > MAX_SIZE) {
+                throw new IOException("File size is bigger than maximum allowed (file is " + contentLength + ", limit is " + MAX_SIZE + ")");
             }
 
-            SoundCache.updateCache(file, file.getFileName().toString(), cacheTime, TimeUnit.SECONDS, new ProgressTrackingInputStream(connection.getInputStream(), contentLength, progressListener) {
+            try (InputStream stream = new ProgressTrackingInputStream(connection.getInputStream(), contentLength, progressListener) {
                 @Override
                 public int read() throws IOException {
                     int value = super.read();
-                    if (this.getRead() > 104857600) {
-                        throw new IOException("Filesize was bigger than maximum allowed (got >= " + this.getRead() + ", limit was 104857600)");
+                    if (this.getRead() > MAX_SIZE) {
+                        throw new IOException("File size was bigger than maximum allowed (got >= " + this.getRead() + ", limit was " + MAX_SIZE + ")");
                     }
                     return value;
                 }
@@ -144,16 +171,18 @@ public interface AudioSource {
                 @Override
                 public int read(byte[] b, int off, int len) throws IOException {
                     int value = super.read(b, off, len);
-                    if (this.getRead() > 104857600) {
-                        throw new IOException("Filesize was bigger than maximum allowed (got >= " + this.getRead() + ", limit was 104857600)");
+                    if (this.getRead() > MAX_SIZE) {
+                        throw new IOException("File size was bigger than maximum allowed (got >= " + this.getRead() + ", limit was " + MAX_SIZE + ")");
                     }
                     return value;
                 }
-            });
+            }) {
+                SoundCache.updateCache(path, key, stream, new SoundCache.CacheMetadata(expiration, noCache, staleIfError));
+            }
         } catch (Throwable e) {
             throw new CompletionException(e);
         }
-        return () -> Files.newInputStream(file);
+        return () -> Files.newInputStream(path);
     }
 
     /**

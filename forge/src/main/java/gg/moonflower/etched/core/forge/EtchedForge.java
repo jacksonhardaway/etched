@@ -25,11 +25,11 @@ public class EtchedForge {
     }
 
     private void commonInit(FMLCommonSetupEvent event) {
-        Etched.postInit();
+        event.enqueueWork(Etched::postInit);
     }
 
     private void clientInit(FMLClientSetupEvent event) {
-        EtchedClient.postInit();
+        event.enqueueWork(EtchedClient::postInit);
     }
 
 //    private void dataSetup(GatherDataEvent event) {

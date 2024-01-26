@@ -1,7 +1,0 @@
-{
-	"parent": "etched:block/radio_225",
-	"textures": {
-		"texture": "etched:block/portal_radio",
-		"particle": "etched:block/portal_radio"
-	}
-}

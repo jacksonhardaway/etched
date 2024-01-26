@@ -3,7 +3,6 @@ package gg.moonflower.etched.common.menu;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.etched.core.registry.EtchedMenus;
-import gg.moonflower.etched.core.util.QuickMoveHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -16,10 +15,6 @@ import net.minecraft.world.item.ItemStack;
  * @author Ocelot
  */
 public class BoomboxMenu extends AbstractContainerMenu {
-
-    private static final QuickMoveHelper MOVE_HELPER = new QuickMoveHelper().
-            add(0, 1, 1, 36, true). // to Inventory
-                    add(1, 36, 0, 1, false); // from Inventory
 
     private final Container boomboxInventory;
 
@@ -70,7 +65,27 @@ public class BoomboxMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int slot) {
-        return MOVE_HELPER.quickMoveStack(this, player, slot);
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack itemStack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemStack2 = slot.getItem();
+            itemStack = itemStack2.copy();
+            if (index == 0) {
+                if (!this.moveItemStackTo(itemStack2, 1, 37, true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemStack2, 0, 1, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemStack2.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemStack;
     }
 }

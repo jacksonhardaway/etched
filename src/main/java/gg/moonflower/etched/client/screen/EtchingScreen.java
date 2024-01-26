@@ -11,13 +11,11 @@ import gg.moonflower.etched.common.network.EtchedMessages;
 import gg.moonflower.etched.common.network.play.ServerboundSetUrlPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedItems;
-import gg.moonflower.etched.core.util.ShapeRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -200,15 +198,13 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         Pair<ResourceLocation, ResourceLocation> textures = pattern.getTextures();
         RenderSystem.setShaderTexture(0, textures.getLeft());
 
-        ShapeRenderer.setShader(GameRenderer::getPositionColorTexShader);
-        ShapeRenderer.drawRectWithTexture(guiGraphics.pose(), x, y, 1, 1, 14, 14, 14, 14, 16, 16);
+        guiGraphics.blit(textures.getLeft(), x, y, 14, 14, 1, 1, 14, 14, 16, 16);
         if (!pattern.isSimple()) {
             if (pattern.isColorable()) {
                 RenderSystem.setShaderColor((float) (secondaryLabelColor >> 16 & 255) / 255.0F, (float) (secondaryLabelColor >> 8 & 255) / 255.0F, (float) (secondaryLabelColor & 255) / 255.0F, 1.0F);
             }
 
-            RenderSystem.setShaderTexture(0, textures.getRight());
-            ShapeRenderer.drawRectWithTexture(guiGraphics.pose(), x, y, 1, 1, 14, 14, 14, 14, 16, 16);
+            guiGraphics.blit(textures.getRight(), x, y, 14, 14, 1, 1, 14, 14, 16, 16);
         }
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
     }

@@ -4,7 +4,6 @@ import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.common.item.AlbumCoverItem;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import gg.moonflower.etched.core.registry.EtchedMenus;
-import gg.moonflower.etched.core.util.QuickMoveHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -17,10 +16,6 @@ import net.minecraft.world.item.ItemStack;
  * @author Ocelot
  */
 public class AlbumCoverMenu extends AbstractContainerMenu {
-
-    private static final QuickMoveHelper MOVE_HELPER = new QuickMoveHelper().
-            add(0, 9, 9, 36, true). // to Inventory
-                    add(9, 36, 0, 9, false); // from Inventory
 
     private final Inventory inventory;
     private final Container albumCoverInventory;
@@ -93,8 +88,28 @@ public class AlbumCoverMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int slot) {
-        return MOVE_HELPER.quickMoveStack(this, player, slot);
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack itemStack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemStack2 = slot.getItem();
+            itemStack = itemStack2.copy();
+            if (index < 9) {
+                if (!this.moveItemStackTo(itemStack2, 9, 45, true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemStack2, 0, 9, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemStack2.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemStack;
     }
 
     public static boolean isValid(ItemStack stack) {

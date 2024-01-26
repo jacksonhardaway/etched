@@ -83,12 +83,10 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
         if (!state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof Container) {
-                if (!((Container) blockEntity).isEmpty()) {
-                    level.levelEvent(1010, pos, 0);
-                }
                 Containers.dropContents(level, pos, (Container) blockEntity);
                 level.updateNeighbourForOutputSignal(pos, this);
             }
+            level.levelEvent(1011, pos, 0);
 
             super.onRemove(state, level, pos, newState, moving);
         }

@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.client.resources.model.BakedModel;
@@ -37,6 +38,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,16 +84,16 @@ public class AlbumCoverItemRenderer extends BlockEntityWithoutLevelRenderer impl
         return INSTANCE.data.overlay.getImage();
     }
 
-    private static void renderModelLists(BakedModel model, int combinedLight, int combinedOverlay, PoseStack matrixStack, VertexConsumer buffer) {
+    private static void renderModelLists(BakedModel model, int combinedLight, int combinedOverlay, PoseStack matrixStack, VertexConsumer buffer, RenderType renderType) {
         RandomSource randomsource = RandomSource.create();
 
         for (Direction direction : Direction.values()) {
             randomsource.setSeed(42L);
-            renderQuadList(matrixStack, buffer, model.getQuads(null, direction, randomsource), combinedLight, combinedOverlay);
+            renderQuadList(matrixStack, buffer, model.getQuads(null, direction, randomsource, net.minecraftforge.client.model.data.ModelData.EMPTY, renderType), combinedLight, combinedOverlay);
         }
 
         randomsource.setSeed(42L);
-        renderQuadList(matrixStack, buffer, model.getQuads(null, null, randomsource), combinedLight, combinedOverlay);
+        renderQuadList(matrixStack, buffer, model.getQuads(null, null, randomsource, net.minecraftforge.client.model.data.ModelData.EMPTY, renderType), combinedLight, combinedOverlay);
     }
 
     private static void renderQuadList(PoseStack matrixStack, VertexConsumer buffer, List<BakedQuad> quads, int combinedLight, int combinedOverlay) {
@@ -230,11 +232,13 @@ public class AlbumCoverItemRenderer extends BlockEntityWithoutLevelRenderer impl
             if (model.isCustomRenderer()) {
                 return;
             }
-            model.getTransforms().getTransform(transformType).apply(transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND || transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND, matrixStack);
+            model.applyTransform(transformType, matrixStack, transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND || transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
             matrixStack.translate(-0.5D, -0.5D, -0.5D);
-            renderModelLists(model, packedLight, combinedOverlay, matrixStack, ItemRenderer.getFoilBufferDirect(buffer, RenderType.entityCutout(this.contents().name()), false, stack.hasFoil()));
+            RenderType renderType = RenderType.entityCutout(this.contents().name());
+            renderModelLists(model, packedLight, combinedOverlay, matrixStack, ItemRenderer.getFoilBufferDirect(buffer, renderType, false, stack.hasFoil()), renderType);
         }
 
+        @SuppressWarnings({"ConstantValue", "DataFlowIssue"})
         private BakedModel getModel() {
             ResourceLocation name = this.contents().name();
             if (this.model == null) {
@@ -243,8 +247,9 @@ public class AlbumCoverItemRenderer extends BlockEntityWithoutLevelRenderer impl
                 this.model = ITEM_MODEL_GENERATOR.generateBlockModel(material -> this, MODEL).bake(null, MODEL, material -> this, BlockModelRotation.X0_Y0, name, false);
                 profiler.pop();
             }
-            if (Minecraft.getInstance().getTextureManager().getTexture(name, null) == null) {
-                Minecraft.getInstance().getTextureManager().register(name, new DynamicTexture(this.getImage()));
+            TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+            if (textureManager.getTexture(name, null) == null) {
+                textureManager.register(name, new DynamicTexture(this.getImage()));
             }
             return this.model;
         }
@@ -270,6 +275,7 @@ public class AlbumCoverItemRenderer extends BlockEntityWithoutLevelRenderer impl
         }
     }
 
+    @ApiStatus.Internal
     public interface ModelData {
 
         static Optional<ModelData> of(AlbumCover cover) {

@@ -80,7 +80,7 @@ public final class AlbumCoverCache {
             }
         }, HttpUtil.DOWNLOAD_EXECUTOR).thenApplyAsync(path -> {
             try (FileInputStream is = new FileInputStream(path.toFile())) {
-                return AlbumCover.of(AlbumImageProcessor.apply(NativeImage.read(is), AlbumCoverItemRenderer.getOverlayImage(), 1));
+                return AlbumCover.of(AlbumImageProcessor.apply(NativeImage.read(is), AlbumCoverItemRenderer.getOverlayImage()));
             } catch (Exception e) {
                 throw new CompletionException(e);
             }

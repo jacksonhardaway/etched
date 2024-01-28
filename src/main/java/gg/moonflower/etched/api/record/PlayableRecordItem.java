@@ -44,7 +44,7 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
         }
 
         ItemStack stack = context.getItemInHand();
-        if (!this.getMusic(stack).isPresent()) {
+        if (this.getMusic(stack).isEmpty()) {
             return InteractionResult.PASS;
         }
 

@@ -70,11 +70,14 @@ public abstract class PlayableRecordItem extends Item implements PlayableRecord 
         this.getAlbum(stack).ifPresent(track -> {
             boolean album = this.getTrackCount(stack) > 1;
             list.add(track.getDisplayName().copy().withStyle(ChatFormatting.GRAY));
-            Component brand = SoundSourceManager.getBrandText(track.url())
+            SoundSourceManager.getBrandText(track.url())
                     .map(component -> Component.literal("  ").append(component.copy()))
-                    .<Component>map(component -> album ? component.append(" ").append(ALBUM) : component)
-                    .orElse(album ? ALBUM : Component.empty());
-            list.add(brand);
+                    .map(component -> album ? component.append(" ").append(ALBUM) : component)
+                    .ifPresentOrElse(list::add, () -> {
+                        if (album) {
+                            list.add(ALBUM);
+                        }
+                    });
         });
     }
 

@@ -5,6 +5,7 @@ import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.SharedConstants;
+import net.minecraft.WorldVersion;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
@@ -29,9 +30,10 @@ public interface SoundDownloadSource {
      */
     static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = new HashMap<>();
-        map.put("X-Minecraft-Version", SharedConstants.getCurrentVersion().getName());
-        map.put("X-Minecraft-Version-ID", SharedConstants.getCurrentVersion().getId());
-        map.put("User-Agent", "Minecraft Java/" + SharedConstants.getCurrentVersion().getName());
+        WorldVersion version = SharedConstants.getCurrentVersion();
+        map.put("X-Minecraft-Version", version.getName());
+        map.put("X-Minecraft-Version-ID", version.getId());
+        map.put("User-Agent", "Minecraft Java/" + version.getName());
         return map;
     }
 

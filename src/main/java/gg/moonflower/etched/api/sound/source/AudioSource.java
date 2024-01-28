@@ -6,6 +6,7 @@ import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.User;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.HttpUtil;
 import org.apache.logging.log4j.LogManager;
@@ -33,10 +34,14 @@ public interface AudioSource {
     Logger LOGGER = LogManager.getLogger();
     long MAX_SIZE = 100 * 1024 * 1024; // 100MB
 
+    /**
+     * @return The vanilla Minecraft client download headers
+     */
     static Map<String, String> getDownloadHeaders() {
         Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
-        map.put("X-Minecraft-Username", Minecraft.getInstance().getUser().getName());
-        map.put("X-Minecraft-UUID", Minecraft.getInstance().getUser().getUuid());
+        User user = Minecraft.getInstance().getUser();
+        map.put("X-Minecraft-Username", user.getName());
+        map.put("X-Minecraft-UUID", user.getUuid());
         return map;
     }
 

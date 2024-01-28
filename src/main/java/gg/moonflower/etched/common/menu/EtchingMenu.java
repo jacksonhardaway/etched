@@ -57,7 +57,7 @@ public class EtchingMenu extends AbstractContainerMenu {
 
     static {
         ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
-        builder.add("audio/wav", "audio/x-wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream");
+        builder.add("audio/wav", "audio/x-wav", "audio/opus", "application/ogg", "audio/ogg", "audio/mpeg", "application/octet-stream", "application/binary");
         VALID_FORMATS = builder.build();
     }
 
@@ -74,6 +74,7 @@ public class EtchingMenu extends AbstractContainerMenu {
     private long lastSoundTime;
     private CompletableFuture<?> currentRequest;
     private int currentRequestId;
+
 
     public EtchingMenu(int id, Inventory inventory) {
         this(id, inventory, ContainerLevelAccess.NULL);
@@ -164,8 +165,11 @@ public class EtchingMenu extends AbstractContainerMenu {
     }
 
     private static void checkStatus(String url) throws IOException {
-        HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection(Proxy.NO_PROXY);
-        httpURLConnection.setRequestMethod("HEAD");
+        URL uri = new URL(url);
+        HttpURLConnection httpURLConnection = (HttpURLConnection) uri.openConnection(Proxy.NO_PROXY);
+        if (!uri.getHost().equals("www.dropbox.com")) { // Hack for dropbox returning the wrong content type for head requests
+            httpURLConnection.setRequestMethod("HEAD");
+        }
         httpURLConnection.setInstanceFollowRedirects(true);
         Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 

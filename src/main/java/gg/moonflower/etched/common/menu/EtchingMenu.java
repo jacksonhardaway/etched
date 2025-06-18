@@ -305,6 +305,11 @@ public class EtchingMenu extends AbstractContainerMenu implements UrlMenu {
                         secondaryLabelColor = discAppearance.labelSecondaryColor();
                     }
 
+                    if (label != null) {
+                        primaryLabelColor = label.primaryColor();
+                        secondaryLabelColor = label.secondaryColor();
+                    }
+
                     TrackData[] data = new TrackData[]{album};
 
                     if (SoundSourceManager.isValidUrl(this.url)) {

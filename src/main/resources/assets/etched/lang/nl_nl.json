@@ -29,7 +29,7 @@
   "screen.etched.album_jukebox.now_playing": "Nu aan het spelen",
   "screen.etched.album_jukebox.previous": "Vorige",
   "screen.etched.album_jukebox.next": "Volgende",
-  "screen.etched.edit_music_label.author": "Autheur",
+  "screen.etched.edit_music_label.author": "Auteur",
   "screen.etched.edit_music_label.title": "Titel",
   "screen.etched.etching_table.error.cannot_create": "Kan geen Muziekplaat maken",
   "screen.etched.etching_table.error.cannot_create.missing_disc": "Lege Muziekplaat mist",

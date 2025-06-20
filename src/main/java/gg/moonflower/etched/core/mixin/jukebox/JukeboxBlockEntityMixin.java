@@ -2,6 +2,7 @@ package gg.moonflower.etched.core.mixin.jukebox;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.common.network.play.ClientboundPlayBlockMusicPacket;
+import gg.moonflower.etched.core.registry.EtchedComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -63,5 +64,12 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity {
         if (cir.getReturnValueI() == 0 && PlayableRecord.isPlayableRecord(this.item)) {
             cir.setReturnValue(15);
         }
+    }
+
+    @Inject(method = "canPlaceItem", at = @At("HEAD"), cancellable = true)
+    public void canPlaceItem(int slot, ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
+        JukeboxBlockEntity self = (JukeboxBlockEntity)(Object)this;
+        if (stack.has(EtchedComponents.DISC_APPEARANCE)
+                && self.getItem(slot).isEmpty()) cir.setReturnValue(true);
     }
 }

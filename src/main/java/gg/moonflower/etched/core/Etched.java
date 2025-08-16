@@ -6,17 +6,24 @@ import gg.moonflower.etched.common.component.MusicLabelComponent;
 import gg.moonflower.etched.common.sound.download.BandcampSource;
 import gg.moonflower.etched.common.sound.download.SoundCloudSource;
 import gg.moonflower.etched.core.data.*;
+import gg.moonflower.etched.core.data.loot.EtchedBlockLootProvider;
+import gg.moonflower.etched.core.data.tags.EtchedBlockTagsProvider;
+import gg.moonflower.etched.core.data.tags.EtchedEntityTypeTagsProvider;
+import gg.moonflower.etched.core.data.tags.EtchedItemTagsProvider;
+import gg.moonflower.etched.core.data.tags.EtchedPointOfInterestTagsProvider;
 import gg.moonflower.etched.core.registry.*;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.cauldron.CauldronInteraction;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -28,7 +35,9 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @Mod(Etched.MOD_ID)
@@ -111,7 +120,17 @@ public class Etched {
         gen.addProvider(event.includeServer(), blockTags);
         gen.addProvider(event.includeServer(), new EtchedItemTagsProvider(packOutput, lookupProvider, blockTags.contentsGetter(), existingFileHelper));
         gen.addProvider(event.includeServer(), new EtchedEntityTypeTagsProvider(packOutput, lookupProvider, existingFileHelper));
+        gen.addProvider(event.includeServer(), new EtchedPointOfInterestTagsProvider(packOutput, lookupProvider, existingFileHelper));
         gen.addProvider(event.includeServer(), new EtchedRecipeProvider(packOutput, lookupProvider));
+        gen.addProvider(event.includeServer(), new LootTableProvider(packOutput,
+                Set.of(),
+                List.of(new LootTableProvider.SubProviderEntry(
+                        EtchedBlockLootProvider::new,
+                        LootContextParamSets.BLOCK
+                )),
+                lookupProvider
+        ));
+
         gen.addProvider(event.includeClient(), new EtchedItemModelProvider(packOutput, existingFileHelper));
     }
 }

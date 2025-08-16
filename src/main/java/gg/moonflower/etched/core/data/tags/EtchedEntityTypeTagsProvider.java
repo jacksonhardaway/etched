@@ -1,4 +1,4 @@
-package gg.moonflower.etched.core.data;
+package gg.moonflower.etched.core.data.tags;
 
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedEntities;

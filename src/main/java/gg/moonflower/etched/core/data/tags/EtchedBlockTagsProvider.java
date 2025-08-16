@@ -1,4 +1,4 @@
-package gg.moonflower.etched.core.data;
+package gg.moonflower.etched.core.data.tags;
 
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
@@ -22,8 +22,11 @@ public class EtchedBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        this.tag(EtchedTags.RECORD_PLAYERS).add(EtchedBlocks.ALBUM_JUKEBOX.get(), EtchedBlocks.RADIO.get(), Blocks.JUKEBOX);
-        this.tag(BlockTags.MINEABLE_WITH_AXE).add(EtchedBlocks.ETCHING_TABLE.get(), EtchedBlocks.ALBUM_JUKEBOX.get(), EtchedBlocks.RADIO.get());
-        this.tag(Tags.Blocks.VILLAGER_JOB_SITES).add(Blocks.NOTE_BLOCK);
+        this.tag(EtchedTags.RECORD_PLAYERS)
+                .add(EtchedBlocks.ALBUM_JUKEBOX.get(), EtchedBlocks.RADIO.get(), Blocks.JUKEBOX);
+        this.tag(BlockTags.MINEABLE_WITH_AXE)
+                .add(EtchedBlocks.ETCHING_TABLE.get(), EtchedBlocks.ALBUM_JUKEBOX.get(), EtchedBlocks.RADIO.get());
+        this.tag(Tags.Blocks.VILLAGER_JOB_SITES)
+                .add(Blocks.NOTE_BLOCK);
     }
 }

@@ -152,7 +152,8 @@ public class SoundCloudSource implements SoundDownloadSource {
             boolean mp3;
             String typeString = type.getAsString().toLowerCase(Locale.ROOT);
             if (typeString.startsWith("audio/ogg")) {
-                mp3 = false;
+//                mp3 = false;
+                return null;
             } else if (typeString.startsWith("audio/mpeg")) {
                 mp3 = true;
             } else {

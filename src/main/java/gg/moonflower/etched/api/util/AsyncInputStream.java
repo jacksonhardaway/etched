@@ -37,7 +37,7 @@ public class AsyncInputStream extends InputStream {
         CompletableFuture<?> initialWait = new CompletableFuture<>();
         this.waitFuture = CompletableFuture.completedFuture(null); // Nothing to wait for initially
         this.readFuture = CompletableFuture.runAsync(() -> {
-            try (InputStream stream = source.get()) { // Create stream off-thread to prevent threaded stream issues
+            try (InputStream stream = source.open()) { // Create stream off-thread to prevent threaded stream issues
                 while (!this.closed) {
                     byte[] buffer = new byte[bufferSize];
                     int read, byteCount = 0;
@@ -203,6 +203,6 @@ public class AsyncInputStream extends InputStream {
          * @return A newly opened stream
          * @throws IOException If any error occurs
          */
-        InputStream get() throws IOException;
+        InputStream open() throws IOException;
     }
 }

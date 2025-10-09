@@ -187,15 +187,10 @@ public final class SoundCache {
     }
 
     public static void updateCache(Path soundFile, String url, InputStream stream, CacheMetadata metadata) throws IOException {
-        try {
-            IO_LOCK.lock();
-            if (!Files.exists(CACHE_FOLDER)) {
-                Files.createDirectory(CACHE_FOLDER);
-            }
-            Files.copy(stream, soundFile, StandardCopyOption.REPLACE_EXISTING);
-        } finally {
-            IO_LOCK.unlock();
+        if (!Files.exists(CACHE_FOLDER)) {
+            Files.createDirectory(CACHE_FOLDER);
         }
+        Files.copy(stream, soundFile, StandardCopyOption.REPLACE_EXISTING);
 
         updateCacheMetadata(url, metadata);
     }

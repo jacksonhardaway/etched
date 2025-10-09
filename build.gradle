@@ -19,6 +19,7 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
+    maven { url 'https://jitpack.io' }
 }
 
 base {
@@ -111,12 +112,12 @@ configurations {
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
 
-    jarJar(implementation("javazoom:jlayer")) {
+    jarJar(implementation("com.github.umjammer:jlayer")) {
         version {
             strictly '[1.0.0,)'
         }
     }
-    additionalRuntimeClasspath("javazoom:jlayer:1.0.1")
+    additionalRuntimeClasspath("com.github.umjammer:jlayer:1.0.3")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

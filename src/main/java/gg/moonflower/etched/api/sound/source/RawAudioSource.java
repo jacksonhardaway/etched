@@ -25,7 +25,7 @@ public class RawAudioSource implements AudioSource {
     public CompletableFuture<InputStream> openStream() {
         return this.locationFuture.thenApply(stream -> {
             try {
-                return stream.get();
+                return stream.open();
             } catch (Exception e) {
                 throw new CompletionException("Failed to open stream", e);
             }

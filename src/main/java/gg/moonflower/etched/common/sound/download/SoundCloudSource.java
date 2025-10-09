@@ -1,9 +1,6 @@
 package gg.moonflower.etched.common.sound.download;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
@@ -103,30 +100,77 @@ public class SoundCloudSource implements SoundDownloadSource {
             }
             JsonArray media = GsonHelper.getAsJsonArray(GsonHelper.getAsJsonObject(json, "media"), "transcodings");
 
-            int progressiveIndex = -1;
+            Map<Format, String> urls = new EnumMap<>(Format.class);
             for (int i = 0; i < media.size(); i++) {
                 JsonObject transcodingJson = GsonHelper.convertToJsonObject(media.get(i), "transcodings[" + i + "]");
 
-                JsonObject format = transcodingJson.getAsJsonObject("format");
-                String protocol = format.get("protocol").getAsString();
-                if ("progressive".equals(protocol)) {
-                    progressiveIndex = i;
+                Format format = Format.parse(transcodingJson.getAsJsonObject("format"));
+                if (format == null) {
+                    continue;
                 }
-                if ("hls".equals(protocol)) {
-                    try (InputStreamReader urlReader = new InputStreamReader(this.get(GsonHelper.getAsString(transcodingJson, "url"), null, proxy, 0, true))) {
-                        try (InputStreamReader reader = new InputStreamReader(this.get(GsonHelper.getAsString(JsonParser.parseReader(urlReader).getAsJsonObject(), "url"), null, proxy, 0, false))) {
-                            return M3uParser.parse(reader);
+
+                urls.put(format, GsonHelper.getAsString(transcodingJson, "url"));
+            }
+
+            for (Format format : Format.FORMATS) {
+                String dataUrl = urls.get(format);
+                if (dataUrl == null) {
+                    continue;
+                }
+
+                try (InputStreamReader reader = new InputStreamReader(this.get(dataUrl, null, proxy, 0, true))) {
+                    JsonObject urlJson = JsonParser.parseReader(reader).getAsJsonObject();
+                    if (format.isHls()) {
+                        try (InputStream stream = this.get(GsonHelper.getAsString(urlJson, "url"), null, proxy, 0, false)) {
+                            return M3uParser.parse(stream);
                         }
+                    } else {
+                        return Collections.singletonList(new URI(GsonHelper.getAsString(urlJson, "url")).toURL());
                     }
                 }
             }
-            if (progressiveIndex == -1) {
-                throw new IOException("Could not find an audio source");
-            }
-            try (InputStreamReader reader = new InputStreamReader(this.get(GsonHelper.getAsString(GsonHelper.convertToJsonObject(media.get(progressiveIndex), "transcodings[" + progressiveIndex + "]"), "url"), null, proxy, 0, true))) {
-                return Collections.singletonList(new URI(GsonHelper.getAsString(JsonParser.parseReader(reader).getAsJsonObject(), "url")).toURL());
-            }
+
+            throw new IOException("Could not find an audio source");
         });
+    }
+
+    public enum Format {
+        OGG_PROGRESSIVE, MP3_PROGRESSIVE, OGG_HLS, MP3_HLS;
+
+        public boolean isHls() {
+            return this == OGG_HLS || this == MP3_HLS;
+        }
+
+        private static final Format[] FORMATS = values();
+
+        public static @Nullable Format parse(JsonObject format) {
+            JsonElement type = format.get("mime_type");
+            if (type == null || !type.isJsonPrimitive()) {
+                return null;
+            }
+
+            boolean mp3;
+            String typeString = type.getAsString().toLowerCase(Locale.ROOT);
+            if (typeString.startsWith("audio/ogg")) {
+                mp3 = false;
+            } else if (typeString.startsWith("audio/mpeg")) {
+                mp3 = true;
+            } else {
+                return null;
+            }
+
+            JsonElement protocol = format.get("protocol");
+            if (protocol == null || !protocol.isJsonPrimitive()) {
+                return null;
+            }
+
+            String protocolString = protocol.getAsString().toLowerCase(Locale.ROOT);
+            return switch (protocolString) {
+                case "hls" -> mp3 ? MP3_HLS : OGG_HLS;
+                case "progressive" -> mp3 ? MP3_PROGRESSIVE : OGG_PROGRESSIVE;
+                default -> null;
+            };
+        }
     }
 
     @Override

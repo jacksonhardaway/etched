@@ -1,6 +1,7 @@
 package gg.moonflower.etched.api.util;
 
 import javazoom.jl.decoder.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.sound.sampled.AudioFormat;
 import java.io.IOException;
@@ -25,6 +26,7 @@ public class Mp3InputStream extends InputStream {
         this.stream = new Bitstream(source);
         this.decoder = new Decoder();
         this.buffer = ByteBuffer.allocate(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
+
         if (this.fillBuffer()) {
             throw new IOException("Failed to find header");
         }
@@ -74,7 +76,7 @@ public class Mp3InputStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(byte @NotNull [] b, int off, int len) throws IOException {
         int read = 0;
         while (read < len) {
             if (!this.buffer.hasRemaining() && this.fillBuffer()) {

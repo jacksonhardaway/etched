@@ -30,6 +30,8 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -105,7 +107,7 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
             try {
                 InputStream is = new BufferedInputStream(stream);
                 assert is.markSupported();
-                is.mark(4192);
+                is.mark(8192);
 
                 // Try loading as OGG
                 try {

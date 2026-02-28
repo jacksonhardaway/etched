@@ -173,7 +173,7 @@ tasks.withType(JavaCompile).configureEach {
 modrinth {
     var modrinthToken = System.getenv("MODRINTH_TOKEN")
     if (modrinthToken == null) {
-        modrinthToken = project.hasProperty('etched_modrinth_token') ? etched_modrinth_token : "dummy"
+        modrinthToken = project.hasProperty('modrinth_token') ? modrinth_token : "dummy"
     }
 
     token = modrinthToken

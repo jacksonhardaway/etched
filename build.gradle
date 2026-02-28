@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
     id 'net.neoforged.moddev' version '2.0.113'
+    id 'com.modrinth.minotaur' version '2.+'
 }
 
 
@@ -167,4 +168,25 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+modrinth {
+    var modrinthToken = System.getenv("MODRINTH_TOKEN")
+    if (modrinthToken == null) {
+        modrinthToken = project.hasProperty('etched_modrinth_token') ? etched_modrinth_token : "dummy"
+    }
+
+    token = modrinthToken
+    projectId = "etched"
+    versionName = "Etched $project.version"
+    versionNumber = "$project.version"
+    versionType = "release"
+    uploadFile = jar
+    additionalFiles = [sourcesJar]
+    gameVersions = [project.minecraft_version]
+    final var changelogFile = file("$rootDir/changelog.md")
+    if (changelogFile.exists()) {
+        changelog = changelogFile.getText('UTF-8')
+    }
+    debugMode = !project.modrinth_publish.equalsIgnoreCase("true")
 }

@@ -168,10 +168,10 @@ public class SoundTracker {
         boolean muffled = aboveState.is(BlockTags.WOOL);
         boolean hidden = !aboveState.isAir();
 
-        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
         return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
             @Override
             public void onSuccess() {
+                Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
                 if (!playingRecords.containsKey(pos)) {
                     this.clearComponent();
                 } else {

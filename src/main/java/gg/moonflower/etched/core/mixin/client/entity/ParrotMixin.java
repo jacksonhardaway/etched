@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public abstract class ParrotMixin extends Entity {
         super(entityType, level);
     }
 
-    @Inject(method = "aiStep", at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
+    @Inject(method = "aiStep", at = @At("HEAD"))
     public void capture(CallbackInfo ci) {
         this.etched$musicPos = this.jukebox;
         this.etched$dancing = this.partyParrot;
@@ -45,7 +44,7 @@ public abstract class ParrotMixin extends Entity {
 
     @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/ShoulderRidingEntity;aiStep()V"))
     public void addAudioProviders(CallbackInfo ci) {
-        if (this.etched$musicPos == null || !this.etched$musicPos.closerToCenterThan(this.position(), 3.46) || !this.level().getBlockState(this.etched$musicPos).is(EtchedTags.RECORD_PLAYERS)) {
+        if (this.etched$musicPos == null || this.distanceToSqr(this.etched$musicPos.getCenter()) > 12 || !this.level().getBlockState(this.etched$musicPos).is(EtchedTags.RECORD_PLAYERS)) {
             this.partyParrot = false;
             this.jukebox = null;
         } else {

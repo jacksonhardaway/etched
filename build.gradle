@@ -188,8 +188,8 @@ publishMods {
 
     type = STABLE
 
-        file = jar.archiveFile
-        additionalFiles.from(sourcesJar.archiveFile)
+    file = jar.archiveFile
+    additionalFiles.from(sourcesJar.archiveFile)
 
     changelog = changelogFile.text
 
@@ -209,7 +209,7 @@ publishMods {
     }
 
     github {
-        repository = "acksonhardaway/etched"
+        repository = "jacksonhardaway/etched"
         accessToken = providers.environmentVariable("GITHUB_TOKEN")
         tagName = "mc$minecraft_version-$project.version-$project.name"
         commitish = "main"

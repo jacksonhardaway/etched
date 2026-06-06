@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "${loader_version_range}"
-license="${mod_license}"
+license = "${mod_license}"
 issueTrackerURL = "https://github.com/jacksonhardaway/etched/issues"
 
 [[mods]]
@@ -12,18 +12,20 @@ authors = "${mod_authors}"
 description = '''${mod_description}'''
 
 [[mixins]]
-config="${mod_id}.mixins.json"
+config = "${mod_id}.mixins.json"
 
-[[dependencies.${mod_id}]]
+[[dependencies.${ mod_id }]]
 modId = "neoforge"
-type="required"
-versionRange="${neo_version_range}"
-ordering = "NONE"
-side = "BOTH"
+type = "required"
+versionRange = "${neo_version_range}"
 
-[[dependencies.${mod_id}]]
+[[dependencies.${ mod_id }]]
 modId = "minecraft"
-type="required"
+type = "required"
 versionRange = "${minecraft_version_range}"
-ordering = "NONE"
-side = "BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "sophisticatedcore"
+type = "optional"
+versionRange = "[1.4.2,)"
+ordering = "BEFORE"

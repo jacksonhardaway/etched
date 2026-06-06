@@ -7,65 +7,42 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
+import java.util.UUID;
 
 /**
  * @author Ocelot
  */
 @ApiStatus.Internal
-public class ClientboundPlayEntityMusicPacket implements CustomPacketPayload {
+public record ClientboundPlayEntityMusicPacket(Action action, ItemStack record, int entityId, @Nullable UUID storageId) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<ClientboundPlayEntityMusicPacket> TYPE = new CustomPacketPayload.Type<>(Etched.etchedPath("play_entity_music"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundPlayEntityMusicPacket> CODEC = StreamCodec.of((buffer, value) -> value.writePacketData(buffer), ClientboundPlayEntityMusicPacket::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundPlayEntityMusicPacket> CODEC = StreamCodec.of((buf, packet) -> {
+        buf.writeEnum(packet.action);
+        if (packet.action != Action.STOP) {
+            ItemStack.STREAM_CODEC.encode(buf, packet.record);
+        }
+        buf.writeVarInt(packet.entityId);
+        if (packet.action != Action.STOP && Etched.SOPHSTICATED_CORE_LOADED) {
+            buf.writeBoolean(packet.storageId != null);
+            if (packet.storageId != null) {
+                buf.writeUUID(packet.storageId);
+            }
+        }
+    }, buf -> {
+        Action action = buf.readEnum(Action.class);
+        ItemStack record = action == Action.STOP ? ItemStack.EMPTY : ItemStack.STREAM_CODEC.decode(buf);
+        int entityId = buf.readVarInt();
+        UUID storageId = action != Action.STOP && buf.readBoolean() && Etched.SOPHSTICATED_CORE_LOADED ? buf.readUUID() : null;
+        return new ClientboundPlayEntityMusicPacket(action, record, entityId, storageId);
+    });
 
-    private final Action action;
-    private final ItemStack record;
-    private final int entityId;
-
-    public ClientboundPlayEntityMusicPacket(ItemStack record, Entity entity, boolean restart) {
-        this.action = restart ? Action.RESTART : Action.START;
-        this.record = record;
-        this.entityId = entity.getId();
+    public ClientboundPlayEntityMusicPacket(ItemStack record, Entity entity, boolean restart, @Nullable UUID storageId) {
+        this(restart ? Action.RESTART : Action.START, record, entity.getId(), storageId);
     }
 
     public ClientboundPlayEntityMusicPacket(Entity entity) {
-        this.action = Action.STOP;
-        this.record = ItemStack.EMPTY;
-        this.entityId = entity.getId();
-    }
-
-    private ClientboundPlayEntityMusicPacket(RegistryFriendlyByteBuf buf) {
-        this.action = buf.readEnum(Action.class);
-        this.record = this.action == Action.STOP ? ItemStack.EMPTY : ItemStack.STREAM_CODEC.decode(buf);
-        this.entityId = buf.readVarInt();
-    }
-
-    private void writePacketData(RegistryFriendlyByteBuf buf) {
-        buf.writeEnum(this.action);
-        if (this.action != Action.STOP) {
-            ItemStack.STREAM_CODEC.encode(buf, this.record);
-        }
-        buf.writeVarInt(this.entityId);
-    }
-
-    /**
-     * @return The action to be performed on the client
-     */
-    public Action getAction() {
-        return this.action;
-    }
-
-    /**
-     * @return The id of the record item
-     */
-    public ItemStack getRecord() {
-        return this.record;
-    }
-
-    /**
-     * @return The id of the minecart entity
-     */
-    public int getEntityId() {
-        return this.entityId;
+        this(Action.STOP, ItemStack.EMPTY, entity.getId(), null);
     }
 
     @Override

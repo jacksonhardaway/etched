@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import java.util.Optional;
 
 @Mixin(JukeboxBlockEntity.class)
 public abstract class JukeboxBlockEntityMixin extends BlockEntity {
@@ -47,7 +48,7 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity {
         if (this.level instanceof ServerLevel serverLevel) {
             BlockPos pos = this.getBlockPos();
             if (PlayableRecord.isPlayableRecord(stack)) {
-                PacketDistributor.sendToPlayersNear(serverLevel, null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64, new ClientboundPlayBlockMusicPacket(stack.copy(), pos));
+                PacketDistributor.sendToPlayersNear(serverLevel, null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64, new ClientboundPlayBlockMusicPacket(stack.copy(), pos, null));
                 this.etched$playing = true;
             } else if (this.etched$playing) {
                 this.etched$playing = false;

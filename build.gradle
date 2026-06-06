@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
     id 'net.neoforged.moddev' version '2.0.113'
-    id 'com.modrinth.minotaur' version '2.+'
+    id 'me.modmuss50.mod-publish-plugin' version '1.1.0'
 }
 
 
@@ -22,6 +22,17 @@ group = mod_group_id
 repositories {
     mavenLocal()
     maven { url 'https://jitpack.io' }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 base {
@@ -115,6 +126,7 @@ configurations {
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
+    implementation "maven.modrinth:sophisticated-core:1.21.1-${sophisticated_core_version}"
 
     jarJar(implementation("com.github.umjammer:jlayer")) {
         version {
@@ -128,17 +140,18 @@ dependencies {
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            neo_version_range      : neo_version_range,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_authors            : mod_authors,
-            mod_description        : mod_description
+            minecraft_version         : minecraft_version,
+            minecraft_version_range   : minecraft_version_range,
+            neo_version               : neo_version,
+            neo_version_range         : neo_version_range,
+            loader_version_range      : loader_version_range,
+            mod_id                    : mod_id,
+            mod_name                  : mod_name,
+            mod_license               : mod_license,
+            mod_version               : mod_version,
+            mod_authors               : mod_authors,
+            mod_description           : mod_description,
+            sophisticated_core_version: sophisticated_core_version
     ]
     inputs.properties replaceProperties
     expand replaceProperties
@@ -184,9 +197,59 @@ modrinth {
     uploadFile = jar
     additionalFiles = [sourcesJar]
     gameVersions = [project.minecraft_version]
-    final var changelogFile = file("$rootDir/changelog.md")
+    final var changelogFile = file("$rootDir/CHANGELOG.md")
     if (changelogFile.exists()) {
         changelog = changelogFile.getText('UTF-8')
     }
     debugMode = !project.modrinth_publish.equalsIgnoreCase("true")
+}
+
+publishMods {
+    def changelogFile = rootProject.file("CHANGELOG.md")
+
+    type = STABLE
+
+        file = jar.archiveFile
+        additionalFiles.from(sourcesJar.archiveFile)
+
+    changelog = changelogFile.text
+
+    version = project.version
+    displayName = "$mod_name $project.version ${project.name.capitalize()}"
+    modLoaders.add("neoforge")
+
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        projectId = "491890"
+        minecraftVersions.add(minecraft_version)
+
+        clientRequired = true
+        serverRequired = true
+
+        optional "sophisticated-core"
+    }
+
+    github {
+        repository = "acksonhardaway/etched"
+        accessToken = providers.environmentVariable("GITHUB_TOKEN")
+        tagName = "mc$minecraft_version-$project.version-$project.name"
+        commitish = "main"
+
+        file.unset()
+        file.unsetConvention()
+        additionalFiles.unset()
+        additionalFiles.unsetConvention()
+
+        allowEmptyFiles = true
+    }
+
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        projectId = "zi3Fnfmc"
+        minecraftVersions.add(minecraft_version)
+
+        optional "sophisticated-core"
+    }
+
+    dryRun = providers.environmentVariable("GITHUB_TOKEN").getOrNull() == null
 }

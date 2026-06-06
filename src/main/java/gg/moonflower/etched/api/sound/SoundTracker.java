@@ -34,8 +34,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.jetbrains.annotations.Nullable;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.DoubleSupplier;
 
@@ -50,6 +52,7 @@ public class SoundTracker {
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
     private static final Set<String> FAILED_URLS = new HashSet<>();
     private static final Component RADIO = Component.translatable("sound_source." + Etched.MOD_ID + ".radio");
+    private static final Logger log = LoggerFactory.getLogger(SoundTracker.class);
 
     static {
         NeoForge.EVENT_BUS.<ClientPlayerNetworkEvent.LoggingOut>addListener(event -> FAILED_URLS.clear());
@@ -115,33 +118,34 @@ public class SoundTracker {
         boolean muffled = aboveState.is(BlockTags.WOOL);
         boolean hidden = !aboveState.isAir();
 
-        return new OnlineRecordSoundInstance(url, entity, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance, new MusicDownloadListener(title, entity::getX, entity::getY, entity::getZ) {
-            @Override
-            public void onSuccess() {
-                if (!entity.isAlive() || !ENTITY_PLAYING_SOUNDS.containsKey(entity.getId())) {
-                    this.clearComponent();
-                } else {
-                    if (!hidden && PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ())) {
-                        Minecraft.getInstance().gui.setNowPlaying(title);
+        return new OnlineRecordSoundInstance(url, entity, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance,
+                new MusicDownloadListener(title, entity::getX, entity::getY, entity::getZ) {
+                    @Override
+                    public void onSuccess() {
+                        if (!entity.isAlive() || !ENTITY_PLAYING_SOUNDS.containsKey(entity.getId())) {
+                            this.clearComponent();
+                        } else {
+                            if (!hidden && PlayableRecord.canShowMessage(entity.getX(), entity.getY(), entity.getZ())) {
+                                Minecraft.getInstance().gui.setNowPlaying(title);
+                            }
+                        }
                     }
-                }
-            }
 
-            @Override
-            public void onFail() {
-                Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
-                FAILED_URLS.add(url);
-            }
-        }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
+                    @Override
+                    public void onFail() {
+                        Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
+                        FAILED_URLS.add(url);
+                    }
+                }, stream ? AudioSource.AudioFileType.STREAM : AudioSource.AudioFileType.FILE);
     }
 
     /**
      * Creates an online sound for the specified entity with the default attenuation distance.
      *
-     * @param url                 The url to play
-     * @param title               The title of the record
-     * @param entity              The entity to play for
-     * @param stream              Whether to play a stream or regular file
+     * @param url    The url to play
+     * @param title  The title of the record
+     * @param entity The entity to play for
+     * @param stream Whether to play a stream or regular file
      * @return A new sound instance
      */
     public static @Nullable AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, Entity entity, boolean stream) {
@@ -168,36 +172,37 @@ public class SoundTracker {
         boolean muffled = aboveState.is(BlockTags.WOOL);
         boolean hidden = !aboveState.isAir();
 
-        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance, new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
-            @Override
-            public void onSuccess() {
-                Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
-                if (!playingRecords.containsKey(pos)) {
-                    this.clearComponent();
-                } else {
-                    if (!hidden && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)) {
-                        Minecraft.getInstance().gui.setNowPlaying(title);
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance,
+                new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
+                    @Override
+                    public void onSuccess() {
+                        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+                        if (!playingRecords.containsKey(pos)) {
+                            this.clearComponent();
+                        } else {
+                            if (!hidden && PlayableRecord.canShowMessage(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)) {
+                                Minecraft.getInstance().gui.setNowPlaying(title);
+                            }
+                            setRecordPlayingNearby(level, pos, true);
+                        }
                     }
-                    setRecordPlayingNearby(level, pos, true);
-                }
-            }
 
-            @Override
-            public void onFail() {
-                Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
-                FAILED_URLS.add(url);
-            }
-        }, type);
+                    @Override
+                    public void onFail() {
+                        Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
+                        FAILED_URLS.add(url);
+                    }
+                }, type);
     }
 
     /**
      * Creates an online sound for the specified position with the default attenuation distance.
      *
-     * @param url                 The url to play
-     * @param title               The title of the record
-     * @param level               The level to play the record in
-     * @param pos                 The position of the record
-     * @param type                The type of audio to accept
+     * @param url   The url to play
+     * @param title The title of the record
+     * @param level The level to play the record in
+     * @param pos   The position of the record
+     * @param type  The type of audio to accept
      * @return A new sound instance
      */
     public static @Nullable AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, CommonLevelAccessor level, BlockPos pos, AudioSource.AudioFileType type) {
@@ -222,6 +227,10 @@ public class SoundTracker {
     }
 
     public static void playBlockRecord(BlockPos pos, TrackData[] tracks, int track) {
+        playBlockRecord(pos, tracks, track, null);
+    }
+
+    public static void playBlockRecord(BlockPos pos, TrackData[] tracks, int track, @Nullable UUID storageId) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) {
             return;
@@ -235,15 +244,21 @@ public class SoundTracker {
         TrackData trackData = tracks[track];
         String url = trackData.url();
         if (!TrackData.isValidURL(url) || FAILED_URLS.contains(url)) {
-            playBlockRecord(pos, tracks, track + 1);
+            playBlockRecord(pos, tracks, track + 1, storageId);
             return;
         }
-        playRecord(pos, StopListeningSound.create(getEtchedRecord(url, trackData.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> {
+
+        StopListeningSound sound = StopListeningSound.create(getEtchedRecord(url, trackData.getDisplayName(), level, pos, AudioSource.AudioFileType.FILE), () -> Minecraft.getInstance().tell(() -> {
             if (!((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs().containsKey(pos)) {
                 return;
             }
-            playBlockRecord(pos, tracks, track + 1);
-        })));
+            playBlockRecord(pos, tracks, track + 1, storageId);
+        }));
+        if (Etched.SOPHSTICATED_CORE_LOADED && storageId != null) {
+            StorageSoundHandler.playStorageSound(storageId, sound);
+        } else {
+            playRecord(pos, sound);
+        }
     }
 
     /**
@@ -256,6 +271,19 @@ public class SoundTracker {
      * @param loop                Whether to loop
      */
     public static void playEntityRecord(ItemStack record, int entityId, int track, int attenuationDistance, boolean loop) {
+        playEntityRecord(record, entityId, track, attenuationDistance, loop, null);
+    }
+
+    /**
+     * Plays a record stack for an entity.
+     *
+     * @param record              The record to play
+     * @param entityId            The id of the entity to play the record at
+     * @param track               The track to play
+     * @param attenuationDistance The attenuation distance of the sound
+     * @param loop                Whether to loop
+     */
+    public static void playEntityRecord(ItemStack record, int entityId, int track, int attenuationDistance, boolean loop, @Nullable UUID storageId) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) {
             return;
@@ -269,7 +297,7 @@ public class SoundTracker {
         Optional<? extends SoundInstance> sound = PlayableRecord.createEntitySound(record, entity, track, attenuationDistance);
         if (sound.isEmpty()) {
             if (loop && track != 0) {
-                playEntityRecord(record, entityId, 0, attenuationDistance, true);
+                playEntityRecord(record, entityId, 0, attenuationDistance, true, storageId);
             }
             return;
         }
@@ -284,11 +312,15 @@ public class SoundTracker {
 
         entitySound = StopListeningSound.create(sound.get(), () -> Minecraft.getInstance().tell(() -> {
             ENTITY_PLAYING_SOUNDS.remove(entityId);
-            playEntityRecord(record, entityId, track + 1, attenuationDistance, loop);
+            playEntityRecord(record, entityId, track + 1, attenuationDistance, loop, storageId);
         }));
 
-        ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
-        Minecraft.getInstance().getSoundManager().play(entitySound);
+        if (Etched.SOPHSTICATED_CORE_LOADED && storageId != null) {
+            StorageSoundHandler.playStorageSound(storageId, entitySound);
+        } else {
+            ENTITY_PLAYING_SOUNDS.put(entityId, entitySound);
+            Minecraft.getInstance().getSoundManager().play(entitySound);
+        }
     }
 
     public static void playEntityRecord(ItemStack record, int entityId, int track, boolean loop) {
@@ -356,7 +388,8 @@ public class SoundTracker {
         SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
 
-        if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !force && !jukebox.recalculatePlayingIndex(false)) {// Something must already be playing since it would otherwise be -1 and a change would occur
+        if (!state.hasProperty(AlbumJukeboxBlock.POWERED) || !state.getValue(AlbumJukeboxBlock.POWERED) && !force &&
+                !jukebox.recalculatePlayingIndex(false)) {// Something must already be playing since it would otherwise be -1 and a change would occur
             return;
         }
 
@@ -482,7 +515,8 @@ public class SoundTracker {
         }
 
         private void setComponent(Component text) {
-            if (this.component == null && (Minecraft.getInstance().level == null || !Minecraft.getInstance().level.getBlockState(this.getPos().move(Direction.UP)).isAir() || !PlayableRecord.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))) {
+            if (this.component == null && (Minecraft.getInstance().level == null || !Minecraft.getInstance().level.getBlockState(this.getPos().move(Direction.UP)).isAir() ||
+                    !PlayableRecord.canShowMessage(this.x.getAsDouble(), this.y.getAsDouble(), this.z.getAsDouble()))) {
                 return;
             }
 
@@ -519,7 +553,8 @@ public class SoundTracker {
             if (this.requesting != null) {
                 this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
             } else if (this.size != 0) {
-                this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size), String.format(Locale.ROOT, "%.2f", this.size), this.title));
+                this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".downloadProgress", String.format(Locale.ROOT, "%.2f", percentage / 100.0F * this.size),
+                        String.format(Locale.ROOT, "%.2f", this.size), this.title));
             }
         }
 

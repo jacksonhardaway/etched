@@ -86,7 +86,7 @@ public final class PlayableRecord {
      * @param restart Whether to restart the track from the beginning or start a new playback
      */
     public static void playEntityRecord(Entity entity, ItemStack record, boolean restart) {
-        PacketDistributor.sendToPlayersTrackingEntity(entity, new ClientboundPlayEntityMusicPacket(record, entity, restart));
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new ClientboundPlayEntityMusicPacket(record.copy(), entity, restart, null));
     }
 
     /**
@@ -95,7 +95,7 @@ public final class PlayableRecord {
      * @param entity The entity to stop playing records
      */
     public static void stopEntityRecord(Entity entity) {
-        PacketDistributor.sendToPlayersTrackingEntity(entity, new ClientboundPlayEntityMusicPacket(entity));
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new ClientboundPlayEntityMusicPacket(entity));
     }
 
     /**

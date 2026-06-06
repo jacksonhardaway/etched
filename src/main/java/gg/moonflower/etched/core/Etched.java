@@ -5,7 +5,9 @@ import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.component.MusicLabelComponent;
 import gg.moonflower.etched.common.sound.download.BandcampSource;
 import gg.moonflower.etched.common.sound.download.SoundCloudSource;
-import gg.moonflower.etched.core.data.*;
+import gg.moonflower.etched.core.compat.SophisticatedCoreCompat;
+import gg.moonflower.etched.core.data.EtchedItemModelProvider;
+import gg.moonflower.etched.core.data.EtchedRecipeProvider;
 import gg.moonflower.etched.core.data.loot.EtchedBlockLootProvider;
 import gg.moonflower.etched.core.data.tags.EtchedBlockTagsProvider;
 import gg.moonflower.etched.core.data.tags.EtchedEntityTypeTagsProvider;
@@ -26,6 +28,7 @@ import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -34,7 +37,6 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +45,7 @@ import java.util.concurrent.CompletableFuture;
 @Mod(Etched.MOD_ID)
 public class Etched {
 
+    public static final boolean SOPHSTICATED_CORE_LOADED = ModList.get().isLoaded("sophisticatedcore");
     public static final String MOD_ID = "etched";
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final EtchedConfig.Client CLIENT_CONFIG;
@@ -77,6 +80,10 @@ public class Etched {
 
         container.registerConfig(ModConfig.Type.CLIENT, clientSpec);
         container.registerConfig(ModConfig.Type.SERVER, serverSpec);
+
+        if (SOPHSTICATED_CORE_LOADED) {
+            SophisticatedCoreCompat.load();
+        }
     }
 
     public static ResourceLocation etchedPath(String path) {

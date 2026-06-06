@@ -21,10 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @ApiStatus.Internal
 public class EtchedClientPlayPacketHandler {
@@ -61,10 +58,10 @@ public class EtchedClientPlayPacketHandler {
             return;
         }
 
-        int entityId = pkt.getEntityId();
+        int entityId = pkt.entityId();
         SoundInstance soundInstance = SoundTracker.getEntitySound(entityId);
         if (soundInstance != null) {
-            if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.RESTART && client.getSoundManager().isActive(soundInstance)) {
+            if (pkt.action() == ClientboundPlayEntityMusicPacket.Action.RESTART && client.getSoundManager().isActive(soundInstance)) {
                 return;
             }
             if (soundInstance instanceof StopListeningSound) {
@@ -73,7 +70,7 @@ public class EtchedClientPlayPacketHandler {
             SoundTracker.setEntitySound(entityId, null);
         }
 
-        if (pkt.getAction() == ClientboundPlayEntityMusicPacket.Action.STOP) {
+        if (pkt.action() == ClientboundPlayEntityMusicPacket.Action.STOP) {
             return;
         }
 
@@ -83,24 +80,13 @@ public class EtchedClientPlayPacketHandler {
             return;
         }
 
-        ItemStack record = pkt.getRecord();
+        ItemStack record = pkt.record();
         if (!PlayableRecord.isPlayableRecord(record)) {
             LOGGER.error("Server sent invalid music disc: {}", record);
             return;
         }
 
-        Optional<? extends SoundInstance> sound = PlayableRecord.createEntitySound(record, entity, 0);
-        if (sound.isEmpty()) {
-            LOGGER.error("Server sent invalid music disc: {}", record);
-            return;
-        }
-
-        SoundInstance entitySound = StopListeningSound.create(sound.get(), () -> client.tell(() -> {
-            SoundTracker.setEntitySound(entityId, null);
-            SoundTracker.playEntityRecord(record, entityId, 1, false);
-        }));
-
-        SoundTracker.setEntitySound(entityId, entitySound);
+        SoundTracker.playEntityRecord(record, entityId, 0, 16, false, pkt.storageId());
     }
 
     public static void handleSetInvalidEtch(ClientboundInvalidEtchUrlPacket pkt, IPayloadContext ctx) {

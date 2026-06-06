@@ -10,8 +10,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
-
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @param record The record to play
@@ -19,25 +20,29 @@ import java.util.List;
  * @author Ocelot
  */
 @ApiStatus.Internal
-public record ClientboundPlayBlockMusicPacket(ItemStack record, BlockPos pos) implements CustomPacketPayload {
+public record ClientboundPlayBlockMusicPacket(ItemStack record, BlockPos pos, @Nullable UUID storageId) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<ClientboundPlayBlockMusicPacket> TYPE = new CustomPacketPayload.Type<>(Etched.etchedPath("play_block_music"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundPlayBlockMusicPacket> CODEC = StreamCodec.composite(
-            ItemStack.STREAM_CODEC,
-            ClientboundPlayBlockMusicPacket::record,
-            BlockPos.STREAM_CODEC,
-            ClientboundPlayBlockMusicPacket::pos,
-            ClientboundPlayBlockMusicPacket::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundPlayBlockMusicPacket> CODEC = StreamCodec.of((buf, packet) -> {
+        ItemStack.STREAM_CODEC.encode(buf, packet.record);
+        buf.writeBlockPos(packet.pos);
+        if (Etched.SOPHSTICATED_CORE_LOADED) {
+            buf.writeBoolean(packet.storageId != null);
+            if (packet.storageId != null) {
+                buf.writeUUID(packet.storageId);
+            }
+        }
+    }, buf -> {
+        ItemStack record = ItemStack.STREAM_CODEC.decode(buf);
+        BlockPos pos = buf.readBlockPos();
+        UUID storageId = Etched.SOPHSTICATED_CORE_LOADED && buf.readBoolean() ? buf.readUUID() : null;
+        return new ClientboundPlayBlockMusicPacket(record, pos, storageId);
+    });
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-
-//    @Override
-//    public void processPacket(NetworkEvent.Context ctx) {
-//        EtchedClientPlayPacketHandler.handlePlayMusicPacket(this, ctx);
-//    }
 
     /**
      * @param registries The registry instance to get data from

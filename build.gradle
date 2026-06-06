@@ -183,27 +183,6 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
-modrinth {
-    var modrinthToken = System.getenv("MODRINTH_TOKEN")
-    if (modrinthToken == null) {
-        modrinthToken = project.hasProperty('modrinth_token') ? modrinth_token : "dummy"
-    }
-
-    token = modrinthToken
-    projectId = "etched"
-    versionName = "Etched $project.version"
-    versionNumber = "$project.version"
-    versionType = "release"
-    uploadFile = jar
-    additionalFiles = [sourcesJar]
-    gameVersions = [project.minecraft_version]
-    final var changelogFile = file("$rootDir/CHANGELOG.md")
-    if (changelogFile.exists()) {
-        changelog = changelogFile.getText('UTF-8')
-    }
-    debugMode = !project.modrinth_publish.equalsIgnoreCase("true")
-}
-
 publishMods {
     def changelogFile = rootProject.file("CHANGELOG.md")
 

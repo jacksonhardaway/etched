@@ -194,7 +194,7 @@ publishMods {
     changelog = changelogFile.text
 
     version = project.version
-    displayName = "$mod_name $project.version ${project.name.capitalize()}"
+    displayName = "$mod_name $project.version NeoForge"
     modLoaders.add("neoforge")
 
     curseforge {

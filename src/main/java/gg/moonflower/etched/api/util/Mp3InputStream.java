@@ -9,7 +9,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Dynamically converts mp3 data to raw audio as the stream is read.
+ * Dynamically converts mp3 data to raw PCM audio as the stream is read.
+ *
+ * Each call to {@link #fillBuffer()} reads one MP3 frame from the
+ * underlying bitstream, decodes it via JLayer, and copies only the
+ * actual decoded sample count ({@code SampleBuffer.getBufferLength()})
+ * into the internal PCM buffer — never the unused tail of the
+ * fixed-capacity JLayer backing array.
  *
  * @author Ocelot
  */
@@ -53,9 +59,19 @@ public class Mp3InputStream extends InputStream {
 
             SampleBuffer decoderOutput = (SampleBuffer) this.decoder.decodeFrame(header, this.stream);
             short[] data = decoderOutput.getBuffer();
-            this.buffer.asShortBuffer().put(data);
-            this.buffer.position(data.length * Short.BYTES);
+            int sampleCount = decoderOutput.getBufferLength();
+            if (sampleCount < 0 || sampleCount > data.length) {
+                throw new IOException("MP3 decoder returned an invalid sample count: " + sampleCount);
+            }
+
+            // SampleBuffer owns a fixed-capacity backing array. Only getBufferLength() samples
+            // belong to this decoded frame; copying the whole array doubles mono frames and
+            // inserts stale/zero samples between them.
+            this.buffer.asShortBuffer().put(data, 0, sampleCount);
+            this.buffer.position(sampleCount * Short.BYTES);
             this.buffer.flip();
+        } catch (IOException e) {
+            throw e;
         } catch (Throwable t) {
             throw new IOException(t);
         } finally {

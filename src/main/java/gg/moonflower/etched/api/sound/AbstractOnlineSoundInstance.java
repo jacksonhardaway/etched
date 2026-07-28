@@ -6,6 +6,7 @@ import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
+import gg.moonflower.etched.api.util.LiveAudioInputStream;
 import gg.moonflower.etched.api.util.Mp3InputStream;
 import gg.moonflower.etched.api.util.WaveDataReader;
 import gg.moonflower.etched.client.sound.EmptyAudioStream;
@@ -103,12 +104,15 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenCompose(AudioSource::openStream).thenApplyAsync(stream -> {
             onlineSound.getProgressListener().progressStartLoading();
             try {
+                // Live audio streams are infinite and must not be wrapped in LoopingAudioStream
+                // (which would attempt to rewind the stream on EOF — EOF never arrives).
+                boolean repeat = repeatInstantly && !(stream instanceof LiveAudioInputStream);
                 InputStream is = new BufferedInputStream(stream);
 
                 // Try loading as OGG
                 try {
                     is.mark(4192);
-                    return getStream(repeatInstantly ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is), sound);
+                    return getStream(repeat ? new LoopingAudioStream(OggAudioStream::new, is) : new OggAudioStream(is), sound);
                 } catch (Exception e) {
                     LOGGER.debug("Failed to load as OGG", e);
                     is.reset();
@@ -118,7 +122,7 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
                         is.mark(4192);
                         AudioInputStream ais = WaveDataReader.getAudioInputStream(is);
                         AudioFormat format = ais.getFormat();
-                        return getStream(repeatInstantly ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais), sound);
+                        return getStream(repeat ? new LoopingAudioStream(input -> new RawAudioStream(format, input), ais) : new RawAudioStream(format, ais), sound);
                     } catch (Exception e1) {
                         LOGGER.debug("Failed to load as WAV", e1);
                         is.reset();
@@ -126,7 +130,7 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
                         // Try loading as MP3
                         try {
                             Mp3InputStream mp3InputStream = new Mp3InputStream(is);
-                            return getStream(repeatInstantly ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream.getFormat(), input), mp3InputStream) : new RawAudioStream(mp3InputStream.getFormat(), mp3InputStream), sound);
+                            return getStream(repeat ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream.getFormat(), input), mp3InputStream) : new RawAudioStream(mp3InputStream.getFormat(), mp3InputStream), sound);
                         } catch (Exception e2) {
                             LOGGER.debug("Failed to load as MP3", e2);
                             UnsupportedAudioFileException cause = new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3");

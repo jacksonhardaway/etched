@@ -42,7 +42,7 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
 
     private void update(boolean next) {
         ClientLevel level = this.minecraft.level;
-        if (level == null || !this.menu.isInitialized()) {
+        if (level == null) {
             return;
         }
 
@@ -95,7 +95,7 @@ public class AlbumJukeboxScreen extends AbstractContainerScreen<AlbumJukeboxMenu
         this.playingIndex = -1;
         this.playingTrack = 0;
         ClientLevel level = this.minecraft.level;
-        if (level == null || !this.menu.isInitialized()) {
+        if (level == null) {
             return;
         }
 

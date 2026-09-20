@@ -1,6 +1,7 @@
 package gg.moonflower.etched.common.block;
 
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.LevelRendererAccessor;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
@@ -9,11 +10,10 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -55,8 +56,15 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof AlbumJukeboxBlockEntity) {
-            player.openMenu((AlbumJukeboxBlockEntity) blockEntity);
+        if (blockEntity instanceof AlbumJukeboxBlockEntity albumJukeboxBlockEntity && player instanceof ServerPlayer serverPlayer) {
+            NetworkHooks.openScreen(
+                    serverPlayer,
+                    new SimpleMenuProvider(
+                            (containerId,playerInventory,targetPlayer)->new AlbumJukeboxMenu(containerId,playerInventory,albumJukeboxBlockEntity,pos),
+                            Component.translatable(blockState.getBlock().getDescriptionId())
+                    ),
+                    byteBuf -> byteBuf.writeBlockPos(pos)
+            );
         }
         // TODO: stats
         return InteractionResult.CONSUME;

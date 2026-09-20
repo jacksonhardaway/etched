@@ -21,13 +21,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  */
 public class AlbumJukeboxMenu extends AbstractContainerMenu {
 
-    private final BlockPos.MutableBlockPos pos;
+    private final BlockPos pos;
     private final Container container;
-    private boolean initialized;
-
-    public AlbumJukeboxMenu(int i, Inventory inventory) {
-        this(i, inventory, new SimpleContainer(9), BlockPos.ZERO);
-    }
 
     public AlbumJukeboxMenu(int i, Inventory inventory, Container container, BlockPos pos) {
         super(EtchedMenus.ALBUM_JUKEBOX_MENU.get(), i);
@@ -35,40 +30,7 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
         this.container = container;
         container.startOpen(inventory.player);
 
-        this.pos = new BlockPos.MutableBlockPos().set(pos);
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                return AlbumJukeboxMenu.this.pos.getX();
-            }
-
-            @Override
-            public void set(int value) {
-                AlbumJukeboxMenu.this.pos.setX(value);
-            }
-        });
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                return AlbumJukeboxMenu.this.pos.getY();
-            }
-
-            @Override
-            public void set(int value) {
-                AlbumJukeboxMenu.this.pos.setY(value);
-            }
-        });
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                return AlbumJukeboxMenu.this.pos.getZ();
-            }
-
-            @Override
-            public void set(int value) {
-                AlbumJukeboxMenu.this.pos.setZ(value);
-            }
-        });
+        this.pos = pos;
 
         for (int n = 0; n < 3; ++n) {
             for (int m = 0; m < 3; ++m) {
@@ -136,23 +98,6 @@ public class AlbumJukeboxMenu extends AbstractContainerMenu {
         return itemStack;
     }
 
-    @Override
-    public void removed(Player player) {
-        super.removed(player);
-        this.container.stopOpen(player);
-    }
-
-    @Override
-    public void setData(int index, int value) {
-        super.setData(index, value);
-        if (index >= 0 && index < 3) {
-            this.initialized = true;
-        }
-    }
-
-    public boolean isInitialized() {
-        return this.initialized;
-    }
 
     public BlockPos getPos() {
         return this.pos;

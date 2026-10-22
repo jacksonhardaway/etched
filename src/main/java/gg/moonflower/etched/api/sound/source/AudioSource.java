@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -34,6 +35,7 @@ public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
     long MAX_SIZE = 100 * 1024 * 1024; // 100MB
+    int STREAM_TIMEOUT = 15000; // A stalled stream would otherwise keep its read thread blocked forever
 
     /**
      * @return The vanilla Minecraft client download headers
@@ -152,7 +154,12 @@ public interface AudioSource {
                     if (!type.isStream()) {
                         throw new IOException("The provided URL is a stream, but that is not supported");
                     }
-                    return () -> new AsyncInputStream(url::openStream, 8192, 8, Util.nonCriticalIoPool());
+                    return () -> new AsyncInputStream(() -> {
+                        URLConnection streamConnection = url.openConnection();
+                        streamConnection.setConnectTimeout(STREAM_TIMEOUT);
+                        streamConnection.setReadTimeout(STREAM_TIMEOUT);
+                        return streamConnection.getInputStream();
+                    }, 8192, 8, Util.nonCriticalIoPool());
                 }
             }
 

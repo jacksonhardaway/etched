@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -19,10 +21,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class AsyncInputStream extends InputStream {
 
     private static final int MAX_DATA = 32768; // A maximum of 32KB can be loaded into memory
+    private static final long MAX_WAIT_NANOS = TimeUnit.SECONDS.toNanos(3); // How long a read waits for the network before treating the stream as ended
 
     private final List<byte[]> readBytes;
     private final CompletableFuture<?> readFuture;
     private final Lock lock;
+    private final Condition dataAvailable;
     private final int maxBuffers;
     private int pointer;
     private byte[] currentData;
@@ -32,16 +36,23 @@ public class AsyncInputStream extends InputStream {
     public AsyncInputStream(InputStreamSupplier source, int bufferSize, int buffers, Executor readExecutor) throws IOException {
         this.readBytes = new LinkedList<>();
         this.lock = new ReentrantLock();
+        this.dataAvailable = this.lock.newCondition();
         this.maxBuffers = Math.max(buffers, MAX_DATA / bufferSize); // At least X buffers, even if it exceeds the data limit
 
         CompletableFuture<?> initialWait = new CompletableFuture<>();
         this.waitFuture = CompletableFuture.completedFuture(null); // Nothing to wait for initially
         this.readFuture = CompletableFuture.runAsync(() -> {
             try (InputStream stream = source.open()) { // Create stream off-thread to prevent threaded stream issues
-                while (!this.closed) {
+                boolean eof = false;
+                while (!this.closed && !eof) {
                     byte[] buffer = new byte[bufferSize];
-                    int read, byteCount = 0;
-                    while (!this.closed && byteCount < buffer.length && (read = stream.read(buffer, byteCount, buffer.length - byteCount)) != -1) { // Read from stream until closed
+                    int byteCount = 0;
+                    while (!this.closed && byteCount < buffer.length) { // Read from stream until closed
+                        int read = stream.read(buffer, byteCount, buffer.length - byteCount);
+                        if (read == -1) {
+                            eof = true;
+                            break;
+                        }
                         byteCount += read;
                     }
 
@@ -55,7 +66,7 @@ public class AsyncInputStream extends InputStream {
                         }
                     }
 
-                    if (!initialWait.isDone() && (this.closed || this.readBytes.size() >= buffers)) { // Complete initial wait if enough is read or buffer is closed
+                    if (!initialWait.isDone() && (this.closed || eof || this.readBytes.size() >= buffers)) { // Complete initial wait if enough is read or buffer is closed
                         initialWait.complete(null);
                     }
                 }
@@ -66,6 +77,7 @@ public class AsyncInputStream extends InputStream {
                 throw new CompletionException(e);
             }
         }, readExecutor);
+        this.readFuture.whenComplete((unused, error) -> this.signalDataAvailable()); // Wake up readers waiting for data that will never come
 
         try {
             initialWait.join(); // Wait for initial buffers to fill before continuing
@@ -89,9 +101,19 @@ public class AsyncInputStream extends InputStream {
         try {
             this.lock.lock();
             this.readBytes.add(data);
+            this.dataAvailable.signalAll();
             if (this.readBytes.size() >= this.maxBuffers) {
                 this.waitFuture = new CompletableFuture<>(); // Enough data has been read, wait until some is read
             }
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    private void signalDataAvailable() {
+        try {
+            this.lock.lock();
+            this.dataAvailable.signalAll();
         } finally {
             this.lock.unlock();
         }
@@ -107,12 +129,20 @@ public class AsyncInputStream extends InputStream {
             if (!this.waitFuture.isDone() && this.readBytes.size() < this.maxBuffers) {
                 this.waitFuture.complete(null); // Unlock read thread after enough data is read
             }
+            long remainingNanos = MAX_WAIT_NANOS;
+            while (this.readBytes.isEmpty() && !this.closed && !this.readFuture.isDone() && remainingNanos > 0) { // An empty buffer is only EOF once the read thread has finished
+                remainingNanos = this.dataAvailable.awaitNanos(remainingNanos);
+            }
             if (this.readBytes.isEmpty()) {
                 this.currentData = null;
                 return true;
             }
             this.currentData = this.readBytes.remove(0);
             return false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            this.currentData = null;
+            return true;
         } finally {
             this.lock.unlock();
         }
@@ -136,6 +166,7 @@ public class AsyncInputStream extends InputStream {
     public int read() throws IOException {
         this.rethrowException();
         if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer()) {
+            this.rethrowException(); // The read thread may have failed while waiting for data
             return -1;
         }
         return this.currentData[this.pointer++] & 0xFF;
@@ -145,6 +176,7 @@ public class AsyncInputStream extends InputStream {
     public int read(byte[] b, int off, int len) throws IOException {
         this.rethrowException();
         if ((this.currentData == null || this.pointer >= this.currentData.length) && this.nextBuffer()) {
+            this.rethrowException(); // The read thread may have failed while waiting for data
             return -1;
         }
 
@@ -187,7 +219,8 @@ public class AsyncInputStream extends InputStream {
     public void close() throws IOException {
         this.closed = true;
         this.waitFuture.complete(null); // Force read thread to stop waiting
-        this.readFuture.join();
+        this.signalDataAvailable();
+        // The read thread closes the source once it sees the closed flag. Waiting for it here would block the sound thread on the network
     }
 
     /**

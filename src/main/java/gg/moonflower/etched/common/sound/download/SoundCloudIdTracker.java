@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 public final class SoundCloudIdTracker {
 
     private static final Object LOCK = new Object();
+    private static final int TIMEOUT = 10000;
 
     private static final Pattern PAGE_APP_SCRIPT_PATTERN = Pattern.compile("https://[A-Za-z0-9-.]+/assets/[a-f0-9-]+\\.js");
     private static final Pattern APP_SCRIPT_CLIENT_ID_PATTERN = Pattern.compile(",client_id:\"([a-zA-Z0-9-_]+)\"");
@@ -46,6 +47,8 @@ public final class SoundCloudIdTracker {
         try {
             URL uRL = new URL("https://soundcloud.com");
             httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
+            httpURLConnection.setConnectTimeout(TIMEOUT);
+            httpURLConnection.setReadTimeout(TIMEOUT);
             httpURLConnection.setInstanceFollowRedirects(true);
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
@@ -73,6 +76,8 @@ public final class SoundCloudIdTracker {
     private static @Nullable String findIdFromScript(String url, Proxy proxy) {
         try {
             HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection(proxy);
+            httpURLConnection.setConnectTimeout(TIMEOUT);
+            httpURLConnection.setReadTimeout(TIMEOUT);
             httpURLConnection.setInstanceFollowRedirects(true);
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
 
@@ -113,7 +118,10 @@ public final class SoundCloudIdTracker {
                 synchronized (LOCK) {
                     return currentId = clientId;
                 }
-            }, Util.backgroundExecutor()).exceptionally(e -> null);
+            }, Util.backgroundExecutor()).exceptionally(e -> {
+                SoundCloudSource.LOGGER.error("Failed to retrieve sound cloud id", e);
+                return null;
+            });
         }
         currentRequest.join();
     }

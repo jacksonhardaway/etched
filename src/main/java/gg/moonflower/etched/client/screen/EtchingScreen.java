@@ -4,15 +4,19 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
+import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.common.component.DiscAppearanceComponent;
 import gg.moonflower.etched.common.component.MusicLabelComponent;
 import gg.moonflower.etched.common.menu.EtchingMenu;
 import gg.moonflower.etched.common.menu.UrlMenu;
+import gg.moonflower.etched.common.network.play.ServerboundEtchTrackDataPacket;
 import gg.moonflower.etched.common.network.play.SetUrlPacket;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.registry.EtchedComponents;
 import gg.moonflower.etched.core.registry.EtchedItems;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -79,6 +83,7 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
         });
         this.url.setCanLoseFocus(true);
         this.addRenderableWidget(this.url);
+        this.addRenderableWidget(MusicSearchScreen.createButton(this, List.of(MusicSearchScreen.SOUND_CLOUD, MusicSearchScreen.AUDIUS), this.leftPos + this.imageWidth + 4, this.topPos + 20));
         this.menu.addSlotListener(this);
     }
 
@@ -89,8 +94,32 @@ public class EtchingScreen extends AbstractContainerScreen<EtchingMenu> implemen
             if (this.urlTicks <= 0 && !Objects.equals(this.oldUrl, this.url.getValue())) {
                 this.oldUrl = this.url.getValue();
                 PacketDistributor.sendToServer(new SetUrlPacket(this.url.getValue()));
+                resolveTracks(this.url.getValue());
             }
         }
+    }
+
+    /**
+     * Resolves the tracks for the URL and sends them to the server, which may not be able to reach the music service itself.
+     */
+    private static void resolveTracks(String url) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientPacketListener connection = minecraft.getConnection();
+        if (connection == null || !connection.hasChannel(ServerboundEtchTrackDataPacket.TYPE) || !SoundSourceManager.isValidUrl(url)) {
+            return;
+        }
+
+        SoundSourceManager.resolveTracks(url, null, minecraft.getProxy()).whenCompleteAsync((tracks, error) -> {
+            if (minecraft.getConnection() != connection) { // Left the server while resolving
+                return;
+            }
+            if (error != null) {
+                Etched.LOGGER.warn("Failed to resolve tracks for {}", url, error);
+                PacketDistributor.sendToServer(ServerboundEtchTrackDataPacket.failure(url, Objects.requireNonNullElse(error.getMessage(), error.getClass().getSimpleName())));
+            } else {
+                PacketDistributor.sendToServer(ServerboundEtchTrackDataPacket.success(url, List.of(tracks)));
+            }
+        }, minecraft);
     }
 
     @Override

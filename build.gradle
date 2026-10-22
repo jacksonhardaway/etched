@@ -21,7 +21,35 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
+    mavenCentral()
     maven { url 'https://jitpack.io' }
+    maven {
+        name = "Create"
+        url = "https://maven.createmod.net"
+        content {
+            includeGroup "com.simibubi.create"
+            includeGroup "net.createmod.ponder"
+            includeGroup "dev.engine-room.flywheel"
+        }
+    }
+    maven {
+        name = "Registrate"
+        url = "https://maven.ithundxr.dev/snapshots"
+        content {
+            includeGroup "com.tterrag.registrate"
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Sable"
+                url = "https://maven.ryanhcode.dev/releases"
+            }
+        }
+        filter {
+            includeGroup "dev.ryanhcode.sable-companion"
+        }
+    }
     exclusiveContent {
         forRepository {
             maven {
@@ -127,13 +155,34 @@ configurations {
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
     implementation "maven.modrinth:sophisticated-core:1.21.1-${sophisticated_core_version}"
+    compileOnly "com.simibubi.create:create-1.21.1:${create_version}"
+    // Lets the dev client run with Create to test contraption support. Requires neo_version 21.1.219+
+    localRuntime "com.simibubi.create:create-1.21.1:${create_version}"
+    // Lets the dev client run with Sable and Create: Aeronautics to test sub-level support
+    localRuntime "maven.modrinth:sable:${sable_version}"
+    localRuntime "maven.modrinth:create-aeronautics:${aeronautics_version}"
+    // Distance checks that account for Sable sub-levels. Falls back to plain distances without Sable
+    jarJar(implementation("dev.ryanhcode.sable-companion:sable-companion-common-1.21.1:[${sable_companion_version},)")) {
+        version {
+            prefer sable_companion_version
+        }
+    }
 
     jarJar(implementation("com.github.umjammer:jlayer")) {
         version {
-            strictly '[1.0.0,)'
+            // 1.0.6 removed Obuffer
+            strictly '[1.0.0,1.0.6)'
+            prefer '1.0.3'
         }
     }
     additionalRuntimeClasspath("com.github.umjammer:jlayer:1.0.3")
+    jarJar(implementation("com.tianscar.javasound:jaad")) {
+        version {
+            strictly '[0.9.4,1.0)'
+            prefer '0.9.4'
+        }
+    }
+    additionalRuntimeClasspath("com.tianscar.javasound:jaad:0.9.4")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -206,6 +255,7 @@ publishMods {
         serverRequired = true
 
         optional "sophisticated-core"
+        optional "create"
     }
 
     github {
@@ -228,6 +278,7 @@ publishMods {
         minecraftVersions.add(minecraft_version)
 
         optional "sophisticated-core"
+        optional "create"
     }
 
     dryRun = providers.environmentVariable("GITHUB_TOKEN").getOrNull() == null

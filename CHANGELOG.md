@@ -1,1 +1,1 @@
-- Add support for Sophisticated Core
+- Fix a crash on startup when Create Connected is installed

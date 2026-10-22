@@ -61,7 +61,12 @@ public class AlbumJukeboxBlock extends BaseEntityBlock {
         }
 
         if (level.getBlockEntity(pos) instanceof AlbumJukeboxBlockEntity jukebox) {
-            player.openMenu(jukebox, buf -> buf.writeBlockPos(pos));
+            player.openMenu(jukebox, buf -> {
+                buf.writeBlockPos(pos);
+                buf.writeFloat(jukebox.getVolume());
+                buf.writeVarInt(jukebox.getRadius());
+                buf.writeVarInt(-1);
+            });
         }
         // TODO: stats
         return ItemInteractionResult.CONSUME;

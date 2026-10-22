@@ -5,12 +5,15 @@ import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
 import gg.moonflower.etched.core.Etched;
+import gg.moonflower.etched.common.menu.SoundSettingsContainer;
+import gg.moonflower.etched.common.menu.SoundSettingsMenu;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.Mth;
@@ -31,7 +34,12 @@ import java.util.List;
 /**
  * @author Ocelot
  */
-public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer {
+public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, SoundSettingsContainer {
+
+    /**
+     * How far away the jukebox can be heard in blocks unless changed.
+     */
+    public static final int DEFAULT_RADIUS = 64;
 
     private static final int[] SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
@@ -39,6 +47,8 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     private int playingIndex;
     private int track;
     private ItemStack playingStack;
+    private float volume;
+    private int radius;
     private boolean loaded;
 
     public AlbumJukeboxBlockEntity(BlockPos pos, BlockState state) {
@@ -47,6 +57,8 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         this.playingIndex = -1;
         this.track = 0;
         this.playingStack = ItemStack.EMPTY;
+        this.volume = 1.0F;
+        this.radius = DEFAULT_RADIUS;
     }
 
     public static void tickClient(Level level, BlockPos pos, BlockState state, AlbumJukeboxBlockEntity entity) {
@@ -94,8 +106,11 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         if (!this.tryLoadLootTable(tag)) {
             ContainerHelper.loadAllItems(tag, this.items, registries);
         }
+        this.volume = tag.contains("Volume", Tag.TAG_FLOAT) ? Mth.clamp(tag.getFloat("Volume"), 0.0F, 1.0F) : 1.0F;
+        this.radius = tag.contains("Radius", Tag.TAG_INT) ? Mth.clamp(tag.getInt("Radius"), SoundSettingsMenu.MIN_RADIUS, SoundSettingsMenu.MAX_RADIUS) : DEFAULT_RADIUS;
         if (this.loaded) {
             SoundTracker.playAlbum(this, this.getBlockState(), this.level, this.getBlockPos(), false);
+            SoundTracker.setBlockSoundSettings(this.getBlockPos(), this.volume, this.radius, DEFAULT_RADIUS);
         }
     }
 
@@ -104,6 +119,18 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
         super.saveAdditional(tag, registries);
         if (!this.trySaveLootTable(tag)) {
             ContainerHelper.saveAllItems(tag, this.items, registries);
+        }
+        tag.putFloat("Volume", this.volume);
+        tag.putInt("Radius", this.radius);
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        // Mods like Create remove the block entity before the block, so the stop event from onRemove never reaches clients
+        if (this.loaded && this.level != null && this.level.isClientSide()) {
+            this.loaded = false;
+            SoundTracker.stopBlockSound(this.level, this.getBlockPos());
         }
     }
 
@@ -195,6 +222,40 @@ public class AlbumJukeboxBlockEntity extends RandomizableContainerBlockEntity im
     @Override
     public int getMaxStackSize() {
         return 1;
+    }
+
+    /**
+     * @return The volume of the jukebox from 0 to 1
+     */
+    public float getVolume() {
+        return this.volume;
+    }
+
+    @Override
+    public void setVolume(float volume) {
+        volume = Mth.clamp(volume, 0.0F, 1.0F);
+        if (this.volume != volume) {
+            this.volume = volume;
+            this.setChanged();
+            this.updatePlaying();
+        }
+    }
+
+    /**
+     * @return How far away the jukebox can be heard in blocks
+     */
+    public int getRadius() {
+        return this.radius;
+    }
+
+    @Override
+    public void setRadius(int radius) {
+        radius = Mth.clamp(radius, SoundSettingsMenu.MIN_RADIUS, SoundSettingsMenu.MAX_RADIUS);
+        if (this.radius != radius) {
+            this.radius = radius;
+            this.setChanged();
+            this.updatePlaying();
+        }
     }
 
     public int getPlayingIndex() {

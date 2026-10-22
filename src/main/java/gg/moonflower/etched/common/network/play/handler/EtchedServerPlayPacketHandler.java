@@ -2,8 +2,12 @@ package gg.moonflower.etched.common.network.play.handler;
 
 import gg.moonflower.etched.common.component.MusicLabelComponent;
 import gg.moonflower.etched.common.menu.AlbumJukeboxMenu;
+import gg.moonflower.etched.common.menu.EtchingMenu;
+import gg.moonflower.etched.common.menu.SoundSettingsMenu;
 import gg.moonflower.etched.common.menu.UrlMenu;
 import gg.moonflower.etched.common.network.play.ServerboundEditMusicLabelPacket;
+import gg.moonflower.etched.common.network.play.ServerboundEtchTrackDataPacket;
+import gg.moonflower.etched.common.network.play.ServerboundSoundSettingsPacket;
 import gg.moonflower.etched.common.network.play.SetAlbumJukeboxTrackPacket;
 import gg.moonflower.etched.common.network.play.SetUrlPacket;
 import gg.moonflower.etched.core.registry.EtchedComponents;
@@ -26,6 +30,19 @@ public class EtchedServerPlayPacketHandler {
         Player player = ctx.player();
         if (player.containerMenu instanceof UrlMenu menu) {
             menu.setUrl(pkt.url());
+        }
+    }
+
+    public static void handleSoundSettings(ServerboundSoundSettingsPacket pkt, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof SoundSettingsMenu menu && Float.isFinite(pkt.volume())) {
+            menu.setVolume(pkt.volume());
+            menu.setRadius(pkt.radius());
+        }
+    }
+
+    public static void handleEtchTrackData(ServerboundEtchTrackDataPacket pkt, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof EtchingMenu menu) {
+            menu.setClientTrackData(pkt.url(), pkt.tracks(), pkt.error());
         }
     }
 

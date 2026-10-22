@@ -1,6 +1,7 @@
 package gg.moonflower.etched.core.mixin.jukebox;
 
 import gg.moonflower.etched.api.record.PlayableRecord;
+import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.common.network.play.ClientboundPlayBlockMusicPacket;
 import gg.moonflower.etched.core.registry.EtchedComponents;
 import net.minecraft.core.BlockPos;
@@ -39,6 +40,9 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity {
     @Unique
     private boolean etched$playing;
 
+    @Unique
+    private boolean etched$unloading;
+
     public JukeboxBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
@@ -57,6 +61,21 @@ public abstract class JukeboxBlockEntityMixin extends BlockEntity {
                 this.level.levelEvent(1011, pos, 0);
                 this.onSongChanged();
             }
+        }
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        this.etched$unloading = true;
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        // Mods like Create remove the block entity before the block, so the song would keep playing where the jukebox was
+        if (!this.etched$unloading && this.level != null && this.level.isClientSide()) {
+            SoundTracker.stopBlockSound(this.level, this.getBlockPos());
         }
     }
 

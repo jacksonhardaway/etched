@@ -33,10 +33,20 @@
   "screen.etched.etching_table.error.cannot_create.missing_disc": "Бланкова платівка відсутня",
   "screen.etched.etching_table.error.cannot_create.missing_label": "Музична етикетка відсутня",
   "screen.etched.etching_table.error.invalid_url": "Невірне посилання",
+  "screen.etched.volume": "Гучність: %s%%",
+  "screen.etched.radius": "Радіус: %s бл.",
+  "sound_source.etched.archive_org": "Надано Internet Archive",
+  "sound_source.etched.audius": "Надано Audius",
   "sound_source.etched.bandcamp": "Надано Bandcamp",
   "sound_source.etched.info": "%s - %s",
   "sound_source.etched.radio": "Радіостанція",
   "sound_source.etched.requesting": "Запит від %s...",
   "sound_source.etched.sound_cloud": "Надано SoundCloud",
-  "subtitles.etched.ui.etching_table.take_result": "Використання стола гравіювання"
+  "sound_source.etched.yandex_music": "Надано Яндекс Музикою",
+  "subtitles.etched.ui.etching_table.take_result": "Використання стола гравіювання",
+  "tooltip.etched.supported_sites": "Підтримувані сайти:",
+  "tooltip.etched.supported_sites.direct": "Прямі посилання на файли MP3, OGG і WAV",
+  "tooltip.etched.supported_sites.hold_shift": "Затисніть [%s], щоб побачити підтримувані сайти",
+  "tooltip.etched.supported_sites.radio_streams": "Інтернет-радіо (потоки MP3 і AAC)",
+  "tooltip.etched.supported_sites.yandex_music": "Яндекс Музика (без токена — превʼю 30 с)"
 }

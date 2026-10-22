@@ -109,9 +109,10 @@ public class SoundCloudSource implements SoundDownloadSource {
                     continue;
                 }
 
-                urls.put(format, GsonHelper.getAsString(transcodingJson, "url"));
+                urls.putIfAbsent(format, GsonHelper.getAsString(transcodingJson, "url")); // SoundCloud lists the best quality first
             }
 
+            IOException error = new IOException("Could not find an audio source");
             for (Format format : Format.FORMATS) {
                 String dataUrl = urls.get(format);
                 if (dataUrl == null) {
@@ -127,18 +128,21 @@ public class SoundCloudSource implements SoundDownloadSource {
                     } else {
                         return Collections.singletonList(new URI(GsonHelper.getAsString(urlJson, "url")).toURL());
                     }
+                } catch (IOException e) { // SoundCloud lists formats that no longer exist, so try the next one
+                    error.addSuppressed(e);
                 }
             }
 
-            throw new IOException("Could not find an audio source");
+            throw error;
         });
     }
 
     public enum Format {
-        OGG_PROGRESSIVE, MP3_PROGRESSIVE, OGG_HLS, MP3_HLS;
+        // AAC is preferred over MP3 HLS since SoundCloud no longer serves MP3 for most tracks
+        OGG_PROGRESSIVE, MP3_PROGRESSIVE, OGG_HLS, AAC_HLS, MP3_HLS;
 
         public boolean isHls() {
-            return this == OGG_HLS || this == MP3_HLS;
+            return this == OGG_HLS || this == AAC_HLS || this == MP3_HLS;
         }
 
         private static final Format[] FORMATS = values();
@@ -150,12 +154,16 @@ public class SoundCloudSource implements SoundDownloadSource {
             }
 
             boolean mp3;
+            boolean aac = false;
             String typeString = type.getAsString().toLowerCase(Locale.ROOT);
             if (typeString.startsWith("audio/ogg")) {
 //                mp3 = false;
                 return null;
             } else if (typeString.startsWith("audio/mpeg")) {
                 mp3 = true;
+            } else if (typeString.startsWith("audio/mp4") && typeString.contains("mp4a.40")) { // Only AAC can be decoded from MP4
+                mp3 = false;
+                aac = true;
             } else {
                 return null;
             }
@@ -167,8 +175,8 @@ public class SoundCloudSource implements SoundDownloadSource {
 
             String protocolString = protocol.getAsString().toLowerCase(Locale.ROOT);
             return switch (protocolString) {
-                case "hls" -> mp3 ? MP3_HLS : OGG_HLS;
-                case "progressive" -> mp3 ? MP3_PROGRESSIVE : OGG_PROGRESSIVE;
+                case "hls" -> aac ? AAC_HLS : mp3 ? MP3_HLS : OGG_HLS;
+                case "progressive" -> aac ? null : mp3 ? MP3_PROGRESSIVE : OGG_PROGRESSIVE;
                 default -> null;
             };
         }

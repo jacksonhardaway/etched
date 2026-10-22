@@ -82,8 +82,8 @@ public final class M3uParser {
                 if (!extendedHeader) {
                     throw new IOException("Invalid Header");
                 }
-                if (version != 6) {
-                    throw new IOException("Invalid M3u Version, expected 6, got " + version);
+                if (version > 7) { // Version 7 allows fMP4 segments. Later versions can use tags this parser doesn't support
+                    throw new IOException("Invalid M3u Version, expected at most 7, got " + version);
                 }
                 break;
             }

@@ -28,9 +28,13 @@ public class EtchedMessages {
         registrar.playToClient(ClientboundInvalidEtchUrlPacket.TYPE, ClientboundInvalidEtchUrlPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handleSetInvalidEtch));
         registrar.playToClient(ClientboundPlayBlockMusicPacket.TYPE, ClientboundPlayBlockMusicPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handlePlayBlockMusicPacket));
         registrar.playToClient(ClientboundPlayEntityMusicPacket.TYPE, ClientboundPlayEntityMusicPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handlePlayEntityMusicPacket));
+        registrar.playToClient(ClientboundContraptionBlockDataPacket.TYPE, ClientboundContraptionBlockDataPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handleContraptionBlockData));
 
         // Server
         registrar.playToServer(ServerboundEditMusicLabelPacket.TYPE, ServerboundEditMusicLabelPacket.CODEC, EtchedServerPlayPacketHandler::handleEditMusicLabel);
+        registrar.playToServer(ServerboundSoundSettingsPacket.TYPE, ServerboundSoundSettingsPacket.CODEC, EtchedServerPlayPacketHandler::handleSoundSettings);
+        // Optional so older clients can still join. The server resolves tracks itself for them
+        registrar.optional().playToServer(ServerboundEtchTrackDataPacket.TYPE, ServerboundEtchTrackDataPacket.CODEC, EtchedServerPlayPacketHandler::handleEtchTrackData);
 
         // Bidirectional
         registerBidirectional(registrar, SetAlbumJukeboxTrackPacket.TYPE, SetAlbumJukeboxTrackPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handleSetAlbumJukeboxTrack), EtchedServerPlayPacketHandler::handleSetAlbumJukeboxTrack);

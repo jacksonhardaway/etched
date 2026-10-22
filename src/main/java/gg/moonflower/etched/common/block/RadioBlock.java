@@ -73,8 +73,15 @@ public class RadioBlock extends BaseEntityBlock {
         if (!level.isClientSide()) {
             MenuProvider menuProvider = state.getMenuProvider(level, pos);
             if (menuProvider != null) {
-                String url = level.getBlockEntity(pos) instanceof RadioBlockEntity be ? be.getUrl() : null;
-                player.openMenu(menuProvider, buf -> buf.writeUtf(url != null ? url : ""));
+                RadioBlockEntity radio = level.getBlockEntity(pos) instanceof RadioBlockEntity be ? be : null;
+                String url = radio != null ? radio.getUrl() : null;
+                float volume = radio != null ? radio.getVolume() : 1.0F;
+                int radius = radio != null ? radio.getRadius() : RadioBlockEntity.DEFAULT_RADIUS;
+                player.openMenu(menuProvider, buf -> {
+                    buf.writeUtf(url != null ? url : "");
+                    buf.writeFloat(volume);
+                    buf.writeVarInt(radius);
+                });
             }
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());

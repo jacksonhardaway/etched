@@ -9,6 +9,8 @@ import gg.moonflower.etched.client.screen.EtchingScreen;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
 import gg.moonflower.etched.common.menu.UrlMenu;
 import gg.moonflower.etched.common.network.play.*;
+import gg.moonflower.etched.core.Etched;
+import gg.moonflower.etched.core.compat.create.CreateCompatClient;
 import gg.moonflower.etched.core.mixin.client.render.LevelRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -98,6 +100,12 @@ public class EtchedClientPlayPacketHandler {
     public static void handleSetUrl(SetUrlPacket pkt, IPayloadContext ctx) {
         if (Minecraft.getInstance().screen instanceof UrlMenu screen) {
             screen.setUrl(pkt.url());
+        }
+    }
+
+    public static void handleContraptionBlockData(ClientboundContraptionBlockDataPacket pkt, IPayloadContext ctx) {
+        if (Etched.CREATE_LOADED) {
+            CreateCompatClient.handleBlockData(pkt);
         }
     }
 

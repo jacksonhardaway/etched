@@ -7,6 +7,7 @@ import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.block.RadioBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.blockentity.RadioBlockEntity;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.gui.GuiAccessor;
 import gg.moonflower.etched.core.mixin.client.render.LevelRendererAccessor;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.CommonLevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
@@ -40,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 /**
  * Tracks entity sounds and all etched playing sounds for the client side.
@@ -372,7 +375,114 @@ public class SoundTracker {
         if (TrackData.isValidURL(url)) {
             AbstractOnlineSoundInstance record = getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH);
             record.setLoop(true); // If the sound is a file, then just continue looping that specific track
+            if (level.getBlockEntity(pos) instanceof RadioBlockEntity radio) {
+                setSoundSettings(record, radio.getVolume(), radio.getRadius(), RadioBlockEntity.DEFAULT_RADIUS);
+            }
             playRecord(pos, record); // Get the new block state
+        }
+    }
+
+    /**
+     * Creates a looping radio stream that follows a moving position, such as a radio mounted on a contraption.
+     *
+     * @param url      The URL of the stream
+     * @param position The current position of the radio or <code>null</code> once the radio is gone
+     * @return A new sound instance or <code>null</code> if the URL can't be played
+     * @since 5.4.0
+     */
+    public static @Nullable AbstractOnlineSoundInstance getMovingRadio(String url, Supplier<@Nullable Vec3> position) {
+        AbstractOnlineSoundInstance sound = getMovingRecord(url, RADIO, position, 8, AudioSource.AudioFileType.BOTH);
+        if (sound != null) {
+            sound.setLoop(true); // If the sound is a file, then just continue looping that specific track
+        }
+        return sound;
+    }
+
+    /**
+     * Creates an online sound that follows a moving position, such as a jukebox mounted on a contraption.
+     *
+     * @param url                 The url to play
+     * @param title               The title of the record
+     * @param position            The current position of the sound or <code>null</code> once the source is gone
+     * @param attenuationDistance The attenuation distance of the sound
+     * @param type                The type of audio to accept
+     * @return A new sound instance or <code>null</code> if the URL can't be played
+     * @since 5.5.0
+     */
+    public static @Nullable AbstractOnlineSoundInstance getMovingRecord(String url, Component title, Supplier<@Nullable Vec3> position, int attenuationDistance, AudioSource.AudioFileType type) {
+        if (!TrackData.isValidURL(url) || FAILED_URLS.contains(url)) {
+            return null;
+        }
+
+        MovingOnlineSoundInstance[] sound = new MovingOnlineSoundInstance[1];
+        sound[0] = new MovingOnlineSoundInstance(url, position, 4.0F, attenuationDistance, new MusicDownloadListener(title, () -> sound[0].getX(), () -> sound[0].getY(), () -> sound[0].getZ()) {
+            @Override
+            public void onSuccess() {
+                if (sound[0].isStopped()) {
+                    this.clearComponent();
+                } else if (PlayableRecord.canShowMessage(sound[0].getX(), sound[0].getY(), sound[0].getZ())) {
+                    Minecraft.getInstance().gui.setNowPlaying(title);
+                }
+            }
+
+            @Override
+            public void onFail() {
+                Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
+                FAILED_URLS.add(url);
+            }
+        }, type);
+        return sound[0];
+    }
+
+    /**
+     * Changes how loud a playing record is and how far away it can be heard without restarting it.
+     *
+     * @param sound         The sound to change
+     * @param volume        The volume multiplier from 0 to 1
+     * @param radius        How far away the sound should be heard in blocks
+     * @param defaultRadius How far away the sound is heard by default in blocks
+     * @since 5.5.0
+     */
+    public static void setSoundSettings(@Nullable SoundInstance sound, float volume, int radius, int defaultRadius) {
+        while (sound instanceof WrappedSoundInstance wrapped) {
+            sound = wrapped.getParent();
+        }
+        if (sound instanceof AbstractOnlineSoundInstance online) {
+            online.setGain(volume);
+            // Scaled rather than set, so records muffled by wool stay shorter ranged
+            online.setRangeScale((float) radius / defaultRadius);
+        }
+    }
+
+    /**
+     * Changes how loud the record or radio playing at the specified block is and how far away it can be heard without restarting it.
+     *
+     * @param pos           The position of the block
+     * @param volume        The volume multiplier from 0 to 1
+     * @param radius        How far away the sound should be heard in blocks
+     * @param defaultRadius How far away the sound is heard by default in blocks
+     * @since 5.5.0
+     */
+    public static void setBlockSoundSettings(BlockPos pos, float volume, int radius, int defaultRadius) {
+        setSoundSettings(((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs().get(pos), volume, radius, defaultRadius);
+    }
+
+    /**
+     * Stops the record or radio playing at the specified block.
+     *
+     * @param level The level the block is in
+     * @param pos   The position of the block
+     * @since 5.5.0
+     */
+    public static void stopBlockSound(CommonLevelAccessor level, BlockPos pos) {
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance soundInstance = playingRecords.remove(pos);
+        if (soundInstance != null) {
+            if (soundInstance instanceof StopListeningSound) {
+                ((StopListeningSound) soundInstance).stopListening();
+            }
+            Minecraft.getInstance().getSoundManager().stop(soundInstance);
+            setRecordPlayingNearby(level, pos, false);
         }
     }
 
@@ -416,6 +526,7 @@ public class SoundTracker {
         int track = jukebox.getTrack() < 0 || jukebox.getTrack() >= trackCount ? 0 : jukebox.getTrack();
 
         PlayableRecord.createBlockSound(disc, level, pos, track).ifPresent(sound -> {
+            setSoundSettings(sound, jukebox.getVolume(), jukebox.getRadius(), AlbumJukeboxBlockEntity.DEFAULT_RADIUS);
             playRecord(pos, StopListeningSound.create(sound, () -> Minecraft.getInstance().tell(() -> playNextRecord(level, pos))));
             setRecordPlayingNearby(level, pos, true);
         });

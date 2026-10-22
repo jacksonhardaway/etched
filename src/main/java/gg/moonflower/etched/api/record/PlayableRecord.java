@@ -1,5 +1,6 @@
 package gg.moonflower.etched.api.record;
 
+import dev.ryanhcode.sable.companion.SableCompanion;
 import gg.moonflower.etched.api.sound.SoundTracker;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
 import gg.moonflower.etched.api.sound.source.AudioSource;
@@ -29,9 +30,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.CommonLevelAccessor;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Denotes an item as having the capability of being played as a record item.
@@ -75,7 +79,8 @@ public final class PlayableRecord {
     @OnlyIn(Dist.CLIENT)
     public static boolean canShowMessage(double x, double y, double z) {
         LocalPlayer player = Minecraft.getInstance().player;
-        return player == null || player.distanceToSqr(x, y, z) <= 4096.0;
+        // Blocks on Sable sub-levels are stored far away from where they are seen
+        return player == null || SableCompanion.INSTANCE.distanceSquaredWithSubLevels(player.level(), player.position(), x, y, z) <= 4096.0;
     }
 
     /**
@@ -306,6 +311,56 @@ public final class PlayableRecord {
                     return entitySound;
                 }
                 track -= getTrackCount(level.registryAccess(), record);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Creates the sound for a record that moves around, such as a jukebox mounted on a contraption.
+     *
+     * @param stack               The stack to play
+     * @param registries          The registries to look up songs with
+     * @param position            The current position of the sound or <code>null</code> once the source is gone
+     * @param track               The track to play on the disc
+     * @param attenuationDistance The attenuation distance of the sound
+     * @return The sound to play or nothing to error
+     * @since 5.5.0
+     */
+    @OnlyIn(Dist.CLIENT)
+    public static Optional<SoundInstance> createMovingSound(ItemStack stack, HolderLookup.Provider registries, Supplier<@Nullable Vec3> position, int track, int attenuationDistance) {
+        if (track < 0) {
+            return Optional.empty();
+        }
+
+        Optional<Holder<JukeboxSong>> optional = JukeboxSong.fromStack(registries, stack);
+        if (optional.isPresent()) {
+            if (track == 0) {
+                JukeboxSong song = optional.get().value();
+                return Optional.ofNullable(SoundTracker.getMovingRecord(song.soundEvent().value().getLocation().toString(), song.description(), position, attenuationDistance, AudioSource.AudioFileType.FILE));
+            }
+            track--;
+        }
+
+        MusicTrackComponent music = stack.get(EtchedComponents.MUSIC);
+        if (music != null) {
+            List<TrackData> tracks = music.tracks();
+            if (track < tracks.size()) {
+                TrackData trackData = tracks.get(track);
+                return Optional.ofNullable(SoundTracker.getMovingRecord(trackData.url(), trackData.getDisplayName(), position, attenuationDistance, AudioSource.AudioFileType.FILE));
+            }
+            track -= tracks.size();
+        }
+
+        AlbumCoverComponent albumCover = stack.get(EtchedComponents.ALBUM_COVER);
+        if (albumCover != null) {
+            for (ItemStack record : albumCover.getItems()) {
+                Optional<SoundInstance> sound = createMovingSound(record, registries, position, track, attenuationDistance);
+                if (sound.isPresent()) {
+                    return sound;
+                }
+                track -= getTrackCount(registries, record);
             }
         }
 

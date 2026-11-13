@@ -74,7 +74,17 @@ public class RadioBlock extends BaseEntityBlock {
             MenuProvider menuProvider = state.getMenuProvider(level, pos);
             if (menuProvider != null) {
                 String url = level.getBlockEntity(pos) instanceof RadioBlockEntity be ? be.getUrl() : null;
-                player.openMenu(menuProvider, buf -> buf.writeUtf(url != null ? url : ""));
+                int volumePercent = level.getBlockEntity(pos) instanceof RadioBlockEntity be
+                        ? be.getVolumePercent()
+                        : RadioBlockEntity.DEFAULT_VOLUME_PERCENT;
+                int range = level.getBlockEntity(pos) instanceof RadioBlockEntity be
+                        ? be.getRange()
+                        : RadioBlockEntity.DEFAULT_RANGE;
+                player.openMenu(menuProvider, buf -> {
+                    buf.writeUtf(url != null ? url : "");
+                    buf.writeVarInt(volumePercent);
+                    buf.writeVarInt(range);
+                });
             }
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
@@ -184,7 +194,7 @@ public class RadioBlock extends BaseEntityBlock {
 
         Minecraft minecraft = Minecraft.getInstance();
         Map<BlockPos, SoundInstance> sounds = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingJukeboxSongs();
-        if (sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos))) {
+        if (radio.isPlaying() && sounds.containsKey(pos) && minecraft.getSoundManager().isActive(sounds.get(pos))) {
             level.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5D, pos.getY() + 0.7D, pos.getZ() + 0.5D, random.nextInt(25) / 24D, 0, 0);
         }
     }

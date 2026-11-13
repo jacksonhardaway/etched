@@ -7,6 +7,7 @@ import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.block.RadioBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.blockentity.RadioBlockEntity;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.gui.GuiAccessor;
 import gg.moonflower.etched.core.mixin.client.render.LevelRendererAccessor;
@@ -36,8 +37,6 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.DoubleSupplier;
 
@@ -52,7 +51,6 @@ public class SoundTracker {
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
     private static final Set<String> FAILED_URLS = new HashSet<>();
     private static final Component RADIO = Component.translatable("sound_source." + Etched.MOD_ID + ".radio");
-    private static final Logger log = LoggerFactory.getLogger(SoundTracker.class);
 
     static {
         NeoForge.EVENT_BUS.<ClientPlayerNetworkEvent.LoggingOut>addListener(event -> FAILED_URLS.clear());
@@ -164,6 +162,12 @@ public class SoundTracker {
      * @return A new sound instance
      */
     public static @Nullable AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, CommonLevelAccessor level, BlockPos pos, int attenuationDistance, AudioSource.AudioFileType type) {
+        return getEtchedRecord(url, title, level, pos, 4.0F, 2.0F, attenuationDistance, 2, type);
+    }
+
+    private static @Nullable AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, CommonLevelAccessor level, BlockPos pos,
+                                                                         float volume, float muffledVolume, int attenuationDistance,
+                                                                         int muffledRangeDivisor, AudioSource.AudioFileType type) {
         if (!TrackData.isValidURL(url) || FAILED_URLS.contains(url)) {
             return null;
         }
@@ -172,7 +176,9 @@ public class SoundTracker {
         boolean muffled = aboveState.is(BlockTags.WOOL);
         boolean hidden = !aboveState.isAir();
 
-        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance,
+        int effectiveDistance = muffled ? Math.max(1, attenuationDistance / muffledRangeDivisor) : attenuationDistance;
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F,
+                muffled ? muffledVolume : volume, effectiveDistance,
                 new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
                     @Override
                     public void onSuccess() {
@@ -193,6 +199,49 @@ public class SoundTracker {
                         FAILED_URLS.add(url);
                     }
                 }, type);
+    }
+
+    private static @Nullable AbstractOnlineSoundInstance getRadioRecord(String url, Component title, CommonLevelAccessor level,
+                                                                        BlockPos pos, int volumePercent, int range,
+                                                                        AudioSource.AudioFileType type) {
+        float volume = Math.max(0, Math.min(100, volumePercent)) / 100.0F;
+        int clampedRange = Math.max(RadioBlockEntity.MIN_RANGE, Math.min(RadioBlockEntity.MAX_RANGE, range));
+        boolean muffled = level.getBlockState(pos.above()).is(BlockTags.WOOL);
+        float effectiveVolume = muffled ? volume * 0.5F : volume;
+        int effectiveRange = muffled ? Math.max(1, clampedRange / 4) : clampedRange;
+        AbstractOnlineSoundInstance record = getEtchedRecord(url, title, level, pos,
+                effectiveVolume, effectiveVolume, RadioBlockEntity.MAX_RANGE, 1, type);
+        if (record instanceof OnlineRecordSoundInstance onlineRecord) {
+            onlineRecord.setRadioSettings(effectiveVolume, effectiveRange);
+        }
+        return record;
+    }
+
+    public static void updateRadioSettings(CommonLevelAccessor level, BlockPos pos, int volumePercent, int range) {
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance sound = playingRecords.get(pos);
+        if (sound instanceof OnlineRecordSoundInstance onlineRecord) {
+            float volume = Math.max(0, Math.min(100, volumePercent)) / 100.0F;
+            int clampedRange = Math.max(RadioBlockEntity.MIN_RANGE, Math.min(RadioBlockEntity.MAX_RANGE, range));
+            boolean muffled = level.getBlockState(pos.above()).is(BlockTags.WOOL);
+            onlineRecord.setRadioSettings(muffled ? volume * 0.5F : volume,
+                    muffled ? Math.max(1, clampedRange / 4) : clampedRange);
+        }
+    }
+
+    /**
+     * Mutes or unmutes an existing radio without destroying its live network stream.
+     *
+     * @return whether a live radio instance existed at this position
+     */
+    public static boolean setRadioMuted(BlockPos pos, boolean muted) {
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance sound = playingRecords.get(pos);
+        if (sound instanceof OnlineRecordSoundInstance onlineRecord) {
+            onlineRecord.setRadioMuted(muted);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -369,9 +418,22 @@ public class SoundTracker {
             return;
         }
 
-        if (TrackData.isValidURL(url)) {
-            AbstractOnlineSoundInstance record = getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH);
-            record.setLoop(true); // If the sound is a file, then just continue looping that specific track
+        int volumePercent = RadioBlockEntity.DEFAULT_VOLUME_PERCENT;
+        int range = RadioBlockEntity.DEFAULT_RANGE;
+        if (level.getBlockEntity(pos) instanceof RadioBlockEntity radio) {
+            volumePercent = radio.getVolumePercent();
+            range = radio.getRange();
+        }
+
+        if (volumePercent > 0 && TrackData.isValidURL(url)) {
+            AbstractOnlineSoundInstance record = getRadioRecord(url, RADIO, level, pos, volumePercent, range, AudioSource.AudioFileType.BOTH);
+            if (record == null) {
+                return;
+            }
+            // A live radio stream is already endless. Marking it as a looping file makes
+            // Minecraft wrap the network stream in LoopingAudioStream and can limit playback
+            // to the initially buffered audio.
+            record.setLoop(false);
             playRecord(pos, record); // Get the new block state
         }
     }

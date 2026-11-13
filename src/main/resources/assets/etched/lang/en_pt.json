@@ -18,5 +18,11 @@
   "screen.etched.etching_table.error.missing_label": "Ye need one shanty label t' make tunes",
   "sound_source.etched.requesting": "Requesting from %s...",
   "sound_source.etched.sound_cloud": "Cargo be from SoundCloud & Co.",
-  "subtitles.etched.ui.etching_table.take_result": "Composin' Desk be makin' tunes"
+  "subtitles.etched.ui.etching_table.take_result": "Composin' Desk be makin' tunes",
+  "container.etched.radio.settings": "⚙ Settings",
+  "container.etched.radio.settings.title": "Radio Settings",
+  "container.etched.radio.settings.volume": "Volume: %s%%",
+  "container.etched.radio.settings.range": "Range: %s blocks",
+  "container.etched.radio.settings.reset": "Reset",
+  "container.etched.radio.settings.hint": "Sound fades progressively up to the selected range."
 }

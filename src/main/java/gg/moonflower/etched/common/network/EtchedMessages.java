@@ -31,6 +31,7 @@ public class EtchedMessages {
 
         // Server
         registrar.playToServer(ServerboundEditMusicLabelPacket.TYPE, ServerboundEditMusicLabelPacket.CODEC, EtchedServerPlayPacketHandler::handleEditMusicLabel);
+        registrar.playToServer(SetRadioSettingsPacket.TYPE, SetRadioSettingsPacket.CODEC, EtchedServerPlayPacketHandler::handleSetRadioSettings);
 
         // Bidirectional
         registerBidirectional(registrar, SetAlbumJukeboxTrackPacket.TYPE, SetAlbumJukeboxTrackPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handleSetAlbumJukeboxTrack), EtchedServerPlayPacketHandler::handleSetAlbumJukeboxTrack);

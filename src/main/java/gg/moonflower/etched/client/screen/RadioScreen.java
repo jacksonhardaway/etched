@@ -3,6 +3,7 @@ package gg.moonflower.etched.client.screen;
 import gg.moonflower.etched.common.menu.RadioMenu;
 import gg.moonflower.etched.common.menu.UrlMenu;
 import gg.moonflower.etched.common.network.play.SetUrlPacket;
+import gg.moonflower.etched.common.network.play.SetRadioSettingsPacket;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -25,10 +26,14 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
     private static final ResourceLocation TEXTURE = Etched.etchedPath("textures/gui/radio.png");
 
     private EditBox url;
+    private int volumePercent;
+    private int range;
 
     public RadioScreen(RadioMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
         this.imageHeight = 39;
+        this.volumePercent = menu.getInitialVolumePercent();
+        this.range = menu.getInitialRange();
     }
 
     @Override
@@ -45,8 +50,18 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
         this.addRenderableWidget(this.url);
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> {
             PacketDistributor.sendToServer(new SetUrlPacket(this.url.getValue()));
+            PacketDistributor.sendToServer(new SetRadioSettingsPacket(this.volumePercent, this.range));
             Minecraft.getInstance().player.closeContainer();
         }).bounds((this.width - this.imageWidth) / 2, (this.height - this.imageHeight) / 2 + this.imageHeight + 5, this.imageWidth, 20).build());
+        this.addRenderableWidget(Button.builder(Component.translatable("container.etched.radio.settings"), button ->
+                        Minecraft.getInstance().setScreen(new RadioSettingsScreen(this, this.volumePercent, this.range,
+                                (volumePercent, range) -> {
+                                    this.volumePercent = volumePercent;
+                                    this.range = range;
+                                    PacketDistributor.sendToServer(new SetRadioSettingsPacket(volumePercent, range));
+                                })))
+                .bounds((this.width - this.imageWidth) / 2, (this.height - this.imageHeight) / 2 + this.imageHeight + 29, this.imageWidth, 20)
+                .build());
     }
 
     @Override

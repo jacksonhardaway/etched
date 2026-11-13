@@ -15,10 +15,14 @@ public class RadioMenu extends AbstractContainerMenu implements UrlMenu {
 
     private final ContainerLevelAccess access;
     private String initialUrl;
+    private int initialVolumePercent = RadioBlockEntity.DEFAULT_VOLUME_PERCENT;
+    private int initialRange = RadioBlockEntity.DEFAULT_RANGE;
 
-    public RadioMenu(int id, String url) {
+    public RadioMenu(int id, String url, int volumePercent, int range) {
         this(id, ContainerLevelAccess.NULL);
         this.initialUrl = url;
+        this.initialVolumePercent = volumePercent;
+        this.initialRange = range;
     }
 
     public RadioMenu(int id, ContainerLevelAccess access) {
@@ -50,5 +54,21 @@ public class RadioMenu extends AbstractContainerMenu implements UrlMenu {
      */
     public String getInitialUrl() {
         return this.initialUrl;
+    }
+
+    public int getInitialVolumePercent() {
+        return this.initialVolumePercent;
+    }
+
+    public int getInitialRange() {
+        return this.initialRange;
+    }
+
+    public void setBroadcastSettings(int volumePercent, int range) {
+        this.access.execute((level, pos) -> {
+            if (level.getBlockEntity(pos) instanceof RadioBlockEntity be) {
+                be.setBroadcastSettings(volumePercent, range);
+            }
+        });
     }
 }

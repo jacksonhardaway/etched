@@ -40,5 +40,11 @@
   "sound_source.etched.radio": "Radio Station",
   "sound_source.etched.requesting": "Requesting from %s...",
   "sound_source.etched.sound_cloud": "Provided by SoundCloud",
-  "subtitles.etched.ui.etching_table.take_result": "Etching Table used"
+  "subtitles.etched.ui.etching_table.take_result": "Etching Table used",
+  "container.etched.radio.settings": "⚙ Settings",
+  "container.etched.radio.settings.title": "Radio Settings",
+  "container.etched.radio.settings.volume": "Volume: %s%%",
+  "container.etched.radio.settings.range": "Range: %s blocks",
+  "container.etched.radio.settings.reset": "Reset",
+  "container.etched.radio.settings.hint": "Sound fades progressively up to the selected range."
 }

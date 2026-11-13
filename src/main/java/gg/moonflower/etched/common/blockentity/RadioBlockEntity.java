@@ -25,8 +25,18 @@ import java.util.Objects;
  */
 public class RadioBlockEntity extends BlockEntity implements Clearable {
 
+    public static final int DEFAULT_VOLUME_PERCENT = 50;
+    public static final int MIN_VOLUME_PERCENT = 0;
+    public static final int MAX_VOLUME_PERCENT = 100;
+    public static final int DEFAULT_RANGE = 32;
+    public static final int MIN_RANGE = 4;
+    public static final int MAX_RANGE = 32;
+
     private String url;
+    private int volumePercent = DEFAULT_VOLUME_PERCENT;
+    private int range = DEFAULT_RANGE;
     private boolean loaded;
+    private boolean lastPlaying;
 
     public RadioBlockEntity(BlockPos pos, BlockState state) {
         super(EtchedBlocks.RADIO_BE.get(), pos, state);
@@ -35,7 +45,20 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
     public static void tickClient(Level level, BlockPos pos, BlockState state, RadioBlockEntity blockEntity) {
         if (!blockEntity.loaded) {
             blockEntity.loaded = true;
+            blockEntity.lastPlaying = blockEntity.isPlaying();
             SoundTracker.playRadio(blockEntity.url, state, level, pos);
+        } else {
+            boolean playing = blockEntity.isPlaying();
+            if (playing != blockEntity.lastPlaying) {
+                blockEntity.lastPlaying = playing;
+                if (playing) {
+                    if (!SoundTracker.setRadioMuted(pos, false)) {
+                        SoundTracker.playRadio(blockEntity.url, state, level, pos);
+                    }
+                } else {
+                    SoundTracker.setRadioMuted(pos, true);
+                }
+            }
         }
 
         if (blockEntity.isPlaying()) {
@@ -48,9 +71,23 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        String previousUrl = this.url;
+        int previousVolume = this.volumePercent;
+        int previousRange = this.range;
         this.url = tag.contains("Url", Tag.TAG_STRING) ? tag.getString("Url") : null;
+        this.volumePercent = tag.contains("VolumePercent", Tag.TAG_INT)
+                ? clampVolume(tag.getInt("VolumePercent"))
+                : DEFAULT_VOLUME_PERCENT;
+        this.range = tag.contains("Range", Tag.TAG_INT)
+                ? clampRange(tag.getInt("Range"))
+                : DEFAULT_RANGE;
         if (this.loaded) {
-            SoundTracker.playRadio(this.url, this.getBlockState(), this.level, this.getBlockPos());
+            if (!Objects.equals(previousUrl, this.url)) {
+                this.lastPlaying = this.isPlaying();
+                SoundTracker.playRadio(this.url, this.getBlockState(), this.level, this.getBlockPos());
+            } else if (previousVolume != this.volumePercent || previousRange != this.range) {
+                SoundTracker.updateRadioSettings(this.level, this.getBlockPos(), this.volumePercent, this.range);
+            }
         }
     }
 
@@ -60,6 +97,8 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
         if (this.url != null) {
             tag.putString("Url", this.url);
         }
+        tag.putInt("VolumePercent", this.volumePercent);
+        tag.putInt("Range", this.range);
     }
 
     @Override
@@ -76,6 +115,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
     @Override
     public void clearContent() {
         this.url = null;
+        this.lastPlaying = false;
         if (this.level != null && this.level.isClientSide()) {
             SoundTracker.playRadio(this.url, this.getBlockState(), this.level, this.getBlockPos());
         }
@@ -93,6 +133,37 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
                 this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
             }
         }
+    }
+
+    public int getVolumePercent() {
+        return this.volumePercent;
+    }
+
+    public int getRange() {
+        return this.range;
+    }
+
+    public void setBroadcastSettings(int volumePercent, int range) {
+        int newVolume = clampVolume(volumePercent);
+        int newRange = clampRange(range);
+        if (this.volumePercent == newVolume && this.range == newRange) {
+            return;
+        }
+
+        this.volumePercent = newVolume;
+        this.range = newRange;
+        this.setChanged();
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
+    }
+
+    private static int clampVolume(int value) {
+        return Math.max(MIN_VOLUME_PERCENT, Math.min(MAX_VOLUME_PERCENT, value));
+    }
+
+    private static int clampRange(int value) {
+        return Math.max(MIN_RANGE, Math.min(MAX_RANGE, value));
     }
 
     public boolean isPlaying() {

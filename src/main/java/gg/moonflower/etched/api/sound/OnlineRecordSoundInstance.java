@@ -14,10 +14,15 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
 
     private final Entity entity;
     private boolean stopped;
+    private float radioVolume;
+    private boolean radioMuted;
+    private boolean radioSettingsEnabled;
+    private int radioRange = 32;
 
     public OnlineRecordSoundInstance(String url, Entity entity, float volume, int attenuationDistance, DownloadProgressListener progressListener, AudioSource.AudioFileType type) {
         super(url, null, attenuationDistance, SoundSource.RECORDS, progressListener, type, entity == Minecraft.getInstance().player);
         this.volume = volume;
+        this.radioVolume = volume;
         this.entity = entity;
     }
 
@@ -38,6 +43,9 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
 
     @Override
     public void tick() {
+        if (this.radioSettingsEnabled) {
+            this.updateRadioVolume();
+        }
         if (this.entity == null) {
             return;
         }
@@ -54,5 +62,57 @@ public class OnlineRecordSoundInstance extends AbstractOnlineSoundInstance imple
     @Override
     public boolean isStopped() {
         return this.stopped;
+    }
+
+    @Override
+    public boolean canStartSilent() {
+        // A radio stream is prepared from 32 blocks away even when its configured audible
+        // range is shorter. Minecraft normally drops sounds whose initial volume is zero,
+        // which leaves a tracked but inactive radio when the player reconnects outside that
+        // audible range. Radio streams must therefore be allowed to start silently.
+        return this.radioSettingsEnabled;
+    }
+
+    public void setRadioMuted(boolean muted) {
+        this.radioMuted = muted;
+        this.updateRadioVolume();
+    }
+
+    public boolean isRadio() {
+        return this.radioSettingsEnabled;
+    }
+
+    /**
+     * Silences a removed radio immediately, then lets its buffered stream reach
+     * EOF naturally instead of synchronously stopping the OpenAL channel.
+     */
+    public void retireRadio() {
+        this.setRadioMuted(true);
+        this.requestGracefulStreamStop();
+    }
+
+    public void setRadioSettings(float volume, int range) {
+        this.radioSettingsEnabled = true;
+        this.radioVolume = Math.max(0.0F, Math.min(1.0F, volume));
+        this.radioRange = Math.max(1, Math.min(32, range));
+        this.updateRadioVolume();
+    }
+
+    private void updateRadioVolume() {
+        if (this.radioMuted) {
+            this.volume = 0.0F;
+            return;
+        }
+        if (!this.radioSettingsEnabled || Minecraft.getInstance().player == null) {
+            this.volume = this.radioVolume;
+            return;
+        }
+
+        double distance = Math.sqrt(Minecraft.getInstance().player.distanceToSqr(this.x, this.y, this.z));
+        double desiredFalloff = Math.max(0.0D, 1.0D - distance / this.radioRange);
+        double nativeFalloff = Math.max(0.0D, 1.0D - distance / 32.0D);
+        this.volume = desiredFalloff <= 0.0D || nativeFalloff <= 0.0001D
+                ? 0.0F
+                : (float) Math.max(0.0D, Math.min(1.0D, this.radioVolume * desiredFalloff / nativeFalloff));
     }
 }

@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FilterInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -34,6 +35,8 @@ public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
     long MAX_SIZE = 100 * 1024 * 1024; // 100MB
+    int CONNECT_TIMEOUT_MS = 10_000;
+    int READ_TIMEOUT_MS = 60_000;
 
     /**
      * @return The vanilla Minecraft client download headers
@@ -63,8 +66,11 @@ public interface AudioSource {
         if (progressListener != null) {
             progressListener.progressStartRequest(Component.translatable("resourcepack.requesting"));
         }
+        HttpURLConnection connection = null;
         try {
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            connection.setReadTimeout(READ_TIMEOUT_MS);
             getDownloadHeaders().forEach(connection::setRequestProperty);
 
             int response = connection.getResponseCode();
@@ -152,7 +158,7 @@ public interface AudioSource {
                     if (!type.isStream()) {
                         throw new IOException("The provided URL is a stream, but that is not supported");
                     }
-                    return () -> new AsyncInputStream(url::openStream, 8192, 8, Util.nonCriticalIoPool());
+                    return () -> new AsyncInputStream(() -> openHttpStream(url), 8192, 8, Util.nonCriticalIoPool());
                 }
             }
 
@@ -194,8 +200,42 @@ public interface AudioSource {
             }
         } catch (Throwable e) {
             throw new CompletionException(e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
         return () -> Files.newInputStream(path);
+    }
+
+    /**
+     * Opens a live HTTP stream with explicit timeouts and disconnects the underlying
+     * connection when the returned stream is closed.
+     */
+    static InputStream openHttpStream(URL url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(READ_TIMEOUT_MS);
+        getDownloadHeaders().forEach(connection::setRequestProperty);
+
+        int response = connection.getResponseCode();
+        if (response != HttpURLConnection.HTTP_OK) {
+            String message = connection.getResponseMessage();
+            connection.disconnect();
+            throw new IOException("Failed to connect to " + url + ": " + response + ". " + message);
+        }
+
+        InputStream input = connection.getInputStream();
+        return new FilterInputStream(input) {
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    connection.disconnect();
+                }
+            }
+        };
     }
 
     /**

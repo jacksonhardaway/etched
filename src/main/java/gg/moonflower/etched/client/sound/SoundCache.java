@@ -55,7 +55,7 @@ public final class SoundCache {
     private static volatile Map<String, CacheMetadata> CACHE_METADATA = new HashMap<>();
     private static volatile long nextWriteTime = Long.MAX_VALUE;
 
-    private static final Cache<String, CompletableFuture<AudioSource>> SOURCE_CACHE = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
+    private static final Cache<SourceCacheKey, CompletableFuture<AudioSource>> SOURCE_CACHE = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
     private static Map<String, Path> files = new ConcurrentHashMap<>();
 
     static {
@@ -106,10 +106,14 @@ public final class SoundCache {
             METADATA_LOCK.unlock();
         }
 
+        try {
+            Files.createDirectories(CACHE_FOLDER);
+        } catch (Exception e) {
+            LOGGER.error("Failed to create sound cache folder", e);
+            return;
+        }
+
         try (FileOutputStream os = new FileOutputStream(CACHE_METADATA_LOCATION.toFile())) {
-            if (!Files.exists(CACHE_FOLDER)) {
-                Files.createDirectory(CACHE_FOLDER);
-            }
             IOUtils.write(GSON.toJson(CACHE_METADATA), os, StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Failed to write cache metadata", e);
@@ -138,33 +142,28 @@ public final class SoundCache {
      * @return An input stream to the locally downloaded file
      */
     public static CompletableFuture<AudioSource> getAudioStream(String url, @Nullable DownloadProgressListener listener, AudioSource.AudioFileType type) {
+        SourceCacheKey key = new SourceCacheKey(url, type);
         try {
-            return SOURCE_CACHE.get(url, () -> {
+            CompletableFuture<AudioSource> future = SOURCE_CACHE.get(key, () -> {
                 try {
                     DOWNLOAD_LOCK.lock();
-
-                    CompletableFuture<AudioSource> future = SoundSourceManager.getAudioSource(url, listener, Minecraft.getInstance().getProxy(), type).handle((source, e) -> {
-                        if (e != null) {
-                            if (listener != null) {
-                                listener.onFail();
-                            }
-                            throw new CompletionException(e);
-                        }
-                        return source;
-                    });
-
-                    SOURCE_CACHE.put(url, future);
-                    return future;
+                    return SoundSourceManager.getAudioSource(url, listener, Minecraft.getInstance().getProxy(), type);
                 } finally {
                     DOWNLOAD_LOCK.unlock();
                 }
             });
+            future.whenComplete((source, error) -> {
+                if (error != null) {
+                    SOURCE_CACHE.asMap().remove(key, future);
+                }
+            });
+            return future;
         } catch (Exception e) {
-            if (listener != null) {
-                listener.onFail();
-            }
             throw new CompletionException("Failed to load audio into cache", e);
         }
+    }
+
+    private record SourceCacheKey(String url, AudioSource.AudioFileType type) {
     }
 
     public static @Nullable CacheMetadata getMetadata(String url) {

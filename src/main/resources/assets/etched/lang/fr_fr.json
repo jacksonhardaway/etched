@@ -26,5 +26,13 @@
   "sound_source.etched.sound_cloud": "Obtenue par SoundCloud",
   "sound_source.etched.bandcamp": "Obtenue par Bandcamp",
   "sound_source.etched.info": "%s - %s",
-  "subtitles.etched.ui.etching_table.take_result": "Table de Gravure utilisée"
+  "subtitles.etched.ui.etching_table.take_result": "Table de Gravure utilisée",
+  "container.etched.radio": "Radio",
+  "container.etched.radio.url": "URL de la radio",
+  "container.etched.radio.settings": "⚙ Réglages",
+  "container.etched.radio.settings.title": "Réglages de la radio",
+  "container.etched.radio.settings.volume": "Volume : %s%%",
+  "container.etched.radio.settings.range": "Portée : %s blocs",
+  "container.etched.radio.settings.reset": "Réinitialiser",
+  "container.etched.radio.settings.hint": "Le son diminue progressivement jusqu’à la portée choisie."
 }

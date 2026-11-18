@@ -4,6 +4,7 @@ import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
+import gg.moonflower.etched.api.util.AsyncInputStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.Mp3InputStream;
 import gg.moonflower.etched.api.util.WaveDataReader;
@@ -34,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Ocelot
@@ -48,6 +50,16 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
     private final DownloadProgressListener progressListener;
     private final AudioSource.AudioFileType type;
     private final boolean stereo;
+    private volatile InputStream activeInputStream;
+    private volatile long activatedAt;
+    private final AtomicReference<StreamState> streamState = new AtomicReference<>(StreamState.CONNECTING);
+
+    private enum StreamState {
+        CONNECTING,
+        ACTIVE,
+        RETIRING,
+        FAILED
+    }
 
     public AbstractOnlineSoundInstance(String url, @Nullable String subtitle, int attenuationDistance, SoundSource source, DownloadProgressListener progressListener, AudioSource.AudioFileType type, boolean stereo) {
         super(Etched.etchedPath(DigestUtils.sha1Hex(url)), source, SoundInstance.createUnseededRandom());
@@ -76,6 +88,39 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
         return this;
     }
 
+    /**
+     * Stops a live source from accepting more network data without forcing the
+     * sound engine to tear its channel down on the render thread.
+     */
+    public void requestGracefulStreamStop() {
+        this.streamState.updateAndGet(state -> state == StreamState.FAILED ? state : StreamState.RETIRING);
+        InputStream stream = this.activeInputStream;
+        if (stream instanceof AsyncInputStream asyncInputStream) {
+            asyncInputStream.stopProducing();
+        }
+    }
+
+    /**
+     * @return whether this instance is still connecting or actively playing
+     */
+    public boolean isUsableStream() {
+        StreamState state = this.streamState.get();
+        return state == StreamState.CONNECTING || state == StreamState.ACTIVE;
+    }
+
+    public boolean isStreamConnecting() {
+        return this.streamState.get() == StreamState.CONNECTING;
+    }
+
+    public boolean isWithinActivationGracePeriod() {
+        return this.streamState.get() == StreamState.ACTIVE
+                && System.currentTimeMillis() - this.activatedAt < 5_000L;
+    }
+
+    public String getUrl() {
+        return this.url;
+    }
+
     @Override
     public CompletableFuture<AudioStream> getStream(SoundBufferLibrary loader, Sound sound, boolean repeatInstantly) {
         if (!(sound instanceof OnlineSound onlineSound)) {
@@ -93,16 +138,20 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
                 return loader.getStream(weighedSoundEvents.getSound(this.random).getPath(), repeatInstantly).thenApply(MonoWrapper::new).handleAsync((stream, throwable) -> {
                     if (throwable != null) {
                         LOGGER.error("Failed to load audio from client: {}", onlineSound.getURL(), throwable);
-                        onlineSound.getProgressListener().onFail();
+                        this.notifyFailure(onlineSound.getProgressListener());
                         return EmptyAudioStream.INSTANCE;
                     }
-                    onlineSound.getProgressListener().onSuccess();
+                    this.notifySuccess(onlineSound.getProgressListener());
                     return stream;
                 }, Util.nonCriticalIoPool());
             }
         }
 
         return SoundCache.getAudioStream(onlineSound.getURL(), onlineSound.getProgressListener(), onlineSound.getAudioFileType()).thenCompose(AudioSource::openStream).thenApplyAsync(stream -> {
+            this.activeInputStream = stream;
+            if (this.streamState.get() == StreamState.RETIRING && stream instanceof AsyncInputStream asyncInputStream) {
+                asyncInputStream.stopProducing();
+            }
             onlineSound.getProgressListener().progressStartLoading();
             try {
                 InputStream is = new BufferedInputStream(stream);
@@ -154,12 +203,25 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
                 }
 
                 LOGGER.error("Failed to load audio from url: {}", onlineSound.getURL(), throwable);
-                onlineSound.getProgressListener().onFail();
+                this.notifyFailure(onlineSound.getProgressListener());
                 return EmptyAudioStream.INSTANCE;
             }
-            onlineSound.getProgressListener().onSuccess();
+            this.notifySuccess(onlineSound.getProgressListener());
             return stream;
         }, Util.nonCriticalIoPool());
+    }
+
+    private void notifySuccess(DownloadProgressListener listener) {
+        if (this.streamState.compareAndSet(StreamState.CONNECTING, StreamState.ACTIVE)) {
+            this.activatedAt = System.currentTimeMillis();
+            Minecraft.getInstance().execute(listener::onSuccess);
+        }
+    }
+
+    private void notifyFailure(DownloadProgressListener listener) {
+        if (this.streamState.compareAndSet(StreamState.CONNECTING, StreamState.FAILED)) {
+            Minecraft.getInstance().execute(listener::onFail);
+        }
     }
 
     public static class OnlineSound extends Sound implements SoundStreamModifier {

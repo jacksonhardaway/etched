@@ -61,7 +61,8 @@ public final class SoundSourceManager {
         if (sourceOptional.isEmpty()) {
             return CompletableFuture.supplyAsync(() -> {
                 try {
-                    return new RawAudioSource(new URI(url).toURL(), listener, false, type);
+                    String directUrl = ShareLinks.toDirectAudioUrl(url);
+                    return new RawAudioSource(new URI(directUrl).toURL(), listener, false, type);
                 } catch (Throwable t) {
                     throw new CompletionException("Failed to download audio: " + url, t);
                 }

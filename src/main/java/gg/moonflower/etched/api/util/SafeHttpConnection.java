@@ -5,6 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.Proxy;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
@@ -48,7 +49,11 @@ public final class SafeHttpConnection {
             if (redirect == MAX_REDIRECTS) {
                 throw new IOException("Too many HTTP redirects");
             }
-            currentUrl = new URL(currentUrl, location);
+            try {
+                currentUrl = URI.create(currentUrl.toExternalForm()).resolve(location).toURL();
+            } catch (IllegalArgumentException e) {
+                throw new IOException("Invalid HTTP redirect destination", e);
+            }
         }
         throw new IOException("Too many HTTP redirects");
     }

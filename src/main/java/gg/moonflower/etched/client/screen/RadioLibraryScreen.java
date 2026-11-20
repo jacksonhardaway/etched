@@ -151,17 +151,8 @@ public class RadioLibraryScreen extends Screen {
     }
 
     private void acceptBrowserStation(RadioStation station) {
-        if (this.managePresets) {
-            if (this.save(() -> this.library.add(station))) {
-                this.parent.setPreset(this.selectedPreset, station);
-                this.selectNextEmptyPreset();
-                this.refreshResults(station.url());
-            }
-            this.minecraft.setScreen(this);
-        } else {
-            this.parent.setStation(station);
-            this.minecraft.setScreen(this.parent);
-        }
+        this.parent.setStation(station);
+        this.minecraft.setScreen(this.parent);
     }
 
     private void useSelected() {
@@ -171,7 +162,6 @@ public class RadioLibraryScreen extends Screen {
         }
         if (this.managePresets) {
             this.parent.setPreset(this.selectedPreset, station);
-            this.selectNextEmptyPreset();
             this.updateButtons();
         } else {
             this.parent.setStation(station);
@@ -183,10 +173,6 @@ public class RadioLibraryScreen extends Screen {
         this.minecraft.setScreen(new RadioStationEditScreen(this, RadioStation.EMPTY, true, station -> {
             if (this.save(() -> this.library.add(station))) {
                 this.refreshResults(station.url());
-                if (this.managePresets) {
-                    this.parent.setPreset(this.selectedPreset, station);
-                    this.selectNextEmptyPreset();
-                }
             }
         }));
     }
@@ -232,17 +218,6 @@ public class RadioLibraryScreen extends Screen {
         if (!preset.isEmpty()) {
             this.minecraft.setScreen(new RadioStationEditScreen(this, preset, false,
                     renamed -> this.parent.setPreset(index, renamed)));
-        }
-    }
-
-    private void selectNextEmptyPreset() {
-        List<RadioStation> presets = this.parent.getPresets();
-        for (int offset = 1; offset <= presets.size(); offset++) {
-            int index = (this.selectedPreset + offset) % presets.size();
-            if (presets.get(index).isEmpty()) {
-                this.selectedPreset = index;
-                return;
-            }
         }
     }
 

@@ -40,5 +40,14 @@
   "sound_source.etched.radio": "Radio Station",
   "sound_source.etched.requesting": "Requesting from %s...",
   "sound_source.etched.sound_cloud": "Provided by SoundCloud",
-  "subtitles.etched.ui.etching_table.take_result": "Etching Table used"
+  "subtitles.etched.ui.etching_table.take_result": "Etching Table used",
+  "container.etched.radio.search": "Search",
+  "screen.etched.radio_browser.title": "Search radio stations",
+  "screen.etched.radio_browser.query": "Station name",
+  "screen.etched.radio_browser.search": "Search",
+  "screen.etched.radio_browser.select": "Use station",
+  "screen.etched.radio_browser.searching": "Searching Radio Browser...",
+  "screen.etched.radio_browser.no_results": "No compatible station found",
+  "screen.etched.radio_browser.enter_query": "Enter at least two characters",
+  "screen.etched.radio_browser.error": "Search failed: %s"
 }

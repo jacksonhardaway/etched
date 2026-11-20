@@ -34,6 +34,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
     @Override
     protected void init() {
         super.init();
+        int buttonWidth = (this.imageWidth - 4) / 2;
         String urlText = this.url != null ? this.url.getValue() : this.menu.getInitialUrl();
         this.url = new EditBox(this.font, this.leftPos + 10, this.topPos + 21, 154, 16, null, Component.translatable("container." + Etched.MOD_ID + ".radio.url"));
         this.url.setMaxLength(32768);
@@ -46,7 +47,11 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> {
             PacketDistributor.sendToServer(new SetUrlPacket(this.url.getValue()));
             Minecraft.getInstance().player.closeContainer();
-        }).bounds((this.width - this.imageWidth) / 2, (this.height - this.imageHeight) / 2 + this.imageHeight + 5, this.imageWidth, 20).build());
+        }).bounds(this.leftPos, this.topPos + this.imageHeight + 5, buttonWidth, 20).build());
+        this.addRenderableWidget(Button.builder(Component.translatable("container." + Etched.MOD_ID + ".radio.search"), button ->
+                        Minecraft.getInstance().setScreen(new RadioBrowserScreen(this)))
+                .bounds(this.leftPos + this.imageWidth - buttonWidth, this.topPos + this.imageHeight + 5, buttonWidth, 20)
+                .build());
     }
 
     @Override

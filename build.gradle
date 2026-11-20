@@ -128,6 +128,10 @@ dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
     implementation "maven.modrinth:sophisticated-core:1.21.1-${sophisticated_core_version}"
 
+    testImplementation "org.junit.jupiter:junit-jupiter:5.12.1"
+    testImplementation "com.google.code.gson:gson:2.10.1"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.12.1"
+
     jarJar(implementation("com.github.umjammer:jlayer")) {
         version {
             strictly '[1.0.0,)'
@@ -181,6 +185,10 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 publishMods {

@@ -26,5 +26,14 @@
   "sound_source.etched.sound_cloud": "Obtenue par SoundCloud",
   "sound_source.etched.bandcamp": "Obtenue par Bandcamp",
   "sound_source.etched.info": "%s - %s",
-  "subtitles.etched.ui.etching_table.take_result": "Table de Gravure utilisée"
+  "subtitles.etched.ui.etching_table.take_result": "Table de Gravure utilisée",
+  "container.etched.radio.search": "Chercher",
+  "screen.etched.radio_browser.title": "Chercher une station de radio",
+  "screen.etched.radio_browser.query": "Nom de la station",
+  "screen.etched.radio_browser.search": "Chercher",
+  "screen.etched.radio_browser.select": "Utiliser cette station",
+  "screen.etched.radio_browser.searching": "Recherche sur Radio Browser...",
+  "screen.etched.radio_browser.no_results": "Aucune station compatible trouvée",
+  "screen.etched.radio_browser.enter_query": "Saisis au moins deux caractères",
+  "screen.etched.radio_browser.error": "Échec de la recherche : %s"
 }

@@ -166,6 +166,13 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
         this.updateFavoriteButton();
     }
 
+    void useStation(RadioStation station) {
+        String previousUrl = this.url.getValue();
+        this.setStation(station);
+        SoundTracker.requestRadioUrlConfirmation(previousUrl, station.url());
+        PacketDistributor.sendToServer(new SetUrlPacket(station.url()));
+    }
+
     RadioStation currentStation() {
         String currentUrl = this.url != null ? this.url.getValue().strip() : this.menu.getInitialUrl();
         if (currentUrl.isEmpty()) {

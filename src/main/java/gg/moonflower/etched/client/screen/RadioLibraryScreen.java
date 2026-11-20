@@ -151,7 +151,7 @@ public class RadioLibraryScreen extends Screen {
     }
 
     private void acceptBrowserStation(RadioStation station) {
-        this.parent.setStation(station);
+        this.parent.useStation(station);
         this.minecraft.setScreen(this.parent);
     }
 
@@ -164,7 +164,7 @@ public class RadioLibraryScreen extends Screen {
             this.parent.setPreset(this.selectedPreset, station);
             this.updateButtons();
         } else {
-            this.parent.setStation(station);
+            this.parent.useStation(station);
             this.minecraft.setScreen(this.parent);
         }
     }

@@ -32,8 +32,8 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
 
     private static final ResourceLocation TEXTURE = Etched.etchedPath("textures/gui/radio.png");
     private static final int VANILLA_IMAGE_WIDTH = 176;
-    private static final int MIN_IMAGE_WIDTH = 232;
-    private static final int MAX_IMAGE_WIDTH = 360;
+    private static final int MIN_IMAGE_WIDTH = 300;
+    private static final int MAX_IMAGE_WIDTH = 420;
 
     private final List<RadioStation> presets;
     private EditBox url;
@@ -50,7 +50,9 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
 
     @Override
     protected void init() {
-        this.imageWidth = Math.max(MIN_IMAGE_WIDTH, Math.min(MAX_IMAGE_WIDTH, this.width * 2 / 5));
+        int preferredWidth = Math.max(MIN_IMAGE_WIDTH, Math.min(MAX_IMAGE_WIDTH, this.width * 2 / 5));
+        int availableWidth = this.width / 2 + VANILLA_IMAGE_WIDTH / 2 - 8;
+        this.imageWidth = Math.min(preferredWidth, availableWidth);
         super.init();
         this.leftPos -= (this.imageWidth - VANILLA_IMAGE_WIDTH) / 2;
         int halfWidth = (this.imageWidth - 4) / 2;

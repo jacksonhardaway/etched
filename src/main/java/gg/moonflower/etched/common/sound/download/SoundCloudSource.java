@@ -6,6 +6,7 @@ import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.M3uParser;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
+import gg.moonflower.etched.api.util.SafeHttpConnection;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.FilterInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.*;
@@ -29,6 +31,8 @@ public class SoundCloudSource implements SoundDownloadSource {
 
     static final Logger LOGGER = LogManager.getLogger();
     private static final Component BRAND = Component.translatable("sound_source." + Etched.MOD_ID + ".sound_cloud").withStyle(style -> style.withColor(TextColor.fromRgb(0xFF5500)));
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
+    private static final int READ_TIMEOUT_MS = 60_000;
 
     private final Map<String, Boolean> validCache = new WeakHashMap<>();
 
@@ -38,37 +42,56 @@ public class SoundCloudSource implements SoundDownloadSource {
     }
 
     private InputStream get(String url, @Nullable DownloadProgressListener progressListener, Proxy proxy, int attempt, boolean requiresId) throws IOException {
-        HttpURLConnection httpURLConnection;
+        HttpURLConnection connection = null;
         if (progressListener != null) {
             progressListener.progressStartRequest(Component.translatable("sound_source." + Etched.MOD_ID + ".requesting", this.getApiName()));
         }
 
         try {
             URL uRL = requiresId ? appendUri(url, "client_id=" + SoundCloudIdTracker.fetch(proxy)) : new URI(url).toURL();
-            httpURLConnection = (HttpURLConnection) uRL.openConnection(proxy);
-            httpURLConnection.setInstanceFollowRedirects(true);
             Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
-            }
-
-            int response = httpURLConnection.getResponseCode();
+            connection = SafeHttpConnection.open(uRL, proxy, "GET", map, CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
+            int response = connection.getResponseCode();
             if (requiresId && attempt == 0 && (response == 401 || response == 403)) { // Authenticate if required and bad auth response
                 LOGGER.info("Attempting to authenticate");
                 SoundCloudIdTracker.invalidate();
+                connection.disconnect();
+                connection = null;
                 return this.get(url, progressListener, proxy, 1, true);
             }
 
-            long size = httpURLConnection.getContentLengthLong();
+            long size = connection.getContentLengthLong();
             if (response != 200) {
-                throw new IOException(response + " " + httpURLConnection.getResponseMessage());
+                String message = connection.getResponseMessage();
+                connection.disconnect();
+                connection = null;
+                throw new IOException(response + " " + message);
             }
 
-            return size != -1 && progressListener != null ? new ProgressTrackingInputStream(httpURLConnection.getInputStream(), size, progressListener) : httpURLConnection.getInputStream();
+            InputStream input = connection.getInputStream();
+            InputStream stream = size != -1 && progressListener != null
+                    ? new ProgressTrackingInputStream(input, size, progressListener)
+                    : input;
+            HttpURLConnection openConnection = connection;
+            return new FilterInputStream(stream) {
+                @Override
+                public void close() throws IOException {
+                    try {
+                        super.close();
+                    } finally {
+                        openConnection.disconnect();
+                    }
+                }
+            };
         } catch (IOException e) {
+            if (connection != null) {
+                connection.disconnect();
+            }
             throw e;
         } catch (Throwable e) {
+            if (connection != null) {
+                connection.disconnect();
+            }
             throw new IOException(e);
         }
     }
@@ -224,14 +247,7 @@ public class SoundCloudSource implements SoundDownloadSource {
 
     @Override
     public boolean isValidUrl(String url) {
-        return this.validCache.computeIfAbsent(url, key -> {
-            try {
-                String host = new URI(key).getHost();
-                return host != null && host.endsWith("soundcloud.com");
-            } catch (URISyntaxException e) {
-                return false;
-            }
-        });
+        return this.validCache.computeIfAbsent(url, SoundCloudUrl::isValid);
     }
 
     @Override

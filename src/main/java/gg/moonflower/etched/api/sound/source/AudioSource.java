@@ -1,6 +1,5 @@
 package gg.moonflower.etched.api.sound.source;
 
-import com.mojang.util.UndashedUuid;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.sound.metadata.IcyMetadataInputStream;
 import gg.moonflower.etched.api.sound.metadata.IcyMetadataRegistry;
@@ -10,8 +9,6 @@ import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
 import gg.moonflower.etched.api.util.SafeHttpConnection;
 import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.User;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,14 +39,10 @@ public interface AudioSource {
     int READ_TIMEOUT_MS = 60_000;
 
     /**
-     * @return The vanilla Minecraft client download headers
+     * @return Generic download headers that do not identify the player
      */
     static Map<String, String> getDownloadHeaders() {
-        Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
-        User user = Minecraft.getInstance().getUser();
-        map.put("X-Minecraft-Username", user.getName());
-        map.put("X-Minecraft-UUID", UndashedUuid.toString(user.getProfileId()));
-        return map;
+        return SoundDownloadSource.getDownloadHeaders();
     }
 
     static AsyncInputStream.InputStreamSupplier downloadTo(URL url, boolean temporary, @Nullable DownloadProgressListener progressListener, AudioFileType type) {

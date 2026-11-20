@@ -282,6 +282,7 @@ public class EtchingMenu extends AbstractContainerMenu implements UrlMenu {
                 }
 
                 TrackData album = recordData;
+                String requestedUrl = this.url;
                 int currentId = this.currentRequestId = this.urlId;
                 this.currentRequest = CompletableFuture.supplyAsync(() -> {
                     ItemStack resultStack;
@@ -310,12 +311,12 @@ public class EtchingMenu extends AbstractContainerMenu implements UrlMenu {
 
                     TrackData[] data = new TrackData[]{album};
 
-                    if (SoundSourceManager.isValidUrl(this.url)) {
+                    if (SoundSourceManager.isValidUrl(requestedUrl)) {
                         try {
                             if (IGNORE_CACHE) {
                                 DATA_CACHE.invalidateAll();
                             }
-                            TrackData[] tracks = DATA_CACHE.get(this.url, () -> SoundSourceManager.resolveTracks(this.url, null, Proxy.NO_PROXY)).join();
+                            TrackData[] tracks = DATA_CACHE.get(requestedUrl, () -> SoundSourceManager.resolveTracks(requestedUrl, null, Proxy.NO_PROXY)).join();
                             if (tracks.length == 1) {
                                 data = tracks;
                             } else {
@@ -329,12 +330,12 @@ public class EtchingMenu extends AbstractContainerMenu implements UrlMenu {
                             }
                             throw new CompletionException(e);
                         }
-                    } else if (!TrackData.isLocalSound(this.url)) {
+                    } else if (!TrackData.isLocalSound(requestedUrl)) {
                         try {
-                            checkStatus(this.url);
-                            data[0] = data[0].withUrl(this.url);
+                            checkStatus(requestedUrl);
+                            data[0] = data[0].withUrl(requestedUrl);
                         } catch (UnknownHostException e) {
-                            PacketDistributor.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket("Unknown host: " + this.url));
+                            PacketDistributor.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket("Unknown host: " + requestedUrl));
                             throw new CompletionException("Invalid URL", e);
                         } catch (Exception e) {
                             PacketDistributor.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e.getMessage()));
@@ -342,7 +343,7 @@ public class EtchingMenu extends AbstractContainerMenu implements UrlMenu {
                         }
                     } else {
                         try {
-                            data[0] = data[0].withUrl(ResourceLocation.parse(this.url).toString());
+                            data[0] = data[0].withUrl(ResourceLocation.parse(requestedUrl).toString());
                         } catch (ResourceLocationException e) {
                             PacketDistributor.sendToPlayer((ServerPlayer) this.player, new ClientboundInvalidEtchUrlPacket(e.getMessage()));
                             throw new CompletionException("Invalid Location", e);

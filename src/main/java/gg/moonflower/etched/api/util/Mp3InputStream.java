@@ -55,8 +55,9 @@ public class Mp3InputStream extends InputStream {
 
             SampleBuffer decoderOutput = (SampleBuffer) this.decoder.decodeFrame(header, this.stream);
             short[] data = decoderOutput.getBuffer();
-            this.buffer.asShortBuffer().put(data);
-            this.buffer.position(data.length * Short.BYTES);
+            int sampleCount = decoderOutput.getBufferLength();
+            this.buffer.asShortBuffer().put(data, 0, sampleCount);
+            this.buffer.position(sampleCount * Short.BYTES);
             this.buffer.flip();
         } catch (Throwable t) {
             throw new IOException(t);

@@ -167,9 +167,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
     }
 
     void useStation(RadioStation station) {
-        String previousUrl = this.url.getValue();
         this.setStation(station);
-        SoundTracker.requestRadioUrlConfirmation(previousUrl, station.url());
         PacketDistributor.sendToServer(new SetUrlPacket(station.url()));
     }
 

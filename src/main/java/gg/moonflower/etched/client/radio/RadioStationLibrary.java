@@ -7,7 +7,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import gg.moonflower.etched.api.sound.download.ShareLinks;
 import gg.moonflower.etched.common.radio.RadioStation;
 
 import java.io.IOException;
@@ -146,7 +145,7 @@ public final class RadioStationLibrary {
     }
 
     private static String normalizedUrl(String url) {
-        return ShareLinks.toDirectAudioUrl(url == null ? "" : url.strip());
+        return url == null ? "" : url.strip();
     }
 
     private static String string(JsonObject object, String name) {

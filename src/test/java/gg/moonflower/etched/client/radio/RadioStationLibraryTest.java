@@ -34,11 +34,11 @@ class RadioStationLibraryTest {
     @Test
     void detectsEquivalentDropboxLinks() throws Exception {
         RadioStationLibrary library = new RadioStationLibrary(this.temporaryDirectory.resolve("stations.json"));
-        library.add(new RadioStation("Test", "https://www.dropbox.com/s/test/test.mp3?dl=0"));
-        library.add(new RadioStation("Duplicate", "https://www.dropbox.com/s/test/test.mp3?dl=1"));
+        library.add(new RadioStation("Test", "https://example.com/test.mp3"));
+        library.add(new RadioStation("Duplicate", " https://example.com/test.mp3 "));
 
         assertEquals(1, library.stations().size());
-        assertTrue(library.containsUrl("https://www.dropbox.com/s/test/test.mp3?raw=1"));
+        assertTrue(library.containsUrl("https://example.com/test.mp3"));
     }
 
     @Test

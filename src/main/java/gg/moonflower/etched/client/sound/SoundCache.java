@@ -46,7 +46,6 @@ public final class SoundCache {
     private static final Path CACHE_FOLDER = Minecraft.getInstance().gameDirectory.toPath().resolve(Etched.MOD_ID + "-sounds");
     private static final ReentrantLock DOWNLOAD_LOCK = new ReentrantLock();
     private static final ReentrantLock METADATA_LOCK = new ReentrantLock();
-    private static final ReentrantLock IO_LOCK = new ReentrantLock();
     private static final Type CACHE_METADATA_TYPE = new TypeToken<Map<String, CacheMetadata>>() {
     }.getType();
 

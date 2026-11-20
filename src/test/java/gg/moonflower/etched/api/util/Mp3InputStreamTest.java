@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -17,6 +19,20 @@ class Mp3InputStreamTest {
 
         try (Mp3InputStream input = new Mp3InputStream(new ByteArrayInputStream(encoded))) {
             assertEquals(11_520, input.readAllBytes().length);
+        }
+    }
+
+    @Test
+    void decodesMonoFramesFromTheAsyncRadioBuffer() throws Exception {
+        byte[] encoded = Base64.getDecoder().decode(MONO_MP3);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        try (AsyncInputStream buffered = new AsyncInputStream(
+                () -> new ByteArrayInputStream(encoded), 128, 2, executor);
+             Mp3InputStream input = new Mp3InputStream(buffered)) {
+            assertEquals(11_520, input.readAllBytes().length);
+        } finally {
+            executor.shutdownNow();
         }
     }
 }

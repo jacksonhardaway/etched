@@ -3,6 +3,8 @@ package gg.moonflower.etched.common.block;
 import com.mojang.serialization.MapCodec;
 import gg.moonflower.etched.common.blockentity.RadioBlockEntity;
 import gg.moonflower.etched.common.menu.RadioMenu;
+import gg.moonflower.etched.common.radio.RadioStation;
+import gg.moonflower.etched.common.radio.RadioStationSerialization;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.render.LevelRendererAccessor;
 import gg.moonflower.etched.core.registry.EtchedBlocks;
@@ -37,6 +39,8 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class RadioBlock extends BaseEntityBlock {
@@ -74,7 +78,14 @@ public class RadioBlock extends BaseEntityBlock {
             MenuProvider menuProvider = state.getMenuProvider(level, pos);
             if (menuProvider != null) {
                 String url = level.getBlockEntity(pos) instanceof RadioBlockEntity be ? be.getUrl() : null;
-                player.openMenu(menuProvider, buf -> buf.writeUtf(url != null ? url : ""));
+                List<RadioStation> presets = level.getBlockEntity(pos) instanceof RadioBlockEntity be
+                        ? be.getPresets()
+                        : Collections.nCopies(RadioBlockEntity.PRESET_COUNT, RadioStation.EMPTY);
+                player.openMenu(menuProvider, buf -> {
+                    buf.writeUtf(url != null ? url : "");
+                    buf.writeVarInt(presets.size());
+                    presets.forEach(preset -> RadioStationSerialization.STREAM_CODEC.encode(buf, preset));
+                });
             }
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());

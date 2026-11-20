@@ -151,10 +151,17 @@ public class SoundTracker {
      *
      * <p>The sound is muted immediately while its network buffer is allowed to finish
      * asynchronously, preserving the freeze-free shutdown behaviour.</p>
+     *
+     * @return whether a live radio stream was retired
      */
-    public static void retireRadioStream(CommonLevelAccessor level, BlockPos pos) {
+    public static boolean retireRadioStream(CommonLevelAccessor level, BlockPos pos) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance sound = playingRecords.get(pos);
+        if (!(sound instanceof OnlineRecordSoundInstance onlineRecord) || !onlineRecord.isRadio()) {
+            return false;
+        }
         retireRadio(level, pos, playingRecords);
+        return true;
     }
 
     /**

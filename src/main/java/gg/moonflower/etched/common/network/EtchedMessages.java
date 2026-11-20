@@ -22,7 +22,7 @@ public class EtchedMessages {
 
     @SubscribeEvent
     public static void init(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("4");
+        PayloadRegistrar registrar = event.registrar("5");
 
         // Client
         registrar.playToClient(ClientboundInvalidEtchUrlPacket.TYPE, ClientboundInvalidEtchUrlPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handleSetInvalidEtch));

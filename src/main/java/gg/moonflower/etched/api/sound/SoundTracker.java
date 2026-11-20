@@ -336,11 +336,14 @@ public class SoundTracker {
      *
      * @return whether a live radio instance existed at this position
      */
-    public static boolean setRadioMuted(BlockPos pos, boolean muted) {
+    public static boolean setRadioMuted(CommonLevelAccessor level, BlockPos pos, boolean muted) {
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
         SoundInstance sound = playingRecords.get(pos);
         if (sound instanceof OnlineRecordSoundInstance onlineRecord) {
             onlineRecord.setRadioMuted(muted);
+            if (muted) {
+                setRecordPlayingNearby(level, pos, false);
+            }
             return true;
         }
         return false;

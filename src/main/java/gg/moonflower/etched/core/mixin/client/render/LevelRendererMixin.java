@@ -58,6 +58,6 @@ public abstract class LevelRendererMixin {
 
     @Inject(method = "playJukeboxSong", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), remap = false)
     public void modifySoundInstance(Holder<JukeboxSong> song, BlockPos pos, CallbackInfo ci, @Local LocalRef<SoundInstance> sound) {
-        sound.set(StopListeningSound.create(sound.get(), () -> this.notifyNearbyEntities(this.level, this.etched$pos, false)));
+        sound.set(StopListeningSound.create(sound.get(), () -> this.notifyNearbyEntities(this.level, pos, false)));
     }
 }

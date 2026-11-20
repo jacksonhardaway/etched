@@ -98,7 +98,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
             }
 
             this.streamIdleChecks = 0;
-            SoundTracker.setRadioMuted(pos, false);
+            SoundTracker.setRadioMuted(level, pos, false);
             SoundTracker.updateRadioSettings(level, pos, this.volumePercent, this.range);
             return;
         }
@@ -122,7 +122,7 @@ public class RadioBlockEntity extends BlockEntity implements Clearable {
             return;
         }
 
-        SoundTracker.setRadioMuted(pos, true);
+        SoundTracker.setRadioMuted(level, pos, true);
         if (++this.streamIdleChecks >= STREAM_IDLE_RETIRE_CHECKS) {
             this.streamIdleChecks = 0;
             SoundTracker.retireRadioStream(level, pos);

@@ -1,6 +1,9 @@
 package gg.moonflower.etched.client.screen;
 
+import gg.moonflower.etched.client.radio.ClientRadioStations;
+import gg.moonflower.etched.client.radio.RadioStationLibrary;
 import gg.moonflower.etched.client.search.RadioBrowserClient;
+import gg.moonflower.etched.common.radio.RadioStation;
 import gg.moonflower.etched.core.Etched;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -16,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +41,8 @@ public class RadioBrowserScreen extends Screen {
     private static final Component QUERY = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.query");
     private static final Component SEARCH = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.search");
     private static final Component SELECT = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.select");
+    private static final Component ADD_FAVORITE = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.add_favorite");
+    private static final Component FAVORITE_SAVED = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.favorite_saved");
     private static final Component SEARCHING = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.searching").withStyle(ChatFormatting.GRAY);
     private static final Component NO_RESULTS = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.no_results").withStyle(ChatFormatting.GRAY);
     private static final Component ENTER_QUERY = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.enter_query").withStyle(ChatFormatting.GRAY);
@@ -44,10 +50,12 @@ public class RadioBrowserScreen extends Screen {
 
     private final Screen parent;
     private final Consumer<RadioBrowserClient.Station> onSelect;
+    private final RadioStationLibrary library = ClientRadioStations.get();
     private final List<RadioBrowserClient.Station> stations = new ArrayList<>();
     private EditBox query;
     private Button searchButton;
     private Button selectButton;
+    private Button favoriteButton;
     private ResultList results;
     private int searchId;
     private CompletableFuture<?> searchTask;
@@ -81,9 +89,12 @@ public class RadioBrowserScreen extends Screen {
         this.results = this.addRenderableWidget(new ResultList(this.minecraft, this.width, this.height - 86, 52, contentWidth));
         this.stations.forEach(station -> this.results.addResult(new ResultList.Entry(this, station)));
 
-        int buttonWidth = (contentWidth - 4) / 2;
+        int buttonWidth = (contentWidth - 8) / 3;
         this.selectButton = this.addRenderableWidget(Button.builder(SELECT, button -> this.selectResult())
                 .bounds(left, this.height - 28, buttonWidth, 20)
+                .build());
+        this.favoriteButton = this.addRenderableWidget(Button.builder(ADD_FAVORITE, button -> this.addFavorite())
+                .bounds(left + buttonWidth + 4, this.height - 28, buttonWidth, 20)
                 .build());
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose())
                 .bounds(left + contentWidth - buttonWidth, this.height - 28, buttonWidth, 20)
@@ -146,7 +157,12 @@ public class RadioBrowserScreen extends Screen {
     }
 
     private void updateSelectButton() {
-        this.selectButton.active = this.results.getSelected() != null;
+        ResultList.Entry selected = this.results.getSelected();
+        boolean hasSelection = selected != null;
+        this.selectButton.active = hasSelection;
+        boolean saved = hasSelection && this.library.containsUrl(selected.station.url());
+        this.favoriteButton.active = hasSelection && !saved;
+        this.favoriteButton.setMessage(saved ? FAVORITE_SAVED : ADD_FAVORITE);
     }
 
     private void selectResult() {
@@ -158,6 +174,22 @@ public class RadioBrowserScreen extends Screen {
         Proxy proxy = Minecraft.getInstance().getProxy();
         CompletableFuture.runAsync(() -> RadioBrowserClient.registerClick(entry.station, proxy), Util.nonCriticalIoPool());
         this.onSelect.accept(entry.station);
+    }
+
+    private void addFavorite() {
+        ResultList.Entry entry = this.results.getSelected();
+        if (entry == null || this.library.containsUrl(entry.station.url())) {
+            return;
+        }
+
+        try {
+            this.library.add(new RadioStation(entry.station.name(), entry.station.url()));
+            this.status = null;
+            this.updateSelectButton();
+        } catch (IOException exception) {
+            LOGGER.error("Failed to add '{}' to the personal radio station library", entry.station.name(), exception);
+            this.status = Component.translatable("container.etched.radio.library_error").withStyle(ChatFormatting.RED);
+        }
     }
 
     private void cancelSearch() {

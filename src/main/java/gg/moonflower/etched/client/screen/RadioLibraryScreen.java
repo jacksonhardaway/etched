@@ -37,6 +37,8 @@ public class RadioLibraryScreen extends Screen {
     private Button clearPresetButton;
     private Component status;
     private int selectedPreset;
+    private int lastClickedPreset = -1;
+    private long lastPresetClickTime;
     private int statusY;
 
     public RadioLibraryScreen(RadioScreen parent, boolean managePresets) {
@@ -68,10 +70,7 @@ public class RadioLibraryScreen extends Screen {
             int presetWidth = (contentWidth - 8) / 3;
             for (int i = 0; i < this.parent.getPresets().size(); i++) {
                 int index = i;
-                Button button = this.addRenderableWidget(Button.builder(this.presetLabel(i), ignored -> {
-                            this.selectedPreset = index;
-                            this.updateButtons();
-                        })
+                Button button = this.addRenderableWidget(Button.builder(this.presetLabel(i), ignored -> this.selectPreset(index))
                         .bounds(left + (i % 3) * (presetWidth + 4), 24 + (i / 3) * 24, presetWidth, 20)
                         .build());
                 this.presetButtons.add(button);
@@ -202,6 +201,26 @@ public class RadioLibraryScreen extends Screen {
     private void clearPreset() {
         this.parent.setPreset(this.selectedPreset, RadioStation.EMPTY);
         this.updateButtons();
+    }
+
+    private void selectPreset(int index) {
+        long time = Util.getMillis();
+        boolean doubleClick = index == this.lastClickedPreset && time - this.lastPresetClickTime < 250;
+        this.selectedPreset = index;
+        this.lastClickedPreset = index;
+        this.lastPresetClickTime = time;
+        this.updateButtons();
+        if (doubleClick) {
+            this.renamePreset(index);
+        }
+    }
+
+    private void renamePreset(int index) {
+        RadioStation preset = this.parent.getPresets().get(index);
+        if (!preset.isEmpty()) {
+            this.minecraft.setScreen(new RadioStationEditScreen(this, preset, false,
+                    renamed -> this.parent.setPreset(index, renamed)));
+        }
     }
 
     private void selectNextEmptyPreset() {

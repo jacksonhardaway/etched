@@ -40,6 +40,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
 
     public RadioScreen(RadioMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
+        this.imageWidth = 232;
         this.imageHeight = 170;
         this.presets = new ArrayList<>(menu.getInitialPresets());
     }
@@ -47,9 +48,10 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
     @Override
     protected void init() {
         super.init();
+        this.leftPos -= 24;
         int halfWidth = (this.imageWidth - 4) / 2;
         String urlText = this.url != null ? this.url.getValue() : this.menu.getInitialUrl();
-        this.url = new EditBox(this.font, this.leftPos + 10, this.topPos + 21, 154, 16, null,
+        this.url = new EditBox(this.font, this.leftPos + 10, this.topPos + 21, this.imageWidth - 22, 16, null,
                 Component.translatable("container." + Etched.MOD_ID + ".radio.url"));
         this.url.setMaxLength(RadioStation.MAX_URL_LENGTH);
         this.url.setValue(urlText);
@@ -178,8 +180,10 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.fill(this.leftPos, this.topPos + 39, this.leftPos + this.imageWidth,
                 this.topPos + this.imageHeight, 0xC0101010);
-        guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, 39);
-        guiGraphics.blit(TEXTURE, this.leftPos + 8, this.topPos + 18, 0, 39, 160, 14);
+        guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, this.imageWidth, 39,
+                0, 0, 176, 39, 256, 256);
+        guiGraphics.blit(TEXTURE, this.leftPos + 8, this.topPos + 18, this.imageWidth - 16, 14,
+                0, 39, 160, 14, 256, 256);
     }
 
     @Override

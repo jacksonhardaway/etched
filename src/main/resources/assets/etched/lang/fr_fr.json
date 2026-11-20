@@ -32,6 +32,8 @@
   "screen.etched.radio_browser.query": "Nom de la station",
   "screen.etched.radio_browser.search": "Chercher",
   "screen.etched.radio_browser.select": "Utiliser cette station",
+  "screen.etched.radio_browser.add_favorite": "Ajouter aux favoris",
+  "screen.etched.radio_browser.favorite_saved": "Dans les favoris",
   "screen.etched.radio_browser.searching": "Recherche sur Radio Browser...",
   "screen.etched.radio_browser.no_results": "Aucune station compatible trouvée",
   "screen.etched.radio_browser.enter_query": "Saisis au moins deux caractères",

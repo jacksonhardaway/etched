@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Searches the public Radio Browser catalog for streams Etched can play directly.
@@ -41,19 +43,22 @@ public final class RadioBrowserClient {
     }
 
     public static List<Station> search(String query, Proxy proxy) throws IOException {
+        return search(query, proxy, new RequestControl());
+    }
+
+    public static List<Station> search(String query, Proxy proxy, RequestControl control) throws IOException {
         IOException lastError = null;
         for (String host : findHosts()) {
-            if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedIOException("Radio Browser search was cancelled");
-            }
+            control.checkCancelled();
 
             try {
                 String apiBase = "https://" + host;
                 String url = apiBase + "/json/stations/search?name="
                         + URLEncoder.encode(query, StandardCharsets.UTF_8)
                         + "&hidebroken=true&order=clickcount&reverse=true&limit=" + RESULT_LIMIT;
-                return parseStations(request(URI.create(url), proxy, MAX_RESPONSE_SIZE), apiBase);
+                return parseStations(request(URI.create(url), proxy, MAX_RESPONSE_SIZE, control), apiBase);
             } catch (IOException exception) {
+                control.checkCancelled();
                 lastError = exception;
             }
         }
@@ -67,7 +72,7 @@ public final class RadioBrowserClient {
 
         try {
             String uuid = URLEncoder.encode(station.stationUuid(), StandardCharsets.UTF_8);
-            request(URI.create(station.apiBase() + "/json/url/" + uuid), proxy, 64 * 1024);
+            request(URI.create(station.apiBase() + "/json/url/" + uuid), proxy, 64 * 1024, new RequestControl());
         } catch (Exception ignored) {
             // Popularity tracking is best-effort and must never prevent playback.
         }
@@ -185,13 +190,15 @@ public final class RadioBrowserClient {
         return List.copyOf(hosts);
     }
 
-    private static byte[] request(URI uri, Proxy proxy, int maximumSize) throws IOException {
+    private static byte[] request(URI uri, Proxy proxy, int maximumSize, RequestControl control) throws IOException {
+        control.checkCancelled();
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection(proxy != null ? proxy : Proxy.NO_PROXY);
         connection.setConnectTimeout(CONNECT_TIMEOUT);
         connection.setReadTimeout(READ_TIMEOUT);
         connection.setInstanceFollowRedirects(true);
         connection.setRequestProperty("Accept", "application/json");
         connection.setRequestProperty("User-Agent", USER_AGENT);
+        control.attach(connection);
 
         try {
             int responseCode = connection.getResponseCode();
@@ -207,7 +214,41 @@ public final class RadioBrowserClient {
                 return data;
             }
         } finally {
+            control.detach(connection);
             connection.disconnect();
+        }
+    }
+
+    public static final class RequestControl {
+
+        private final AtomicBoolean cancelled = new AtomicBoolean();
+        private final AtomicReference<HttpURLConnection> connection = new AtomicReference<>();
+
+        public void cancel() {
+            this.cancelled.set(true);
+            HttpURLConnection activeConnection = this.connection.getAndSet(null);
+            if (activeConnection != null) {
+                activeConnection.disconnect();
+            }
+        }
+
+        void checkCancelled() throws InterruptedIOException {
+            if (this.cancelled.get() || Thread.currentThread().isInterrupted()) {
+                throw new InterruptedIOException("Radio Browser search was cancelled");
+            }
+        }
+
+        void attach(HttpURLConnection connection) throws InterruptedIOException {
+            this.checkCancelled();
+            this.connection.set(connection);
+            if (this.cancelled.get() && this.connection.compareAndSet(connection, null)) {
+                connection.disconnect();
+                throw new InterruptedIOException("Radio Browser search was cancelled");
+            }
+        }
+
+        void detach(HttpURLConnection connection) {
+            this.connection.compareAndSet(connection, null);
         }
     }
 

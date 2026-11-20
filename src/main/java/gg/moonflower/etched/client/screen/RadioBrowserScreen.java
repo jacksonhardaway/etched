@@ -49,6 +49,7 @@ public class RadioBrowserScreen extends Screen {
     private ResultList results;
     private int searchId;
     private CompletableFuture<?> searchTask;
+    private RadioBrowserClient.RequestControl searchControl;
     @Nullable
     private Component status;
 
@@ -108,13 +109,18 @@ public class RadioBrowserScreen extends Screen {
         this.updateSelectButton();
 
         Proxy proxy = Minecraft.getInstance().getProxy();
+        RadioBrowserClient.RequestControl control = new RadioBrowserClient.RequestControl();
+        this.searchControl = control;
         this.searchTask = CompletableFuture.supplyAsync(() -> {
             try {
-                return RadioBrowserClient.search(text, proxy);
+                return RadioBrowserClient.search(text, proxy, control);
             } catch (Exception exception) {
                 throw new CompletionException(exception);
             }
         }, Util.nonCriticalIoPool()).whenCompleteAsync((found, error) -> {
+            if (this.searchControl == control) {
+                this.searchControl = null;
+            }
             if (id != this.searchId || this.minecraft.screen != this) {
                 return;
             }
@@ -154,8 +160,12 @@ public class RadioBrowserScreen extends Screen {
 
     private void cancelSearch() {
         this.searchId++;
+        if (this.searchControl != null) {
+            this.searchControl.cancel();
+            this.searchControl = null;
+        }
         if (this.searchTask != null) {
-            this.searchTask.cancel(true);
+            this.searchTask.cancel(false);
             this.searchTask = null;
         }
     }

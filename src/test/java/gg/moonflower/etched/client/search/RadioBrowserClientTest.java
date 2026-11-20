@@ -2,10 +2,15 @@ package gg.moonflower.etched.client.search;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.InterruptedIOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RadioBrowserClientTest {
 
@@ -33,5 +38,40 @@ class RadioBrowserClientTest {
         assertEquals("CH | MP3 128 kbps", stations.get(0).details());
         assertEquals("AAC Radio", stations.get(1).name());
         assertEquals("https://radio.test/two.aac", stations.get(1).url());
+    }
+
+    @Test
+    void cancellationDisconnectsTheActiveRequest() throws Exception {
+        RadioBrowserClient.RequestControl control = new RadioBrowserClient.RequestControl();
+        TestConnection connection = new TestConnection();
+        control.attach(connection);
+
+        control.cancel();
+
+        assertTrue(connection.disconnected);
+        assertThrows(InterruptedIOException.class, control::checkCancelled);
+    }
+
+    private static final class TestConnection extends HttpURLConnection {
+
+        private boolean disconnected;
+
+        private TestConnection() throws Exception {
+            super(URI.create("https://example.com").toURL());
+        }
+
+        @Override
+        public void disconnect() {
+            this.disconnected = true;
+        }
+
+        @Override
+        public boolean usingProxy() {
+            return false;
+        }
+
+        @Override
+        public void connect() {
+        }
     }
 }

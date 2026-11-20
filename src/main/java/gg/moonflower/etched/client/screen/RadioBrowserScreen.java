@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.Consumer;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER;
@@ -41,7 +42,8 @@ public class RadioBrowserScreen extends Screen {
     private static final Component ENTER_QUERY = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.enter_query").withStyle(ChatFormatting.GRAY);
     private static final int ROW_HEIGHT = 24;
 
-    private final RadioScreen parent;
+    private final Screen parent;
+    private final Consumer<RadioBrowserClient.Station> onSelect;
     private final List<RadioBrowserClient.Station> stations = new ArrayList<>();
     private EditBox query;
     private Button searchButton;
@@ -53,9 +55,10 @@ public class RadioBrowserScreen extends Screen {
     @Nullable
     private Component status;
 
-    public RadioBrowserScreen(RadioScreen parent) {
+    public RadioBrowserScreen(Screen parent, Consumer<RadioBrowserClient.Station> onSelect) {
         super(TITLE);
         this.parent = parent;
+        this.onSelect = onSelect;
     }
 
     @Override
@@ -154,8 +157,7 @@ public class RadioBrowserScreen extends Screen {
 
         Proxy proxy = Minecraft.getInstance().getProxy();
         CompletableFuture.runAsync(() -> RadioBrowserClient.registerClick(entry.station, proxy), Util.nonCriticalIoPool());
-        this.minecraft.setScreen(this.parent);
-        this.parent.setUrl(entry.station.url());
+        this.onSelect.accept(entry.station);
     }
 
     private void cancelSearch() {

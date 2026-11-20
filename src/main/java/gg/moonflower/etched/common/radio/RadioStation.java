@@ -1,5 +1,7 @@
 package gg.moonflower.etched.common.radio;
 
+import java.net.URI;
+
 public record RadioStation(String name, String url) {
 
     public static final int MAX_NAME_LENGTH = 64;
@@ -16,6 +18,20 @@ public record RadioStation(String name, String url) {
 
     public boolean isEmpty() {
         return this.url.isEmpty();
+    }
+
+    public String displayName() {
+        if (!this.name.isEmpty()) {
+            return this.name;
+        }
+        try {
+            String host = URI.create(this.url).getHost();
+            if (host != null && !host.isBlank()) {
+                return host;
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
+        return this.url;
     }
 
     private static String clean(String value, int maximumLength) {

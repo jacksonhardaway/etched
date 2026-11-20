@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class RadioStationLibrary {
 
@@ -71,8 +72,12 @@ public final class RadioStationLibrary {
     }
 
     public boolean containsUrl(String url) {
+        return this.findByUrl(url).isPresent();
+    }
+
+    public Optional<RadioStation> findByUrl(String url) {
         String key = normalizedUrl(url);
-        return this.stations.stream().anyMatch(station -> normalizedUrl(station.url()).equals(key));
+        return this.stations.stream().filter(station -> normalizedUrl(station.url()).equals(key)).findFirst();
     }
 
     public void add(RadioStation station) throws IOException {

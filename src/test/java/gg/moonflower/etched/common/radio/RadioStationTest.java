@@ -22,4 +22,11 @@ class RadioStationTest {
         assertTrue(station.isEmpty());
         assertEquals("", station.name());
     }
+
+    @Test
+    void usesTheHostWhenNoNameWasSaved() {
+        RadioStation station = new RadioStation("", "https://radio.example.com/live.mp3");
+
+        assertEquals("radio.example.com", station.displayName());
+    }
 }

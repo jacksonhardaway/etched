@@ -26,9 +26,8 @@ public class RadioStationEditScreen extends Screen {
     private Component status;
 
     public RadioStationEditScreen(Screen parent, RadioStation station, boolean editUrl, Consumer<RadioStation> onSave) {
-        super(Component.translatable(editUrl
-                ? "screen." + Etched.MOD_ID + ".radio_station.add_title"
-                : "screen." + Etched.MOD_ID + ".radio_station.rename_title"));
+        super(Component.translatable("screen." + Etched.MOD_ID + ".radio_station."
+                + (editUrl ? (station.isEmpty() ? "add_title" : "edit_title") : "rename_title")));
         this.parent = parent;
         this.station = station;
         this.editUrl = editUrl;

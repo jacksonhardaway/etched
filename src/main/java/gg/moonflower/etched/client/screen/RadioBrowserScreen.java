@@ -42,7 +42,7 @@ public class RadioBrowserScreen extends Screen {
     private static final Component SEARCH = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.search");
     private static final Component SELECT = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.select");
     private static final Component ADD_FAVORITE = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.add_favorite");
-    private static final Component FAVORITE_SAVED = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.favorite_saved");
+    private static final Component REMOVE_FAVORITE = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.remove_favorite");
     private static final Component SEARCHING = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.searching").withStyle(ChatFormatting.GRAY);
     private static final Component NO_RESULTS = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.no_results").withStyle(ChatFormatting.GRAY);
     private static final Component ENTER_QUERY = Component.translatable("screen." + Etched.MOD_ID + ".radio_browser.enter_query").withStyle(ChatFormatting.GRAY);
@@ -93,7 +93,7 @@ public class RadioBrowserScreen extends Screen {
         this.selectButton = this.addRenderableWidget(Button.builder(SELECT, button -> this.selectResult())
                 .bounds(left, this.height - 28, buttonWidth, 20)
                 .build());
-        this.favoriteButton = this.addRenderableWidget(Button.builder(ADD_FAVORITE, button -> this.addFavorite())
+        this.favoriteButton = this.addRenderableWidget(Button.builder(ADD_FAVORITE, button -> this.toggleFavorite())
                 .bounds(left + buttonWidth + 4, this.height - 28, buttonWidth, 20)
                 .build());
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose())
@@ -161,8 +161,8 @@ public class RadioBrowserScreen extends Screen {
         boolean hasSelection = selected != null;
         this.selectButton.active = hasSelection;
         boolean saved = hasSelection && this.library.containsUrl(selected.station.url());
-        this.favoriteButton.active = hasSelection && !saved;
-        this.favoriteButton.setMessage(saved ? FAVORITE_SAVED : ADD_FAVORITE);
+        this.favoriteButton.active = hasSelection;
+        this.favoriteButton.setMessage(saved ? REMOVE_FAVORITE : ADD_FAVORITE);
     }
 
     private void selectResult() {
@@ -176,18 +176,22 @@ public class RadioBrowserScreen extends Screen {
         this.onSelect.accept(entry.station);
     }
 
-    private void addFavorite() {
+    private void toggleFavorite() {
         ResultList.Entry entry = this.results.getSelected();
-        if (entry == null || this.library.containsUrl(entry.station.url())) {
+        if (entry == null) {
             return;
         }
 
         try {
-            this.library.add(new RadioStation(entry.station.name(), entry.station.url()));
+            if (this.library.containsUrl(entry.station.url())) {
+                this.library.remove(entry.station.url());
+            } else {
+                this.library.add(new RadioStation(entry.station.name(), entry.station.url()));
+            }
             this.status = null;
             this.updateSelectButton();
         } catch (IOException exception) {
-            LOGGER.error("Failed to add '{}' to the personal radio station library", entry.station.name(), exception);
+            LOGGER.error("Failed to update '{}' in the personal radio station library", entry.station.name(), exception);
             this.status = Component.translatable("container.etched.radio.library_error").withStyle(ChatFormatting.RED);
         }
     }

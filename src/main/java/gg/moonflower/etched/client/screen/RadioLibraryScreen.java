@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -32,8 +33,9 @@ public class RadioLibraryScreen extends Screen {
     private EditBox query;
     private StationList results;
     private Button primaryButton;
-    private Button renameButton;
+    private Button editButton;
     private Button removeButton;
+    private Button renamePresetButton;
     private Button clearPresetButton;
     private Component status;
     private int selectedPreset;
@@ -92,40 +94,49 @@ public class RadioLibraryScreen extends Screen {
                 .build());
 
         int listTop = queryTop + 28;
+        int controlsHeight = this.managePresets ? 80 : 56;
         int listHeight = Math.min(ROW_HEIGHT * 4 + 4,
-                Math.max(ROW_HEIGHT * 2, this.height - listTop - 56));
+                Math.max(ROW_HEIGHT * 2, this.height - listTop - controlsHeight));
         this.results = this.addRenderableWidget(new StationList(this.minecraft, this.width, listHeight, listTop, contentWidth));
         this.refreshResults(null);
 
         int gap = 4;
         int thirdWidth = (contentWidth - gap * 2) / 3;
         int firstRow = listTop + listHeight + 4;
-        Component primaryLabel = this.managePresets
-                ? Component.translatable("screen.etched.radio_library.assign", this.selectedPreset + 1)
-                : Component.translatable("screen.etched.radio_library.use");
+        Component primaryLabel = this.managePresets ? this.assignmentLabel() : Component.translatable("screen.etched.radio_library.use");
         this.primaryButton = this.addRenderableWidget(Button.builder(primaryLabel, button -> this.useSelected())
                 .bounds(left, firstRow, thirdWidth, 20)
                 .build());
-        this.renameButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.rename"), button -> this.renameSelected())
-                .bounds(left + thirdWidth + gap, firstRow, thirdWidth, 20)
-                .build());
-        this.removeButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.remove"), button -> this.removeSelected())
-                .bounds(left + (thirdWidth + gap) * 2, firstRow, thirdWidth, 20)
-                .build());
 
         int secondRow = firstRow + 24;
-        this.statusY = Math.min(this.height - 10, secondRow + 24);
         if (this.managePresets) {
+            this.renamePresetButton = this.addRenderableWidget(Button.builder(this.renamePresetLabel(), button -> this.renamePreset(this.selectedPreset))
+                    .bounds(left + thirdWidth + gap, firstRow, thirdWidth, 20)
+                    .build());
             this.clearPresetButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.clear_preset"), button -> this.clearPreset())
+                    .bounds(left + (thirdWidth + gap) * 2, firstRow, thirdWidth, 20)
+                    .build());
+            this.editButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.edit_station"), button -> this.editSelected())
                     .bounds(left, secondRow, thirdWidth, 20)
                     .build());
-            this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.add"), button -> this.addManually())
+            this.removeButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.remove_favorite"), button -> this.removeSelected())
                     .bounds(left + thirdWidth + gap, secondRow, thirdWidth, 20)
                     .build());
-            this.addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, button -> this.onClose())
+            this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.add"), button -> this.addManually())
                     .bounds(left + (thirdWidth + gap) * 2, secondRow, thirdWidth, 20)
                     .build());
+            int thirdRow = secondRow + 24;
+            this.addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, button -> this.onClose())
+                    .bounds(left, thirdRow, contentWidth, 20)
+                    .build());
+            this.statusY = Math.min(this.height - 10, thirdRow + 24);
         } else {
+            this.editButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.edit_station"), button -> this.editSelected())
+                    .bounds(left + thirdWidth + gap, firstRow, thirdWidth, 20)
+                    .build());
+            this.removeButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.remove_favorite"), button -> this.removeSelected())
+                    .bounds(left + (thirdWidth + gap) * 2, firstRow, thirdWidth, 20)
+                    .build());
             int halfWidth = (contentWidth - gap) / 2;
             this.addRenderableWidget(Button.builder(Component.translatable("screen.etched.radio_library.add"), button -> this.addManually())
                     .bounds(left, secondRow, halfWidth, 20)
@@ -133,6 +144,7 @@ public class RadioLibraryScreen extends Screen {
             this.addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, button -> this.onClose())
                     .bounds(left + halfWidth + gap, secondRow, halfWidth, 20)
                     .build());
+            this.statusY = Math.min(this.height - 10, secondRow + 24);
         }
         this.updateButtons();
         this.setInitialFocus(this.query);
@@ -179,14 +191,14 @@ public class RadioLibraryScreen extends Screen {
         }));
     }
 
-    private void renameSelected() {
+    private void editSelected() {
         RadioStation station = this.results.selectedStation();
         if (station == null) {
             return;
         }
-        this.minecraft.setScreen(new RadioStationEditScreen(this, station, false, renamed -> {
-            if (this.save(() -> this.library.rename(station.url(), renamed.name()))) {
-                this.refreshResults(station.url());
+        this.minecraft.setScreen(new RadioStationEditScreen(this, station, true, updated -> {
+            if (this.save(() -> this.library.update(station.url(), updated))) {
+                this.refreshResults(updated.url());
             }
         }));
     }
@@ -258,17 +270,22 @@ public class RadioLibraryScreen extends Screen {
         if (this.primaryButton != null) {
             this.primaryButton.active = hasSelection;
             if (this.managePresets) {
-                this.primaryButton.setMessage(Component.translatable("screen.etched.radio_library.assign", this.selectedPreset + 1));
+                this.primaryButton.setMessage(this.assignmentLabel());
             }
         }
-        if (this.renameButton != null) {
-            this.renameButton.active = hasSelection;
+        if (this.editButton != null) {
+            this.editButton.active = hasSelection;
         }
         if (this.removeButton != null) {
             this.removeButton.active = hasSelection;
         }
+        boolean hasPreset = this.managePresets && !this.parent.getPresets().get(this.selectedPreset).isEmpty();
+        if (this.renamePresetButton != null) {
+            this.renamePresetButton.active = hasPreset;
+            this.renamePresetButton.setMessage(this.renamePresetLabel());
+        }
         if (this.clearPresetButton != null) {
-            this.clearPresetButton.active = !this.parent.getPresets().get(this.selectedPreset).isEmpty();
+            this.clearPresetButton.active = hasPreset;
         }
         for (int i = 0; i < this.presetButtons.size(); i++) {
             this.presetButtons.get(i).setMessage(this.presetLabel(i));
@@ -282,11 +299,23 @@ public class RadioLibraryScreen extends Screen {
                 : label;
     }
 
+    private Component assignmentLabel() {
+        boolean replacing = !this.parent.getPresets().get(this.selectedPreset).isEmpty();
+        return Component.translatable("screen.etched.radio_library." + (replacing ? "replace" : "assign"), this.selectedPreset + 1);
+    }
+
+    private Component renamePresetLabel() {
+        return Component.translatable("screen.etched.radio_library.rename_preset", this.selectedPreset + 1);
+    }
+
     private boolean save(IoAction action) {
         try {
             action.run();
             this.status = null;
             return true;
+        } catch (FileAlreadyExistsException exception) {
+            this.status = Component.translatable("screen.etched.radio_library.already_saved");
+            return false;
         } catch (IOException exception) {
             this.status = Component.translatable("container.etched.radio.library_error");
             return false;

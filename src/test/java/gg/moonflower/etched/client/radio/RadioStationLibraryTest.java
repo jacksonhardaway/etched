@@ -4,10 +4,12 @@ import gg.moonflower.etched.common.radio.RadioStation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RadioStationLibraryTest {
@@ -40,14 +42,22 @@ class RadioStationLibraryTest {
     }
 
     @Test
-    void renamesAndRemovesWithoutChangingTheUrl() throws Exception {
-        String url = "https://example.com/station.mp3";
+    void editsAndRemovesStationsWithoutCreatingDuplicates() throws Exception {
+        String originalUrl = "https://example.com/station.mp3";
+        String updatedUrl = "https://example.com/updated.mp3";
         RadioStationLibrary library = new RadioStationLibrary(this.temporaryDirectory.resolve("stations.json"));
-        library.add(new RadioStation("Old name", url));
-        library.rename(url, "New name");
+        library.add(new RadioStation("Old name", originalUrl));
+        library.update(originalUrl, new RadioStation("New name", updatedUrl));
 
-        assertEquals(new RadioStation("New name", url), library.stations().getFirst());
-        library.remove(url);
-        assertFalse(library.containsUrl(url));
+        assertEquals(new RadioStation("New name", updatedUrl), library.stations().getFirst());
+
+        String otherUrl = "https://example.com/other.mp3";
+        library.add(new RadioStation("Other", otherUrl));
+        assertThrows(FileAlreadyExistsException.class,
+                () -> library.update(updatedUrl, new RadioStation("Duplicate", otherUrl)));
+        assertEquals(2, library.stations().size());
+
+        library.remove(updatedUrl);
+        assertFalse(library.containsUrl(updatedUrl));
     }
 }

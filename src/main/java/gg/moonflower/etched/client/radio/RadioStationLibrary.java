@@ -12,6 +12,7 @@ import gg.moonflower.etched.common.radio.RadioStation;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -86,14 +87,21 @@ public final class RadioStationLibrary {
         this.replace(updated);
     }
 
-    public void rename(String url, String name) throws IOException {
-        String key = normalizedUrl(url);
-        List<RadioStation> updated = this.stations.stream()
-                .map(station -> normalizedUrl(station.url()).equals(key)
-                        ? new RadioStation(name, station.url())
-                        : station)
-                .toList();
-        this.replace(updated);
+    public void update(String originalUrl, RadioStation updatedStation) throws IOException {
+        String originalKey = normalizedUrl(originalUrl);
+        String updatedKey = normalizedUrl(updatedStation.url());
+        if (!originalKey.equals(updatedKey) && this.containsUrl(updatedStation.url())) {
+            throw new FileAlreadyExistsException(updatedStation.url());
+        }
+
+        List<RadioStation> updated = new ArrayList<>(this.stations);
+        for (int i = 0; i < updated.size(); i++) {
+            if (normalizedUrl(updated.get(i).url()).equals(originalKey)) {
+                updated.set(i, updatedStation);
+                this.replace(updated);
+                return;
+            }
+        }
     }
 
     public void remove(String url) throws IOException {

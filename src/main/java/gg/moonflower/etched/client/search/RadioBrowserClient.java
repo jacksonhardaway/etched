@@ -37,7 +37,7 @@ public final class RadioBrowserClient {
     private static final int MAX_RESPONSE_SIZE = 512 * 1024;
     private static final int CONNECT_TIMEOUT = 5_000;
     private static final int READ_TIMEOUT = 10_000;
-    private static final String USER_AGENT = "Etched-Regalade/5.1.0";
+    private static final String USER_AGENT = "Etched/5.1.0";
 
     private RadioBrowserClient() {
     }

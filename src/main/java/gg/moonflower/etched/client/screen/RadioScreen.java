@@ -31,6 +31,9 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements UrlMenu {
 
     private static final ResourceLocation TEXTURE = Etched.etchedPath("textures/gui/radio.png");
+    private static final int VANILLA_IMAGE_WIDTH = 176;
+    private static final int MIN_IMAGE_WIDTH = 232;
+    private static final int MAX_IMAGE_WIDTH = 360;
 
     private final List<RadioStation> presets;
     private EditBox url;
@@ -40,15 +43,16 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
 
     public RadioScreen(RadioMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
-        this.imageWidth = 232;
+        this.imageWidth = MIN_IMAGE_WIDTH;
         this.imageHeight = 170;
         this.presets = new ArrayList<>(menu.getInitialPresets());
     }
 
     @Override
     protected void init() {
+        this.imageWidth = Math.max(MIN_IMAGE_WIDTH, Math.min(MAX_IMAGE_WIDTH, this.width * 2 / 5));
         super.init();
-        this.leftPos -= 24;
+        this.leftPos -= (this.imageWidth - VANILLA_IMAGE_WIDTH) / 2;
         int halfWidth = (this.imageWidth - 4) / 2;
         String urlText = this.url != null ? this.url.getValue() : this.menu.getInitialUrl();
         this.url = new EditBox(this.font, this.leftPos + 10, this.topPos + 21, this.imageWidth - 22, 16, null,

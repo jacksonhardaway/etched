@@ -4,6 +4,7 @@ import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.source.AudioSource;
 import gg.moonflower.etched.api.sound.stream.MonoWrapper;
 import gg.moonflower.etched.api.sound.stream.RawAudioStream;
+import gg.moonflower.etched.api.util.AacInputStream;
 import gg.moonflower.etched.api.util.AudioContentSniffer;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.Mp3InputStream;
@@ -123,24 +124,32 @@ public class AbstractOnlineSoundInstance extends AbstractSoundInstance {
                     } catch (Exception e1) {
                         is.reset();
 
-                        // Try loading as MP3
+                        // Try loading as AAC or fragmented MP4 before MP3. The MP3 decoder can scan past the mark.
                         try {
-                            Mp3InputStream mp3InputStream = new Mp3InputStream(is);
-                            return getStream(repeatInstantly ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream.getFormat(), input), mp3InputStream) : new RawAudioStream(mp3InputStream.getFormat(), mp3InputStream), sound);
+                            AacInputStream aacInputStream = new AacInputStream(is);
+                            return getStream(repeatInstantly ? new LoopingAudioStream(input -> new RawAudioStream(aacInputStream.getFormat(), input), aacInputStream) : new RawAudioStream(aacInputStream.getFormat(), aacInputStream), sound);
                         } catch (Exception e2) {
-                            UnsupportedAudioFileException cause = new UnsupportedAudioFileException("Could not load as OGG, WAV, OR MP3");
+                            is.reset();
 
+                            // Try loading as MP3
                             try {
-                                is.close();
+                                Mp3InputStream mp3InputStream = new Mp3InputStream(is);
+                                return getStream(repeatInstantly ? new LoopingAudioStream(input -> new RawAudioStream(mp3InputStream.getFormat(), input), mp3InputStream) : new RawAudioStream(mp3InputStream.getFormat(), mp3InputStream), sound);
                             } catch (Exception e3) {
-                                // Pass the exception along
-                                cause.addSuppressed(e3);
-                            }
+                                UnsupportedAudioFileException cause = new UnsupportedAudioFileException("Could not load as OGG, WAV, AAC, fMP4, or MP3");
 
-                            cause.addSuppressed(e);
-                            cause.addSuppressed(e1);
-                            cause.addSuppressed(e2);
-                            throw new CompletionException(cause);
+                                try {
+                                    is.close();
+                                } catch (Exception e4) {
+                                    cause.addSuppressed(e4);
+                                }
+
+                                cause.addSuppressed(e);
+                                cause.addSuppressed(e1);
+                                cause.addSuppressed(e2);
+                                cause.addSuppressed(e3);
+                                throw new CompletionException(cause);
+                            }
                         }
                     }
                 }

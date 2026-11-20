@@ -1,8 +1,5 @@
 package gg.moonflower.etched.api.util;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,8 +18,6 @@ import java.util.List;
  */
 public final class M3uParser {
 
-    private static final Logger LOGGER = LogManager.getLogger();
-
     /**
      * Parses a list of URLs from the specified reader.
      *
@@ -31,6 +26,16 @@ public final class M3uParser {
      * @throws IOException If any error occurs reading the data
      */
     public static List<URL> parse(InputStream stream) throws IOException {
+        return parse(stream, null);
+    }
+
+    /**
+     * Parses URLs from a playlist and resolves relative entries against its location.
+     *
+     * @param stream      The playlist data
+     * @param playlistUri The playlist location, or {@code null} when entries must already be absolute
+     */
+    public static List<URL> parse(InputStream stream, URI playlistUri) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 
         List<String> lines = new LinkedList<>();
@@ -66,10 +71,10 @@ public final class M3uParser {
                 continue;
             }
 
-            if (line.startsWith("#EXT-X-MAP:URI=")) {
-                String url = line.substring(16, line.length() - 1);
+            if (line.startsWith("#EXT-X-MAP:")) {
+                String url = readAttribute(line, "URI");
                 try {
-                    entries.add(new URI(url).toURL());
+                    entries.add(resolve(playlistUri, url));
                 } catch (Exception e) {
                     throw new IOException("Failed to parse map URL: " + url, e);
                 }
@@ -82,8 +87,8 @@ public final class M3uParser {
                 if (!extendedHeader) {
                     throw new IOException("Invalid Header");
                 }
-                if (version != 6) {
-                    throw new IOException("Invalid M3u Version, expected 6, got " + version);
+                if (version > 7) {
+                    throw new IOException("Invalid M3u Version, expected at most 7, got " + version);
                 }
                 break;
             }
@@ -102,12 +107,40 @@ public final class M3uParser {
 
             // It's fine if these URLs have issues, just continue anyway
             try {
-                entries.add(new URI(line).toURL());
-            } catch (Exception e) {
-                LOGGER.warn("Could not parse as location: {}", line, e);
+                entries.add(resolve(playlistUri, line));
+            } catch (Exception ignored) {
+                // Ignore malformed segment locations and continue with the rest of the playlist.
             }
         }
 
         return entries;
+    }
+
+    private static URL resolve(URI playlistUri, String value) throws Exception {
+        URI entry = new URI(value);
+        return (playlistUri == null ? entry : playlistUri.resolve(entry)).toURL();
+    }
+
+    private static String readAttribute(String line, String name) throws IOException {
+        String marker = name + "=";
+        int start = line.indexOf(marker);
+        if (start < 0) {
+            throw new IOException("Missing " + name + " attribute");
+        }
+        start += marker.length();
+        if (start >= line.length()) {
+            throw new IOException("Empty " + name + " attribute");
+        }
+
+        if (line.charAt(start) == '"') {
+            int end = line.indexOf('"', start + 1);
+            if (end < 0) {
+                throw new IOException("Unterminated " + name + " attribute");
+            }
+            return line.substring(start + 1, end);
+        }
+
+        int end = line.indexOf(',', start);
+        return line.substring(start, end < 0 ? line.length() : end);
     }
 }

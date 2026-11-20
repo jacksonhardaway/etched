@@ -22,13 +22,13 @@ public final class AudioContentSniffer {
 
         if (!isSupportedAudio(header)) {
             input.close();
-            throw new IOException("Downloaded content is not a supported MP3, OGG, or WAV audio file");
+            throw new IOException("Downloaded content is not a supported MP3, OGG, WAV, AAC, or fMP4 audio file");
         }
         return input;
     }
 
     static boolean isSupportedAudio(byte[] header) {
-        return isOgg(header) || isWave(header) || isMp3(header);
+        return isOgg(header) || isWave(header) || isAdts(header) || isFragmentedMp4(header) || isMp3(header);
     }
 
     private static boolean isOgg(byte[] header) {
@@ -49,6 +49,29 @@ public final class AudioContentSniffer {
                 && header[9] == 'A'
                 && header[10] == 'V'
                 && header[11] == 'E';
+    }
+
+    private static boolean isAdts(byte[] header) {
+        if (header.length < 7) {
+            return false;
+        }
+        int second = Byte.toUnsignedInt(header[1]);
+        int sampleRateIndex = (Byte.toUnsignedInt(header[2]) >> 2) & 0x0F;
+        int frameLength = ((Byte.toUnsignedInt(header[3]) & 0x03) << 11)
+                | (Byte.toUnsignedInt(header[4]) << 3)
+                | (Byte.toUnsignedInt(header[5]) >> 5);
+        return Byte.toUnsignedInt(header[0]) == 0xFF
+                && (second & 0xF6) == 0xF0
+                && sampleRateIndex <= 12
+                && frameLength >= 7;
+    }
+
+    private static boolean isFragmentedMp4(byte[] header) {
+        return header.length >= 8
+                && header[4] == 'f'
+                && header[5] == 't'
+                && header[6] == 'y'
+                && header[7] == 'p';
     }
 
     private static boolean isMp3(byte[] header) {

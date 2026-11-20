@@ -17,6 +17,8 @@ class AudioContentSnifferTest {
     void recognizesCurrentAudioFormats() {
         assertTrue(AudioContentSniffer.isSupportedAudio(new byte[]{'O', 'g', 'g', 'S'}));
         assertTrue(AudioContentSniffer.isSupportedAudio(new byte[]{'R', 'I', 'F', 'F', 0, 0, 0, 0, 'W', 'A', 'V', 'E'}));
+        assertTrue(AudioContentSniffer.isSupportedAudio(new byte[]{(byte) 0xFF, (byte) 0xF1, 0x50, (byte) 0x80, 0x01, 0x1F, (byte) 0xFC}));
+        assertTrue(AudioContentSniffer.isSupportedAudio(new byte[]{0, 0, 0, 24, 'f', 't', 'y', 'p'}));
         assertTrue(AudioContentSniffer.isSupportedAudio(new byte[]{'I', 'D', '3'}));
         assertTrue(AudioContentSniffer.isSupportedAudio(new byte[]{(byte) 0xFF, (byte) 0xFB, (byte) 0x90, 0x00}));
     }

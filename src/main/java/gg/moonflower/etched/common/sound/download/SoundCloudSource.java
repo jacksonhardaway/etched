@@ -122,7 +122,7 @@ public class SoundCloudSource implements SoundDownloadSource {
                     JsonObject urlJson = JsonParser.parseReader(reader).getAsJsonObject();
                     if (format.isHls()) {
                         try (InputStream stream = this.get(GsonHelper.getAsString(urlJson, "url"), null, proxy, 0, false)) {
-                            return M3uParser.parse(stream);
+                            return M3uParser.parse(stream, new URI(GsonHelper.getAsString(urlJson, "url")));
                         }
                     } else {
                         return Collections.singletonList(new URI(GsonHelper.getAsString(urlJson, "url")).toURL());
@@ -135,10 +135,10 @@ public class SoundCloudSource implements SoundDownloadSource {
     }
 
     public enum Format {
-        OGG_PROGRESSIVE, MP3_PROGRESSIVE, OGG_HLS, MP3_HLS;
+        OGG_PROGRESSIVE, MP3_PROGRESSIVE, OGG_HLS, AAC_HLS, MP3_HLS;
 
         public boolean isHls() {
-            return this == OGG_HLS || this == MP3_HLS;
+            return this == OGG_HLS || this == AAC_HLS || this == MP3_HLS;
         }
 
         private static final Format[] FORMATS = values();
@@ -149,13 +149,16 @@ public class SoundCloudSource implements SoundDownloadSource {
                 return null;
             }
 
-            boolean mp3;
+            boolean mp3 = false;
+            boolean aac = false;
             String typeString = type.getAsString().toLowerCase(Locale.ROOT);
             if (typeString.startsWith("audio/ogg")) {
 //                mp3 = false;
                 return null;
             } else if (typeString.startsWith("audio/mpeg")) {
                 mp3 = true;
+            } else if (typeString.startsWith("audio/mp4") && typeString.contains("mp4a.40")) {
+                aac = true;
             } else {
                 return null;
             }
@@ -167,8 +170,8 @@ public class SoundCloudSource implements SoundDownloadSource {
 
             String protocolString = protocol.getAsString().toLowerCase(Locale.ROOT);
             return switch (protocolString) {
-                case "hls" -> mp3 ? MP3_HLS : OGG_HLS;
-                case "progressive" -> mp3 ? MP3_PROGRESSIVE : OGG_PROGRESSIVE;
+                case "hls" -> aac ? AAC_HLS : mp3 ? MP3_HLS : OGG_HLS;
+                case "progressive" -> aac ? null : mp3 ? MP3_PROGRESSIVE : OGG_PROGRESSIVE;
                 default -> null;
             };
         }

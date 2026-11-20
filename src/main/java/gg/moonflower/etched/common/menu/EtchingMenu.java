@@ -8,6 +8,7 @@ import gg.moonflower.etched.api.record.PlayableRecord;
 import gg.moonflower.etched.api.record.TrackData;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
 import gg.moonflower.etched.api.sound.download.SoundSourceManager;
+import gg.moonflower.etched.api.util.SafeHttpConnection;
 import gg.moonflower.etched.common.component.DiscAppearanceComponent;
 import gg.moonflower.etched.common.component.MusicLabelComponent;
 import gg.moonflower.etched.common.component.MusicTrackComponent;
@@ -157,24 +158,21 @@ public class EtchingMenu extends AbstractContainerMenu implements UrlMenu {
 
     private static void checkStatus(String url) throws IOException, URISyntaxException {
         URL uri = new URI(url).toURL();
-        HttpURLConnection httpURLConnection = (HttpURLConnection) uri.openConnection(Proxy.NO_PROXY);
-        if (!uri.getHost().equals("www.dropbox.com")) { // Hack for dropbox returning the wrong content type for head requests
-            httpURLConnection.setRequestMethod("HEAD");
-        }
-        httpURLConnection.setInstanceFollowRedirects(true);
-        Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
+        String method = "www.dropbox.com".equalsIgnoreCase(uri.getHost()) ? "GET" : "HEAD";
+        HttpURLConnection connection = SafeHttpConnection.open(uri, Proxy.NO_PROXY, method,
+                SoundDownloadSource.getDownloadHeaders(), 10_000, 15_000);
+        try {
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new IOException(connection.getResponseCode() + " " + connection.getResponseMessage());
+            }
 
-        for (Map.Entry<String, String> entry : map.entrySet()) {
-            httpURLConnection.setRequestProperty(entry.getKey(), entry.getValue());
-        }
-
-        if (httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new IOException(httpURLConnection.getResponseCode() + " " + httpURLConnection.getResponseMessage());
-        }
-
-        String contentType = httpURLConnection.getContentType();
-        if (!VALID_FORMATS.contains(CONTENT_TYPE_PATTERN.split(contentType.toLowerCase(Locale.ROOT))[0])) {
-            throw new IOException("Unsupported Content-Type: " + contentType);
+            String contentType = connection.getContentType();
+            if (contentType == null || !VALID_FORMATS.contains(CONTENT_TYPE_PATTERN.split(
+                    contentType.toLowerCase(Locale.ROOT))[0])) {
+                throw new IOException("Unsupported Content-Type: " + contentType);
+            }
+        } finally {
+            connection.disconnect();
         }
     }
 

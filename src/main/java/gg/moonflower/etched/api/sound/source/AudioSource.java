@@ -7,6 +7,7 @@ import gg.moonflower.etched.api.sound.metadata.IcyMetadataRegistry;
 import gg.moonflower.etched.api.util.AsyncInputStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
+import gg.moonflower.etched.api.util.SafeHttpConnection;
 import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +38,8 @@ public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
     long MAX_SIZE = 100 * 1024 * 1024; // 100MB
+    int CONNECT_TIMEOUT_MS = 10_000;
+    int READ_TIMEOUT_MS = 60_000;
 
     /**
      * @return The vanilla Minecraft client download headers
@@ -66,8 +70,8 @@ public interface AudioSource {
             progressListener.progressStartRequest(Component.translatable("resourcepack.requesting"));
         }
         try {
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            getDownloadHeaders().forEach(connection::setRequestProperty);
+            HttpURLConnection connection = SafeHttpConnection.open(url, Proxy.NO_PROXY, "GET", getDownloadHeaders(),
+                    CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
 
             int response = connection.getResponseCode();
             if (response != 200) {
@@ -205,11 +209,10 @@ public interface AudioSource {
      * connection when the returned stream is closed.
      */
     static InputStream openHttpStream(URL url) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        connection.setReadTimeout(READ_TIMEOUT_MS);
-        getDownloadHeaders().forEach(connection::setRequestProperty);
-        connection.setRequestProperty("Icy-MetaData", "1");
+        Map<String, String> headers = getDownloadHeaders();
+        headers.put("Icy-MetaData", "1");
+        HttpURLConnection connection = SafeHttpConnection.open(url, Proxy.NO_PROXY, "GET", headers,
+                CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
 
         int response = connection.getResponseCode();
         if (response != HttpURLConnection.HTTP_OK) {

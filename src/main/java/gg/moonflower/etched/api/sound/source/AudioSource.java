@@ -1,22 +1,24 @@
 package gg.moonflower.etched.api.sound.source;
 
-import com.mojang.util.UndashedUuid;
 import gg.moonflower.etched.api.sound.download.SoundDownloadSource;
+import gg.moonflower.etched.api.sound.metadata.IcyMetadataInputStream;
+import gg.moonflower.etched.api.sound.metadata.IcyMetadataRegistry;
 import gg.moonflower.etched.api.util.AsyncInputStream;
 import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.api.util.ProgressTrackingInputStream;
+import gg.moonflower.etched.api.util.SafeHttpConnection;
 import gg.moonflower.etched.client.sound.SoundCache;
 import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.User;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,16 +36,14 @@ public interface AudioSource {
 
     Logger LOGGER = LogManager.getLogger();
     long MAX_SIZE = 100 * 1024 * 1024; // 100MB
+    int CONNECT_TIMEOUT_MS = 10_000;
+    int READ_TIMEOUT_MS = 60_000;
 
     /**
-     * @return The vanilla Minecraft client download headers
+     * @return Generic download headers that do not identify the player
      */
     static Map<String, String> getDownloadHeaders() {
-        Map<String, String> map = SoundDownloadSource.getDownloadHeaders();
-        User user = Minecraft.getInstance().getUser();
-        map.put("X-Minecraft-Username", user.getName());
-        map.put("X-Minecraft-UUID", UndashedUuid.toString(user.getProfileId()));
-        return map;
+        return SoundDownloadSource.getDownloadHeaders();
     }
 
     static AsyncInputStream.InputStreamSupplier downloadTo(URL url, boolean temporary, @Nullable DownloadProgressListener progressListener, AudioFileType type) {
@@ -64,8 +64,8 @@ public interface AudioSource {
             progressListener.progressStartRequest(Component.translatable("resourcepack.requesting"));
         }
         try {
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            getDownloadHeaders().forEach(connection::setRequestProperty);
+            HttpURLConnection connection = SafeHttpConnection.open(url, Proxy.NO_PROXY, "GET", getDownloadHeaders(),
+                    CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
 
             int response = connection.getResponseCode();
             if (response != 200) {
@@ -196,6 +196,52 @@ public interface AudioSource {
             throw new CompletionException(e);
         }
         return () -> Files.newInputStream(path);
+    }
+
+    /**
+     * Opens a live HTTP stream with explicit timeouts and disconnects the underlying
+     * connection when the returned stream is closed.
+     */
+    static InputStream openHttpStream(URL url) throws IOException {
+        Map<String, String> headers = getDownloadHeaders();
+        headers.put("Icy-MetaData", "1");
+        HttpURLConnection connection = SafeHttpConnection.open(url, Proxy.NO_PROXY, "GET", headers,
+                CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
+
+        int response = connection.getResponseCode();
+        if (response != HttpURLConnection.HTTP_OK) {
+            String message = connection.getResponseMessage();
+            connection.disconnect();
+            throw new IOException("Failed to connect to " + url + ": " + response + ". " + message);
+        }
+
+        String key = url.toString();
+        IcyMetadataRegistry.begin(key, connection.getHeaderField("icy-name"));
+        int metadataInterval = 0;
+        String intervalHeader = connection.getHeaderField("icy-metaint");
+        if (intervalHeader != null) {
+            try {
+                metadataInterval = Integer.parseInt(intervalHeader);
+            } catch (NumberFormatException exception) {
+                LOGGER.debug("Ignoring invalid icy-metaint from {}: {}", url, intervalHeader);
+            }
+        }
+
+        InputStream input = connection.getInputStream();
+        InputStream audio = metadataInterval > 0
+                ? new IcyMetadataInputStream(input, metadataInterval,
+                title -> IcyMetadataRegistry.updateTitle(key, title))
+                : input;
+        return new FilterInputStream(audio) {
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    connection.disconnect();
+                }
+            }
+        };
     }
 
     /**

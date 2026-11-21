@@ -128,12 +128,23 @@ dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
     implementation "maven.modrinth:sophisticated-core:1.21.1-${sophisticated_core_version}"
 
+    testImplementation "org.junit.jupiter:junit-jupiter:5.12.1"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.12.1"
+
     jarJar(implementation("com.github.umjammer:jlayer")) {
         version {
             strictly '[1.0.0,)'
         }
     }
     additionalRuntimeClasspath("com.github.umjammer:jlayer:1.0.3")
+
+    jarJar(implementation("com.tianscar.javasound:jaad")) {
+        version {
+            strictly '[0.9.4,1.0)'
+            prefer '0.9.4'
+        }
+    }
+    additionalRuntimeClasspath("com.tianscar.javasound:jaad:0.9.4")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -181,6 +192,10 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 publishMods {

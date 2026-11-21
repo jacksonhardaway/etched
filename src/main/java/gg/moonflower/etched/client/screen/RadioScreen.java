@@ -1,5 +1,6 @@
 package gg.moonflower.etched.client.screen;
 
+import gg.moonflower.etched.api.sound.metadata.IcyMetadataRegistry;
 import gg.moonflower.etched.common.menu.RadioMenu;
 import gg.moonflower.etched.common.menu.UrlMenu;
 import gg.moonflower.etched.common.network.play.SetUrlPacket;
@@ -28,7 +29,7 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
 
     public RadioScreen(RadioMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
-        this.imageHeight = 39;
+        this.imageHeight = 61;
     }
 
     @Override
@@ -46,18 +47,25 @@ public class RadioScreen extends AbstractContainerScreen<RadioMenu> implements U
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> {
             PacketDistributor.sendToServer(new SetUrlPacket(this.url.getValue()));
             Minecraft.getInstance().player.closeContainer();
-        }).bounds((this.width - this.imageWidth) / 2, (this.height - this.imageHeight) / 2 + this.imageHeight + 5, this.imageWidth, 20).build());
+        }).bounds(this.leftPos, this.topPos + this.imageHeight + 5, this.imageWidth, 20).build());
     }
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, 39);
         guiGraphics.blit(TEXTURE, this.leftPos + 8, this.topPos + 18, 0, 39, 160, 14);
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
+        IcyMetadataRegistry.Metadata metadata = IcyMetadataRegistry.get(this.url.getValue());
+        if (!metadata.stationName().isEmpty()) {
+            guiGraphics.drawString(this.font, this.font.plainSubstrByWidth(metadata.stationName(), this.imageWidth), 0, 43, 0xFFFFFF, false);
+        }
+        if (!metadata.streamTitle().isEmpty()) {
+            guiGraphics.drawString(this.font, this.font.plainSubstrByWidth(metadata.streamTitle(), this.imageWidth), 0, 53, 0xFFA0A0A0, false);
+        }
     }
 
     @Override

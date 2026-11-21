@@ -23,12 +23,12 @@ public class RawAudioSource implements AudioSource {
 
     @Override
     public CompletableFuture<InputStream> openStream() {
-        return this.locationFuture.thenApply(stream -> {
+        return this.locationFuture.thenApplyAsync(stream -> {
             try {
                 return stream.open();
             } catch (Exception e) {
                 throw new CompletionException("Failed to open stream", e);
             }
-        });
+        }, Util.nonCriticalIoPool());
     }
 }

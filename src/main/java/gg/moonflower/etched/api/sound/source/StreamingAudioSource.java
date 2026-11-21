@@ -34,6 +34,6 @@ public class StreamingAudioSource implements AudioSource {
 
     @Override
     public CompletableFuture<InputStream> openStream() {
-        return this.downloadFuture.thenApply(StreamingInputStream::new);
+        return this.downloadFuture.thenApplyAsync(StreamingInputStream::new, Util.nonCriticalIoPool());
     }
 }

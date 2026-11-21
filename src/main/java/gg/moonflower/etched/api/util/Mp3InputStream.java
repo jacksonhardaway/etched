@@ -25,7 +25,7 @@ public class Mp3InputStream extends InputStream {
     public Mp3InputStream(InputStream source) throws IOException {
         this.stream = new Bitstream(source);
         this.decoder = new Decoder();
-        this.buffer = ByteBuffer.allocate(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
+        this.buffer = ByteBuffer.allocate(Short.BYTES * OBuffer.O_BUFFER_SIZE).order(ByteOrder.LITTLE_ENDIAN);
 
         if (this.fillBuffer()) {
             throw new IOException("Failed to find header");
@@ -55,8 +55,9 @@ public class Mp3InputStream extends InputStream {
 
             SampleBuffer decoderOutput = (SampleBuffer) this.decoder.decodeFrame(header, this.stream);
             short[] data = decoderOutput.getBuffer();
-            this.buffer.asShortBuffer().put(data);
-            this.buffer.position(data.length * Short.BYTES);
+            int sampleCount = decoderOutput.getBufferLength();
+            this.buffer.asShortBuffer().put(data, 0, sampleCount);
+            this.buffer.position(sampleCount * Short.BYTES);
             this.buffer.flip();
         } catch (Throwable t) {
             throw new IOException(t);

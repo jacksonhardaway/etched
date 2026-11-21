@@ -7,6 +7,7 @@ import gg.moonflower.etched.api.util.DownloadProgressListener;
 import gg.moonflower.etched.common.block.AlbumJukeboxBlock;
 import gg.moonflower.etched.common.block.RadioBlock;
 import gg.moonflower.etched.common.blockentity.AlbumJukeboxBlockEntity;
+import gg.moonflower.etched.common.blockentity.RadioBlockEntity;
 import gg.moonflower.etched.core.Etched;
 import gg.moonflower.etched.core.mixin.client.gui.GuiAccessor;
 import gg.moonflower.etched.core.mixin.client.render.LevelRendererAccessor;
@@ -33,12 +34,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
 
 /**
@@ -50,20 +51,117 @@ import java.util.function.DoubleSupplier;
 public class SoundTracker {
 
     private static final Int2ObjectArrayMap<SoundInstance> ENTITY_PLAYING_SOUNDS = new Int2ObjectArrayMap<>();
-    private static final Set<String> FAILED_URLS = new HashSet<>();
+    private static final Set<String> FAILED_URLS = ConcurrentHashMap.newKeySet();
+    private static final Map<RadioStreamKey, Long> RADIO_RETRY_AFTER = new ConcurrentHashMap<>();
     private static final Component RADIO = Component.translatable("sound_source." + Etched.MOD_ID + ".radio");
-    private static final Logger log = LoggerFactory.getLogger(SoundTracker.class);
+    private static final long RADIO_URL_CONFIRMATION_TIMEOUT_MS = 30_000L;
+    private static final long RADIO_RETRY_DELAY_MS = 5_000L;
+    private static @Nullable String pendingRadioUrl;
+    private static boolean pendingRadioUrlChanged;
+    private static long pendingRadioUrlDeadline;
+    private static int radioCleanupTicks;
+
+    private static void runOnClientThread(Runnable action) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.isSameThread()) {
+            action.run();
+        } else {
+            minecraft.execute(action);
+        }
+    }
 
     static {
-        NeoForge.EVENT_BUS.<ClientPlayerNetworkEvent.LoggingOut>addListener(event -> FAILED_URLS.clear());
+        NeoForge.EVENT_BUS.<ClientPlayerNetworkEvent.LoggingOut>addListener(event -> {
+            FAILED_URLS.clear();
+            RADIO_RETRY_AFTER.clear();
+            clearPendingRadioUrlConfirmation(null);
+            retireAllRadios();
+        });
+        NeoForge.EVENT_BUS.addListener(SoundTracker::onClientTickPost);
     }
 
     private static synchronized void setRecordPlayingNearby(CommonLevelAccessor level, BlockPos pos, boolean playing) {
-        if (level.getBlockState(pos).is(EtchedTags.RECORD_PLAYERS)) {
+        if (!playing || level.getBlockState(pos).is(EtchedTags.RECORD_PLAYERS)) {
             for (LivingEntity livingEntity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0D))) {
                 livingEntity.setRecordPlayingNearby(pos, playing);
             }
         }
+    }
+
+    private static void onClientTickPost(ClientTickEvent.Post event) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null || ++radioCleanupTicks < 20) {
+            return;
+        }
+
+        radioCleanupTicks = 0;
+        long now = System.currentTimeMillis();
+        RADIO_RETRY_AFTER.entrySet().removeIf(entry -> entry.getValue() <= now);
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingJukeboxSongs();
+        Iterator<Map.Entry<BlockPos, SoundInstance>> iterator = playingRecords.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<BlockPos, SoundInstance> entry = iterator.next();
+            if (!(entry.getValue() instanceof OnlineRecordSoundInstance onlineRecord) || !onlineRecord.isRadio()) {
+                continue;
+            }
+
+            BlockEntity blockEntity = minecraft.level.getBlockEntity(entry.getKey());
+            if (blockEntity instanceof RadioBlockEntity radio && Objects.equals(onlineRecord.getUrl(), radio.getUrl())) {
+                continue;
+            }
+
+            iterator.remove();
+            onlineRecord.retireRadio();
+            setRecordPlayingNearby(minecraft.level, entry.getKey(), false);
+        }
+    }
+
+    private static void retireAllRadios() {
+        Minecraft minecraft = Minecraft.getInstance();
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) minecraft.levelRenderer).getPlayingJukeboxSongs();
+        Iterator<Map.Entry<BlockPos, SoundInstance>> iterator = playingRecords.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<BlockPos, SoundInstance> entry = iterator.next();
+            if (entry.getValue() instanceof OnlineRecordSoundInstance onlineRecord && onlineRecord.isRadio()) {
+                iterator.remove();
+                onlineRecord.retireRadio();
+            }
+        }
+    }
+
+    private static void retireRadio(CommonLevelAccessor level, BlockPos pos, Map<BlockPos, SoundInstance> playingRecords) {
+        SoundInstance soundInstance = playingRecords.remove(pos);
+        if (soundInstance == null) {
+            return;
+        }
+
+        if (soundInstance instanceof StopListeningSound stopListeningSound) {
+            stopListeningSound.stopListening();
+        }
+        if (soundInstance instanceof OnlineRecordSoundInstance onlineRecord && onlineRecord.isRadio()) {
+            onlineRecord.retireRadio();
+        } else {
+            Minecraft.getInstance().getSoundManager().stop(soundInstance);
+        }
+        setRecordPlayingNearby(level, pos, false);
+    }
+
+    /**
+     * Retires the radio stream tracked at the specified position.
+     *
+     * <p>The sound is muted immediately while its network buffer is allowed to finish
+     * asynchronously, preserving the freeze-free shutdown behaviour.</p>
+     *
+     * @return whether a live radio stream was retired
+     */
+    public static boolean retireRadioStream(CommonLevelAccessor level, BlockPos pos) {
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance sound = playingRecords.get(pos);
+        if (!(sound instanceof OnlineRecordSoundInstance onlineRecord) || !onlineRecord.isRadio()) {
+            return false;
+        }
+        retireRadio(level, pos, playingRecords);
+        return true;
     }
 
     /**
@@ -164,6 +262,12 @@ public class SoundTracker {
      * @return A new sound instance
      */
     public static @Nullable AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, CommonLevelAccessor level, BlockPos pos, int attenuationDistance, AudioSource.AudioFileType type) {
+        return getEtchedRecord(url, title, level, pos, 4.0F, 2.0F, attenuationDistance, 2, type);
+    }
+
+    private static @Nullable AbstractOnlineSoundInstance getEtchedRecord(String url, Component title, CommonLevelAccessor level, BlockPos pos,
+                                                                         float volume, float muffledVolume, int attenuationDistance,
+                                                                         int muffledRangeDivisor, AudioSource.AudioFileType type) {
         if (!TrackData.isValidURL(url) || FAILED_URLS.contains(url)) {
             return null;
         }
@@ -172,7 +276,9 @@ public class SoundTracker {
         boolean muffled = aboveState.is(BlockTags.WOOL);
         boolean hidden = !aboveState.isAir();
 
-        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, muffled ? 2.0F : 4.0F, muffled ? attenuationDistance / 2 : attenuationDistance,
+        int effectiveDistance = muffled ? Math.max(1, attenuationDistance / muffledRangeDivisor) : attenuationDistance;
+        return new OnlineRecordSoundInstance(url, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F,
+                muffled ? muffledVolume : volume, effectiveDistance,
                 new MusicDownloadListener(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5) {
                     @Override
                     public void onSuccess() {
@@ -189,10 +295,140 @@ public class SoundTracker {
 
                     @Override
                     public void onFail() {
+                        this.clearComponent();
                         Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", title), true);
                         FAILED_URLS.add(url);
                     }
                 }, type);
+    }
+
+    private static @Nullable AbstractOnlineSoundInstance getRadioRecord(String url, Component title, CommonLevelAccessor level,
+                                                                        BlockPos pos, int volumePercent, int range,
+                                                                        AudioSource.AudioFileType type) {
+        float volume = Math.max(0, Math.min(100, volumePercent)) / 100.0F;
+        int clampedRange = Math.max(RadioBlockEntity.MIN_RANGE, Math.min(RadioBlockEntity.MAX_RANGE, range));
+        boolean muffled = level.getBlockState(pos.above()).is(BlockTags.WOOL);
+        float effectiveVolume = muffled ? volume * 0.5F : volume;
+        int effectiveRange = muffled ? Math.max(1, clampedRange / 4) : clampedRange;
+        RadioDownloadListener listener = new RadioDownloadListener(url, title, level, pos);
+        OnlineRecordSoundInstance record = new OnlineRecordSoundInstance(url,
+                pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F,
+                effectiveVolume, RadioBlockEntity.MAX_RANGE, listener, type);
+        listener.attach(record);
+        record.setRadioSettings(effectiveVolume, effectiveRange);
+        return record;
+    }
+
+    public static void updateRadioSettings(CommonLevelAccessor level, BlockPos pos, int volumePercent, int range) {
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance sound = playingRecords.get(pos);
+        if (sound instanceof OnlineRecordSoundInstance onlineRecord) {
+            float volume = Math.max(0, Math.min(100, volumePercent)) / 100.0F;
+            int clampedRange = Math.max(RadioBlockEntity.MIN_RANGE, Math.min(RadioBlockEntity.MAX_RANGE, range));
+            boolean muffled = level.getBlockState(pos.above()).is(BlockTags.WOOL);
+            onlineRecord.setRadioSettings(muffled ? volume * 0.5F : volume,
+                    muffled ? Math.max(1, clampedRange / 4) : clampedRange);
+        }
+    }
+
+    /**
+     * Mutes or unmutes an existing radio without destroying its live network stream.
+     *
+     * @return whether a live radio instance existed at this position
+     */
+    public static boolean setRadioMuted(CommonLevelAccessor level, BlockPos pos, boolean muted) {
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance sound = playingRecords.get(pos);
+        if (sound instanceof OnlineRecordSoundInstance onlineRecord) {
+            onlineRecord.setRadioMuted(muted);
+            if (muted) {
+                setRecordPlayingNearby(level, pos, false);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether this client still owns a usable stream for the radio at {@code pos}.
+     *
+     * <p>The block entity is persistent server state, while the sound instance only lives for the
+     * current client connection. Keeping the two separate is important: reconnecting to a server
+     * must create a fresh stream even when the radio's URL and powered state never changed.</p>
+     */
+    public static boolean hasRadioStream(BlockPos pos, @Nullable String url) {
+        Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        SoundInstance sound = playingRecords.get(pos);
+        return sound instanceof OnlineRecordSoundInstance onlineRecord
+                && onlineRecord.isRadio()
+                && onlineRecord.isUsableStream()
+                && (onlineRecord.isStreamConnecting()
+                || onlineRecord.isWithinActivationGracePeriod()
+                || Minecraft.getInstance().getSoundManager().isActive(sound))
+                && Objects.equals(onlineRecord.getUrl(), url);
+    }
+
+    /**
+     * Returns the squared distance between the client listener and a radio block center.
+     */
+    public static double getRadioListenerDistanceSquared(BlockPos pos) {
+        if (Minecraft.getInstance().player == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+        return Minecraft.getInstance().player.distanceToSqr(
+                pos.getX() + 0.5,
+                pos.getY() + 0.5,
+                pos.getZ() + 0.5
+        );
+    }
+
+    /**
+     * Requests a one-shot confirmation for the player currently editing a radio URL.
+     * Automatic stream starts never call this method and therefore remain silent.
+     */
+    public static synchronized void requestRadioUrlConfirmation(@Nullable String previousUrl, @Nullable String newUrl) {
+        if (newUrl == null || newUrl.isEmpty() || Objects.equals(previousUrl, newUrl)) {
+            clearPendingRadioUrlConfirmation(null);
+            return;
+        }
+
+        pendingRadioUrl = newUrl;
+        pendingRadioUrlChanged = previousUrl != null && !previousUrl.isEmpty();
+        pendingRadioUrlDeadline = System.currentTimeMillis() + RADIO_URL_CONFIRMATION_TIMEOUT_MS;
+    }
+
+    private static void confirmPendingRadioUrl(String url) {
+        Component confirmation;
+        synchronized (SoundTracker.class) {
+            if (!Objects.equals(pendingRadioUrl, url) || System.currentTimeMillis() > pendingRadioUrlDeadline) {
+                return;
+            }
+
+            confirmation = Component.translatable(pendingRadioUrlChanged
+                    ? "message.etched.radio.url_changed"
+                    : "message.etched.radio.url_saved");
+            pendingRadioUrl = null;
+            pendingRadioUrlDeadline = 0L;
+        }
+
+        Minecraft.getInstance().execute(() -> Minecraft.getInstance().gui.setOverlayMessage(confirmation, false));
+    }
+
+    private static synchronized void clearPendingRadioUrlConfirmation(@Nullable String url) {
+        if (url != null && !Objects.equals(pendingRadioUrl, url)) {
+            return;
+        }
+        pendingRadioUrl = null;
+        pendingRadioUrlDeadline = 0L;
+    }
+
+    private static synchronized boolean consumePendingRadioUrlFailure(String url) {
+        if (!Objects.equals(pendingRadioUrl, url) || System.currentTimeMillis() > pendingRadioUrlDeadline) {
+            return false;
+        }
+        pendingRadioUrl = null;
+        pendingRadioUrlDeadline = 0L;
+        return true;
     }
 
     /**
@@ -349,31 +585,43 @@ public class SoundTracker {
      * @param pos   The position of the jukebox
      */
     public static void playRadio(@Nullable String url, BlockState state, CommonLevelAccessor level, BlockPos pos) {
-        SoundManager soundManager = Minecraft.getInstance().getSoundManager();
         Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+        retireRadio(level, pos, playingRecords);
 
-        SoundInstance soundInstance = playingRecords.get(pos);
-        if (soundInstance != null) {
-            if (soundInstance instanceof StopListeningSound) {
-                ((StopListeningSound) soundInstance).stopListening();
-            }
-            soundManager.stop(soundInstance);
-            playingRecords.remove(pos);
-            setRecordPlayingNearby(level, pos, false);
-        }
-
-        if (FAILED_URLS.contains(url)) {
+        if (url == null) {
             return;
         }
+        RadioStreamKey streamKey = new RadioStreamKey(pos, url);
+        Long retryAfter = RADIO_RETRY_AFTER.get(streamKey);
+        if (retryAfter != null && retryAfter > System.currentTimeMillis()) {
+            return;
+        }
+        RADIO_RETRY_AFTER.remove(streamKey);
         if (!state.hasProperty(RadioBlock.POWERED) || state.getValue(RadioBlock.POWERED)) { // Something must already be playing since it would otherwise be -1 and a change would occur
             return;
         }
 
-        if (TrackData.isValidURL(url)) {
-            AbstractOnlineSoundInstance record = getEtchedRecord(url, RADIO, level, pos, 8, AudioSource.AudioFileType.BOTH);
-            record.setLoop(true); // If the sound is a file, then just continue looping that specific track
+        int volumePercent = RadioBlockEntity.DEFAULT_VOLUME_PERCENT;
+        int range = RadioBlockEntity.DEFAULT_RANGE;
+        if (level.getBlockEntity(pos) instanceof RadioBlockEntity radio) {
+            volumePercent = radio.getVolumePercent();
+            range = radio.getRange();
+        }
+
+        if (volumePercent > 0 && TrackData.isValidURL(url)) {
+            AbstractOnlineSoundInstance record = getRadioRecord(url, RADIO, level, pos, volumePercent, range, AudioSource.AudioFileType.BOTH);
+            if (record == null) {
+                return;
+            }
+            // A live radio stream is already endless. Marking it as a looping file makes
+            // Minecraft wrap the network stream in LoopingAudioStream and can limit playback
+            // to the initially buffered audio.
+            record.setLoop(false);
             playRecord(pos, record); // Get the new block state
         }
+    }
+
+    private record RadioStreamKey(BlockPos pos, String url) {
     }
 
     /**
@@ -491,6 +739,83 @@ public class SoundTracker {
         }
     }
 
+    /**
+     * Radio streams load silently in the background. The listener also owns the
+     * short retry cooldown, so one broken request cannot poison the URL for the
+     * entire client session.
+     */
+    private static final class RadioDownloadListener extends MusicDownloadListener {
+
+        private final String url;
+        private final Component title;
+        private final CommonLevelAccessor level;
+        private final BlockPos pos;
+        private final RadioStreamKey streamKey;
+        private @Nullable OnlineRecordSoundInstance record;
+
+        private RadioDownloadListener(String url, Component title, CommonLevelAccessor level, BlockPos pos) {
+            super(title, () -> pos.getX() + 0.5, () -> pos.getY() + 0.5, () -> pos.getZ() + 0.5);
+            this.url = url;
+            this.title = title;
+            this.level = level;
+            this.pos = pos;
+            this.streamKey = new RadioStreamKey(pos, url);
+        }
+
+        private void attach(OnlineRecordSoundInstance record) {
+            this.record = record;
+        }
+
+        @Override
+        public void progressStartRequest(Component component) {
+        }
+
+        @Override
+        public void progressStartDownload(float size) {
+        }
+
+        @Override
+        public void progressStagePercentage(int percentage) {
+        }
+
+        @Override
+        public void progressStartLoading() {
+        }
+
+        @Override
+        public void onSuccess() {
+            OnlineRecordSoundInstance currentRecord = this.record;
+            if (currentRecord == null) {
+                return;
+            }
+
+            Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+            if (playingRecords.get(this.pos) != currentRecord) {
+                return;
+            }
+
+            RADIO_RETRY_AFTER.remove(this.streamKey);
+            confirmPendingRadioUrl(this.url);
+            setRecordPlayingNearby(this.level, this.pos, true);
+        }
+
+        @Override
+        public void onFail() {
+            OnlineRecordSoundInstance currentRecord = this.record;
+            Map<BlockPos, SoundInstance> playingRecords = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getPlayingJukeboxSongs();
+            if (currentRecord != null && playingRecords.get(this.pos) == currentRecord) {
+                playingRecords.remove(this.pos);
+                currentRecord.retireRadio();
+                setRecordPlayingNearby(this.level, this.pos, false);
+            }
+
+            RADIO_RETRY_AFTER.put(this.streamKey, System.currentTimeMillis() + RADIO_RETRY_DELAY_MS);
+            if (consumePendingRadioUrlFailure(this.url)) {
+                Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
+            }
+        }
+    }
+
     private static abstract class MusicDownloadListener implements DownloadProgressListener {
 
         private final Component title;
@@ -529,27 +854,37 @@ public class SoundTracker {
         }
 
         protected void clearComponent() {
-            if (((GuiAccessor) Minecraft.getInstance().gui).getOverlayMessageString() == this.component) {
-                ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(60);
-                this.component = null;
-            }
+            runOnClientThread(() -> {
+                if (((GuiAccessor) Minecraft.getInstance().gui).getOverlayMessageString() == this.component) {
+                    ((GuiAccessor) Minecraft.getInstance().gui).setOverlayMessageTime(60);
+                    this.component = null;
+                }
+            });
         }
 
         @Override
         public void progressStartRequest(Component component) {
-            this.requesting = component;
-            this.setComponent(component);
+            runOnClientThread(() -> {
+                this.requesting = component;
+                this.setComponent(component);
+            });
         }
 
         @Override
         public void progressStartDownload(float size) {
-            this.size = size;
-            this.requesting = null;
-            this.progressStagePercentage(0);
+            runOnClientThread(() -> {
+                this.size = size;
+                this.requesting = null;
+                this.updateProgressComponent(0);
+            });
         }
 
         @Override
         public void progressStagePercentage(int percentage) {
+            runOnClientThread(() -> this.updateProgressComponent(percentage));
+        }
+
+        private void updateProgressComponent(int percentage) {
             if (this.requesting != null) {
                 this.setComponent(this.requesting.copy().append(" " + percentage + "%"));
             } else if (this.size != 0) {
@@ -560,13 +895,15 @@ public class SoundTracker {
 
         @Override
         public void progressStartLoading() {
-            this.requesting = null;
-            this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".loading", this.title));
+            runOnClientThread(() -> {
+                this.requesting = null;
+                this.setComponent(Component.translatable("record." + Etched.MOD_ID + ".loading", this.title));
+            });
         }
 
         @Override
         public void onFail() {
-            Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", this.title), true);
+            runOnClientThread(() -> Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("record." + Etched.MOD_ID + ".downloadFail", this.title), true));
         }
     }
 }

@@ -22,7 +22,7 @@ public class EtchedMessages {
 
     @SubscribeEvent
     public static void init(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("4");
+        PayloadRegistrar registrar = event.registrar("5");
 
         // Client
         registrar.playToClient(ClientboundInvalidEtchUrlPacket.TYPE, ClientboundInvalidEtchUrlPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handleSetInvalidEtch));
@@ -31,6 +31,7 @@ public class EtchedMessages {
 
         // Server
         registrar.playToServer(ServerboundEditMusicLabelPacket.TYPE, ServerboundEditMusicLabelPacket.CODEC, EtchedServerPlayPacketHandler::handleEditMusicLabel);
+        registrar.playToServer(SetRadioSettingsPacket.TYPE, SetRadioSettingsPacket.CODEC, EtchedServerPlayPacketHandler::handleSetRadioSettings);
 
         // Bidirectional
         registerBidirectional(registrar, SetAlbumJukeboxTrackPacket.TYPE, SetAlbumJukeboxTrackPacket.CODEC, clientHandler(() -> EtchedClientPlayPacketHandler::handleSetAlbumJukeboxTrack), EtchedServerPlayPacketHandler::handleSetAlbumJukeboxTrack);

@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.moddev' version '2.0.148'
-    id 'me.modmuss50.mod-publish-plugin' version '1.1.0'
+    id 'me.modmuss50.mod-publish-plugin' version '2.2.1'
 }
 
 
@@ -161,7 +161,7 @@ publishMods {
         clientRequired = true
         serverRequired = true
 
-        optional "sophisticated-core"
+        requires "sophisticated-core"
     }
 
     github {
@@ -183,7 +183,7 @@ publishMods {
         projectId = "zi3Fnfmc"
         minecraftVersions.add(minecraft_version)
 
-        optional "sophisticated-core"
+        requires "sophisticated-core"
     }
 
     dryRun = providers.environmentVariable("GITHUB_TOKEN").getOrNull() == null

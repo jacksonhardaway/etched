@@ -13,7 +13,7 @@ public final class EtchedCreativeTab {
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ETCHED_TAB = TABS.register("etched", () ->
             CreativeModeTab.builder()
-                    .title(Component.translatable("itemGroup." + Etched.MOD_ID + ".etched"))
+                    .title(Component.translatable("creative_tab.etched_main"))
                     .icon(() -> EtchedItems.ETCHED_MUSIC_DISC.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(EtchedItems.BLANK_MUSIC_DISC);

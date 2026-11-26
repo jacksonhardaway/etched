@@ -40,5 +40,6 @@
   "sound_source.etched.radio": "Radio Station",
   "sound_source.etched.requesting": "Requesting from %s...",
   "sound_source.etched.sound_cloud": "Provided by SoundCloud",
-  "subtitles.etched.ui.etching_table.take_result": "Etching Table used"
+  "subtitles.etched.ui.etching_table.take_result": "Etching Table used",
+  "creative_tab.etched_main": "Etched"
 }

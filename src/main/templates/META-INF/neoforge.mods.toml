@@ -26,6 +26,6 @@ versionRange = "${minecraft_version_range}"
 
 [[dependencies.${ mod_id }]]
 modId = "sophisticatedcore"
-type = "optional"
+type = "required"
 versionRange = "[1.4.2,)"
 ordering = "BEFORE"

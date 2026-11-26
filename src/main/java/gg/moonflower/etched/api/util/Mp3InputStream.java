@@ -15,6 +15,7 @@ import java.nio.ByteOrder;
  * @author Ocelot
  */
 public class Mp3InputStream extends InputStream {
+    private static final int OBUFFER_SIZE = 2 * 1152;
 
     private final Bitstream stream;
     private final Decoder decoder;
@@ -25,7 +26,7 @@ public class Mp3InputStream extends InputStream {
     public Mp3InputStream(InputStream source) throws IOException {
         this.stream = new Bitstream(source);
         this.decoder = new Decoder();
-        this.buffer = ByteBuffer.allocate(Short.BYTES * Obuffer.OBUFFERSIZE).order(ByteOrder.LITTLE_ENDIAN);
+        this.buffer = ByteBuffer.allocate(Short.BYTES * OBUFFER_SIZE).order(ByteOrder.LITTLE_ENDIAN);
 
         if (this.fillBuffer()) {
             throw new IOException("Failed to find header");

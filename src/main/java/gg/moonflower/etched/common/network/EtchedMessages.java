@@ -17,7 +17,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.util.function.Supplier;
 
-@EventBusSubscriber(modid = Etched.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Etched.MOD_ID)
 public class EtchedMessages {
 
     @SubscribeEvent

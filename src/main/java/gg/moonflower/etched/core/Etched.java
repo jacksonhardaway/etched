@@ -77,6 +77,7 @@ public class Etched {
         EtchedSounds.REGISTRY.register(bus);
         EtchedVillagers.POI_REGISTRY.register(bus);
         EtchedVillagers.PROFESSION_REGISTRY.register(bus);
+        EtchedCreativeTab.TABS.register(bus);
 
         container.registerConfig(ModConfig.Type.CLIENT, clientSpec);
         container.registerConfig(ModConfig.Type.SERVER, serverSpec);
